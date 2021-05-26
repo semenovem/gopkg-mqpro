@@ -1,0 +1,14 @@
+
+.*
+
+!.editorconfig
+!.gitignore
+!.gitattributes
+!.dockerignore
+!.gitmodules
+
+*.log
+*.swp
+
+build
+tmp
