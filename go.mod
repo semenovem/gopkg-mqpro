@@ -1,4 +1,4 @@
-module github.com/semenovem/pkg/mqpro2
+module github.com/semenovem/gopkg_mqpro
 
 go 1.15
 
