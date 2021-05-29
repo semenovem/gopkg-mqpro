@@ -8,7 +8,13 @@ import (
   "time"
 )
 
-var Log = logrus.NewEntry(logrus.New())
+var Log *logrus.Entry
+
+func init() {
+  l := logrus.New()
+  l.SetLevel(logrus.TraceLevel)
+  Log = logrus.NewEntry(l)
+}
 
 type Mqpro struct {
   rootCtx               context.Context

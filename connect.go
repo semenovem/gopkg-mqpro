@@ -53,7 +53,7 @@ func (p *Mqpro) waitConnAll(wg *sync.WaitGroup, conns []*Mqconn) {
 }
 
 func (p *Mqpro) Disconnect() {
-  Log.Trace("Request for disconnect...")
+  Log.Trace("Request disconnect...")
 
   if p.ctx == nil {
     Log.Trace("Already disconnected")

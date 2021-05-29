@@ -31,6 +31,7 @@ type envCfg struct {
   MQ1Priority string `env:"ENV_MQ_1_PRIORITY"`
 }
 
+// UseDefEnv для настройки использовать стандартные названия переменных
 func (p *Mqpro) UseDefEnv() {
   p.SetConn(getConnFromEnv()...)
 }

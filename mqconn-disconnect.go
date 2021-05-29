@@ -6,7 +6,7 @@ func (c *Mqconn) Disconnect() {
   if c.stateConn == stateDisconnect {
     return
   }
-  c.log.Trace("Request to disconnect...")
+  c.log.Trace("Request disconnect...")
   c.reqDisconnect()
 }
 

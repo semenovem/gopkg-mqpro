@@ -6,8 +6,9 @@ import (
   "strings"
 )
 
-func (c *Mqconn) Get() (*Msg, bool, error) {
-  _, ok, err := c.get(nil)
+// GetByMsgId Извлекает сообщение из очереди по его MsgId
+func (c *Mqconn) GetByMsgId(msgId []byte) (*Msg, bool, error) {
+  _, ok, err := c.get(msgId)
 
   //if err != nil {
   //  go func() {
@@ -17,13 +18,15 @@ func (c *Mqconn) Get() (*Msg, bool, error) {
 
   fmt.Println(">>>>>>> ........... ")
 
-
+  if msgId == nil {
+    return nil, false, nil
+  }
 
   return nil, ok, err
 }
 
 // получение сообщения
-func (c *Mqconn) get(msgId []byte) ([]byte, bool, error) {
+func (c *Mqconn) getByMsgId(msgId []byte) ([]byte, bool, error) {
   var datalen int
   var err error
 

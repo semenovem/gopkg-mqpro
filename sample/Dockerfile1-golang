@@ -1,0 +1,29 @@
+FROM tmp-base:latest
+WORKDIR /app
+COPY . .
+
+ENV ENV_API_PORT=80
+
+# Настройка соединения к IBM MQ - TODO только для разработки, переместить в docker-compose
+ENV ENV_MQ_0_HOST=mq0
+ENV ENV_MQ_0_PORT=1414
+ENV ENV_MQ_0_MGR=QM1
+ENV ENV_MQ_0_CHANNEL=DEV.APP.SVRCONN
+ENV ENV_MQ_0_PUT_QUEUE=DEV.QUEUE.1
+ENV ENV_MQ_0_GET_QUEUE=DEV.QUEUE.1
+#ENV ENV_MQ_0_BROWSE_QUEUE=DEV.QUEUE.3
+ENV ENV_MQ_0_APP=gopack.mqrpo.sample
+ENV ENV_MQ_0_USER=app
+ENV ENV_MQ_0_PASS=11
+
+
+#RUN GOROOT=/usr/local/go-1.16.4 \
+#  && cd /app/sample \
+#  && /usr/local/go-1.16.4/bin/go build -o app \
+#  && chmod +x /app/app
+#
+#FROM tmp-base:latest
+#WORKDIR /app
+#COPY --from=0 /app/app .
+#
+#CMD ./app

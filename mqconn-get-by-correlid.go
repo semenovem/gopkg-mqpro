@@ -5,9 +5,9 @@ import (
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
 )
 
-// GetByCorrelId получение сообщения
-func (c *Mqconn) GetByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
-  msg, ok, err := c.getByCorrelId(correlId, t)
+// GetByCorrelId Извлекает сообщение из очереди по его CorrelId
+func (c *Mqconn) GetByCorrelId(correlId []byte) (*Msg, bool, error) {
+  msg, ok, err := c.getByCorrelId(correlId)
   if err != nil {
     if HasConnBroken(err) {
       c.reqError()
@@ -20,7 +20,7 @@ func (c *Mqconn) GetByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
   return msg, ok, err
 }
 
-func (c *Mqconn) getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
+func (c *Mqconn) getByCorrelId(correlId []byte) (*Msg, bool, error) {
   l := c.log.WithField("correlId", fmt.Sprintf("%x", correlId))
 
   c.mxPut.Lock()
@@ -32,7 +32,7 @@ func (c *Mqconn) getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
     return nil, false, ErrNoConnection
   }
 
-  msg, ok, err := c._getByCorrelId(correlId, t)
+  msg, ok, err := c._getByCorrelId(correlId)
   if err != nil {
     c.log.Errorf("Failed to GET by correlId: %v", err)
     return nil, false, err
@@ -43,7 +43,7 @@ func (c *Mqconn) getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
   return msg, ok, err
 }
 
-func (c *Mqconn) _getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
+func (c *Mqconn) _getByCorrelId(correlId []byte) (*Msg, bool, error) {
   var datalen int
   var err error
 
@@ -53,7 +53,7 @@ func (c *Mqconn) _getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
   gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT
 
   gmo.Options |= ibmmq.MQGMO_WAIT
-  gmo.WaitInterval = int32(t) // The WaitInterval is in milliseconds
+  gmo.WaitInterval = int32(3 * 1000) // The WaitInterval is in milliseconds
   gmo.MatchOptions = ibmmq.MQMO_MATCH_CORREL_ID
   getmqmd.CorrelId = correlId
 
@@ -64,7 +64,7 @@ func (c *Mqconn) _getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
 
   getMsgHandle, err := c.mgr.CrtMH(cmho)
   if err != nil {
-    c.log.Error("getByCorrelId/CrtMH: ", err)
+    c.log.Error("Ошибка создания объекта свойств сообщения: ", err)
     return nil, false, err
   }
   defer DltMh(getMsgHandle, c.log)
@@ -86,7 +86,7 @@ func (c *Mqconn) _getByCorrelId(correlId []byte, t int) (*Msg, bool, error) {
       if mqret.MQRC == ibmmq.MQRC_NO_MSG_AVAILABLE {
         err = nil
       } else {
-        c.log.Error("getByCorrelId/GetSlice: ", err, "  len: ", datalen)
+        c.log.Error("Ошибка получения сообщения: ", err, "  len: ", datalen)
       }
 
       return nil, false, err

@@ -88,7 +88,7 @@ func (c *Mqconn) _browse(browseOption int32) (*Msg, error) {
 
   gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | browseOption | ibmmq.MQGMO_WAIT
   gmo.Options |= ibmmq.MQGMO_PROPERTIES_IN_HANDLE
-  gmo.WaitInterval = 1 * 100
+  gmo.WaitInterval = 3 * 1000
 
   cmho := ibmmq.NewMQCMHO()
   getMsgHandle, err := c.mgr.CrtMH(cmho)
