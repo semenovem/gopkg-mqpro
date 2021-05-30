@@ -2,19 +2,20 @@ package main
 
 import (
   "context"
+  "encoding/hex"
   "fmt"
   mqpro "github.com/semenovem/gopkg_mqpro"
   "net/http"
   "os"
   "os/signal"
+  "strconv"
   "syscall"
   "time"
 )
 
 var rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 var ibmmq = mqpro.New(rootCtx)
-var correlId = []byte{65, 77, 81, 32, 81, 77, 49, 32, 32, 32, 32, 32, 32, 32, 32, 32, 5,
-  179, 176, 96, 1, 183, 2, 6, 4}
+var correlId []byte
 
 func init() {
   go func() {
@@ -24,8 +25,17 @@ func init() {
     rootCtxCancel()
   }()
 
+  correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
+
+  //mqpro.Log
+
   http.HandleFunc("/", api404)
   http.HandleFunc("/put", putMsg)
+  http.HandleFunc("/get", getMsg)
+  http.HandleFunc("/putget", putGetMsg)
+  http.HandleFunc("/sub", onRegisterInMsg)
+  http.HandleFunc("/unsub", offRegisterInMsg)
+  http.HandleFunc("/browse", onBrowse)
 }
 
 func main() {
@@ -42,15 +52,32 @@ func main() {
     }
   }()
 
+  // api
   go func() {
-    err := http.ListenAndServe(":8080", nil)
+    p, err := strconv.Atoi(os.Getenv("ENV_API_PORT"))
+    if err != nil {
+      fmt.Println("not set correct ENV_API_PORT: ", err)
+      panic("")
+    }
+
+    fmt.Println()
+    err = http.ListenAndServe(fmt.Sprintf(":%d", p), nil)
     fmt.Println("ListenAndServe: ", err)
   }()
 
   <-rootCtx.Done()
-  time.Sleep(time.Second * 2)
+  time.Sleep(time.Second * 1)
 }
 
 func api404(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "404\n")
+}
+
+func logMsg(msg *mqpro.Msg) {
+  fmt.Println("\n--------------------------------")
+  fmt.Println("Получили сообщение:")
+  fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
+  fmt.Printf(">>>>> msg.Props    = %+v\n", msg.Props)
+  fmt.Printf(">>>>> msg.CorrelId = %x\n", msg.CorrelId)
+  fmt.Printf(">>>>> msg.MsgId    = %x\n", msg.MsgId)
 }

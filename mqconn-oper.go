@@ -1,6 +1,6 @@
 package mqpro
 
-import "github.com/ibm-messaging/mq-golang/ibmmq"
+import "github.com/ibm-messaging/mq-golang/v5/ibmmq"
 
 func (c *Mqconn) Type() TypeConn {
 	return c.typeConn

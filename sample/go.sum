@@ -5,8 +5,6 @@ github.com/ibm-messaging/mq-golang/v5 v5.2.0 h1:QiE36ZKysi6Kvlwg9cLXcKHSKJsRNrEf
 github.com/ibm-messaging/mq-golang/v5 v5.2.0/go.mod h1:ywCwmYbJOU/E0rl+z4GiNoxVMty68O+LVO39a1VMXrE=
 github.com/matryer/is v1.4.0/go.mod h1:8I/i5uYgLzgsgEloJE1U6xx5HkBQpAZvepWuujKwMRU=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/semenovem/gopkg_mqpro v1.0.2 h1:0bjpIcjDG0Mf7UbKKtnrOpelnJM7mvym64AgSdcDJTo=
-github.com/semenovem/gopkg_mqpro v1.0.2/go.mod h1:p20ywqHEOphy5YWuSMOTcEMsoctLg5PH5wjFibEmUzA=
 github.com/sirupsen/logrus v1.8.1 h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=
 github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=

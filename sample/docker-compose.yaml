@@ -18,9 +18,9 @@ x-base: &base
 
 
 services:
-#  sample:
-#    <<: *base
-#    image: pkg-mqpro-sample:1.0
+  #  sample:
+  #    <<: *base
+  #    image: pkg-mqpro-sample:1.0
 
 
   mq0:
