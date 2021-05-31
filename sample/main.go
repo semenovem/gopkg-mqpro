@@ -27,8 +27,6 @@ func init() {
 
   correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
 
-  //mqpro.Log
-
   http.HandleFunc("/", api404)
   http.HandleFunc("/put", putMsg)
   http.HandleFunc("/get", getMsg)

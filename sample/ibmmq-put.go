@@ -14,7 +14,7 @@ import (
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
 
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*60)
   defer cancel()
 
   // Свойства сообщения

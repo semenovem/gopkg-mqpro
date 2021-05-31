@@ -11,8 +11,8 @@ import (
 //
 // curl localhost:8080/get
 func getMsg(w http.ResponseWriter, _ *http.Request) {
-
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  fmt.Println("Получение сообщения из IBM MQ")
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*60)
   defer cancel()
 
   msg, ok, err := ibmmq.Get(ctx)
