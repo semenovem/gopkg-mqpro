@@ -28,6 +28,7 @@ type Mqpro struct {
   mx                    sync.Mutex    // подключение / отключение
   delayBeforeDisconnect time.Duration // Задержка перед разрывом соединения
   reconnDelay           time.Duration // Задержка при повторных попытках подключения к MQ
+  log                   *logrus.Entry
 }
 
 const (
@@ -42,6 +43,9 @@ var (
 )
 
 func New(rootCtx context.Context) *Mqpro {
+  l := logrus.New()
+  l.SetLevel(logrus.TraceLevel)
+
   return &Mqpro{
     rootCtx:               rootCtx,
     delayBeforeDisconnect: defDisconnDelay,
@@ -70,4 +74,8 @@ func (p *Mqpro) SetConn(connLi ...*Mqconn) {
       conn.RegisterEventInMsg(p.fnEventInMsg)
     }
   }
+}
+
+func (p *Mqpro) SetLogger(l *logrus.Entry) {
+  Log = l
 }
