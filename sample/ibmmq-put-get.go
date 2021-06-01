@@ -8,8 +8,7 @@ import (
 )
 
 // положить / считать сообщение из очереди
-//
-// curl localhost:8080/putget
+// curl host:port/putget
 func putGetMsg(w http.ResponseWriter, _ *http.Request) {
   time.Sleep(time.Second * 2)
 

@@ -10,7 +10,7 @@ import (
 
 // Отправляет сообщение в очередь
 //
-// curl localhost:8080/put
+// curl host:port/put
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
 

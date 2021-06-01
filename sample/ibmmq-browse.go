@@ -6,6 +6,7 @@ import (
 )
 
 // Просмотр сообщений в очереди
+// curl host:port/browse
 func onBrowse(w http.ResponseWriter, _ *http.Request) {
   ch, err := ibmmq.Browse(rootCtx)
   if err != nil {

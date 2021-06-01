@@ -7,8 +7,7 @@ import (
 )
 
 // Подписка на входящие сообщения
-//
-// curl localhost:8080/sub
+// curl host:port/sub
 func onRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Включено получение сообщений из очереди")
   ibmmq.RegisterEvenInMsg(handlerInMsg)
@@ -17,7 +16,7 @@ func onRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
 }
 
 // Отписаться
-// curl localhost:8080/unsub
+// curl host:port/unsub
 func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отключено получение входящих сообщений")
   ibmmq.UnregisterEvenInMsg()

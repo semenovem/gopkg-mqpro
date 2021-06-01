@@ -8,8 +8,7 @@ import (
 )
 
 // Получает сообщение из очереди
-//
-// curl localhost:8080/get
+// curl host:port/get
 func getMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Получение сообщения из IBM MQ")
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*60)

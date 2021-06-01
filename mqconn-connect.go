@@ -74,21 +74,49 @@ func (c *Mqconn) _connectMgr() error {
     return nil
   }
   cd := ibmmq.NewMQCD()
+  cno := ibmmq.NewMQCNO()
+  csp := ibmmq.NewMQCSP()
+
   cd.ChannelName = c.cfg.ChannelName
   cd.ConnectionName = c.endpoint()
+
+  cno.SecurityParms = csp
+  cno.ClientConn = cd
+  cno.Options = ibmmq.MQCNO_CLIENT_BINDING
+  cno.ApplName = c.cfg.AppName
 
   // TODO - в настройки
   cd.MaxMsgLength = 104857600
 
-  csp := ibmmq.NewMQCSP()
-  csp.AuthenticationType = ibmmq.MQCSP_AUTH_USER_ID_AND_PWD
-  csp.UserId = c.cfg.User
-  csp.Password = c.cfg.Pass
-  cno := ibmmq.NewMQCNO()
-  cno.ClientConn = cd
-  cno.Options = ibmmq.MQCNO_CLIENT_BINDING
-  cno.ApplName = c.cfg.AppName
-  cno.SecurityParms = csp
+  // -------------------------
+  //sco := ibmmq.NewMQSCO()
+  //
+  //cno.SSLConfig = sco
+  //
+  //// TLS
+  //// The CipherSpec must match what is configured on the corresponding SVRCONN
+  //cd.SSLCipherSpec = "TLS_RSA_WITH_AES_128_CBC_SHA256"
+  //
+  //// The ClientAuth field says whether or not the client needs to present its own certificate
+  //// This too must match the SVRCONN definition.
+  //cd.SSLClientAuth = ibmmq.MQSCA_OPTIONAL
+  //
+  //// The keystore contains at least the certificate to verify the qmgr's cert (usually from
+  //// a Certificate Authority) and optionally the client's own certificate.
+  //// We could also optionally specify which certificate represents the client, based on its label
+  //// but don't need to do this when using the MQSCA_OPTIONAL flag.
+  //sco.KeyRepository = "./crypto/client-prv-key.pem"
+  ////sco.CryptoHardware
+  // -------------------------
+
+  if c.cfg.User == "" {
+    csp.AuthenticationType = ibmmq.MQCSP_AUTH_NONE
+  } else {
+    csp.AuthenticationType = ibmmq.MQCSP_AUTH_USER_ID_AND_PWD
+    csp.UserId = c.cfg.User
+    csp.Password = c.cfg.Pass
+  }
+
   mgr, err := ibmmq.Connx(c.cfg.MgrName, cno)
   if err != nil {
     return err

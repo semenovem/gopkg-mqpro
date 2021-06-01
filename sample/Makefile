@@ -32,8 +32,8 @@ install:
 docker:
 	@docker build \
 		--no-cache \
- 		-f ./Dockerfile1-golang \
- 		-t "$(IMG)" ..
+ 		-f ./Dockerfile \
+ 		-t "$(IMG)" .
 
 
 ## ibmmq
@@ -48,7 +48,29 @@ ibmmq:
 		--env MQ_ADMIN_PASSWORD=22 \
 		--env MQ_APP_PASSWORD=11 \
 		--env MQ_ENABLE_METRICS=true \
+		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
 		--publish 9443:9443 \
+    ibmcom/mq:9.2.2.0-r1
+
+
+## ibmmqtls
+.PHONY: ibmmqtls
+ibmmqtls:
+	@docker run -it --rm \
+		--name pkg-mqpro-sample-ibmmq \
+		--network $(NETWORK) \
+		--hostname mq0 \
+		--env LICENSE=accept \
+		--env MQ_QMGR_NAME=QM1 \
+		--env MQ_ADMIN_PASSWORD=22 \
+		--env MQ_APP_PASSWORD=11 \
+		--env MQ_ENABLE_METRICS=true \
+		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
+		--publish 9443:9443 \
+		-v "${PWD}/crypto/ibmmq-prv-key.pem:/etc/mqm/pki/keys/mykey/tls.key:ro" \
+		-v "${PWD}/crypto/ibmmq-cert.pem:/etc/mqm/pki/keys/mykey/tls.crt:ro" \
+		-v "${PWD}/crypto/ibmmq-cacert.pem:/etc/mqm/pki/keys/mykey/ca.crt:ro" \
+		-v "${PWD}/crypto/client-cacert.pem:/etc/mqm/pki/trust/0/tls.crt:ro" \
     ibmcom/mq:9.2.2.0-r1
 
 
@@ -59,6 +81,7 @@ dev:
 		--name sample \
 		--hostname sample \
 		--network $(NETWORK) \
+		--env ENV_LOG_LEVEL=debug \
 		--env ENV_API_PORT=80 \
 		--env ENV_MQ_0_HOST=mq0 \
 		--env ENV_MQ_0_PORT=1414 \
@@ -71,6 +94,12 @@ dev:
 		--env ENV_MQ_0_USER=app \
 		--env ENV_MQ_0_PASS=11 \
 		-w /app/sample \
-		-v `pwd`/..:/app:rw \
+		-v "${PWD}/..:/app:rw" \
 		"$(IMG)" go run *.go
 
+
+## curl - контейнер, присоединенный к сети, для выполнения curl запросов
+.PHONY: curl
+curl:
+	@docker run -it --rm --network $(NETWORK) ubuntu:20.04 sh -c \
+     "apt update && apt install -y curl && echo '| Для выхода из контейнера ctrl+D' && bash"

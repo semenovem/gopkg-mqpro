@@ -5,6 +5,7 @@ import (
   "encoding/hex"
   "fmt"
   mqpro "github.com/semenovem/gopkg_mqpro"
+  "github.com/sirupsen/logrus"
   "net/http"
   "os"
   "os/signal"
@@ -34,6 +35,16 @@ func init() {
   http.HandleFunc("/sub", onRegisterInMsg)
   http.HandleFunc("/unsub", offRegisterInMsg)
   http.HandleFunc("/browse", onBrowse)
+
+  lev, err := logrus.ParseLevel(os.Getenv("ENV_LOG_LEVEL"))
+  if err == nil {
+    l := logrus.New()
+    l.SetLevel(lev)
+
+    mqpro.Log = logrus.NewEntry(l)
+
+    //mqpro.SetLogger(logrus.NewEntry(l))
+  }
 }
 
 func main() {

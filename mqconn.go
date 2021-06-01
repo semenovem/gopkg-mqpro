@@ -41,6 +41,9 @@ type Cfg struct {
 	User        string
 	Pass        string
 	Priority    string
+
+	Tls bool
+
 }
 
 type TypeConn int
