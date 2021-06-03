@@ -2,9 +2,11 @@
 
 go get
 
+export GOROOT=/usr/local/go-1.16.4
+
 while true; do
 
-  go run *.go
+  /usr/local/go-1.16.4/bin/go run *.go
 
   echo
   echo "###########################################################"

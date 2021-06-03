@@ -9,7 +9,6 @@ import (
 )
 
 // Отправляет сообщение в очередь
-//
 // curl host:port/put
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
@@ -23,9 +22,17 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
     "anotherProp": "... another prop",
   }
 
+  size := 1024*1024*4 + 1
+  b := make([]byte, size)
+
+  for i := 0; i < size; i ++ {
+    b[i] = byte(i)
+  }
+
   msg := &mqpro.Msg{
-    Payload: []byte("Sending a message to IBM MQ"),
-    Props:   props,
+    Payload: b,
+    //Payload: []byte("Sending a message to IBM MQ"),
+    Props: props,
   }
 
   msgId, err := ibmmq.Put(ctx, msg)
