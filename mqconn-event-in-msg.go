@@ -39,24 +39,21 @@ func (c *Mqconn) _registerEventInMsg() error {
     return err
   }
 
+  cbd := ibmmq.NewMQCBD()
   gmo := ibmmq.NewMQGMO()
-  gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_WAIT
-  gmo.Options |= ibmmq.MQGMO_PROPERTIES_IN_HANDLE
-  gmo.WaitInterval = c.cfg.WaitInterval
+  getmqmd := ibmmq.NewMQMD()
+  ctlo := ibmmq.NewMQCTLO()
+
+  gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
   gmo.MsgHandle = mh
 
-  cbd := ibmmq.NewMQCBD()
-
-  //cbd.CallbackFunction = c.fnInMsg
   cbd.CallbackFunction = c.handlerInMsg
 
-  getmqmd := ibmmq.NewMQMD()
   err = c.que.CB(ibmmq.MQOP_REGISTER, cbd, getmqmd, gmo)
   if err != nil {
     return err
   }
 
-  ctlo := ibmmq.NewMQCTLO()
   err = c.mgr.Ctl(ibmmq.MQOP_START, ctlo)
   if err != nil {
     return err

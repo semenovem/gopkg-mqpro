@@ -71,12 +71,6 @@ ibmmqtls:
     ibmcom/mq:9.2.2.0-r1
 
 
-#		-v "${PWD}/crypto/ibmmq-prv-key.pem:/etc/mqm/pki/keys/mykey/tls.key:ro" \
-#		-v "${PWD}/crypto/ibmmq-cert.pem:/etc/mqm/pki/keys/mykey/tls.crt:ro" \
-#		-v "${PWD}/crypto/ibmmq-cacert.pem:/etc/mqm/pki/keys/mykey/ca.crt:ro" \
-#		-v "${PWD}/crypto/client-cacert.pem:/etc/mqm/pki/trust/0/tls.crt:ro" \
-
-
 ## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
 .PHONY: dev
 dev:
@@ -91,8 +85,8 @@ dev:
 		--env ENV_MQ_0_MGR=QM1 \
 		--env ENV_MQ_0_CHANNEL=DEV.APP.SVRCONN \
 		--env ENV_MQ_0_PUT_QUEUE=DEV.QUEUE.1 \
-		--env __ENV_MQ_0_GET_QUEUE=DEV.QUEUE.1 \
-		--env __ENV_MQ_0_BROWSE_QUEUE=DEV.QUEUE.1 \
+		--env ENV_MQ_0_GET_QUEUE=DEV.QUEUE.1 \
+		--env ENV_MQ_0_BROWSE_QUEUE=DEV.QUEUE.1 \
 		--env ENV_MQ_0_APP=gopack.mqrpo.sample \
 		--env ENV_MQ_0_USER=app \
 		--env ENV_MQ_0_PASS=11 \

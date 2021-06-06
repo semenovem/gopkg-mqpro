@@ -17,6 +17,7 @@ import (
 var rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 var ibmmq = mqpro.New(rootCtx)
 var correlId []byte
+var correlId2 []byte
 
 func init() {
   go func() {
@@ -27,6 +28,7 @@ func init() {
   }()
 
   correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
+  correlId2, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480444")
 
   http.HandleFunc("/", api404)
   http.HandleFunc("/put", putMsg)
@@ -35,15 +37,17 @@ func init() {
   http.HandleFunc("/sub", onRegisterInMsg)
   http.HandleFunc("/unsub", offRegisterInMsg)
   http.HandleFunc("/browse", onBrowse)
+  http.HandleFunc("/correl", getMsgByCorrelId)
 
   lev, err := logrus.ParseLevel(os.Getenv("ENV_LOG_LEVEL"))
   if err == nil {
     l := logrus.New()
     l.SetLevel(lev)
 
-    mqpro.Log = logrus.NewEntry(l)
+    //// TODO don't commit it
+    //l.SetLevel(logrus.TraceLevel)
 
-    //mqpro.SetLogger(logrus.NewEntry(l))
+    ibmmq.SetLogger(logrus.NewEntry(l).WithField("pkg", "mqpro"))
   }
 }
 
@@ -85,7 +89,9 @@ func api404(w http.ResponseWriter, r *http.Request) {
 func logMsg(msg *mqpro.Msg) {
   fmt.Println("\n--------------------------------")
   fmt.Println("Получили сообщение:")
-  fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
+  if len(msg.Payload) < 1024 {
+    fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
+  }
   fmt.Printf(">>>>> msg.Props    = %+v\n", msg.Props)
   fmt.Printf(">>>>> msg.CorrelId = %x\n", msg.CorrelId)
   fmt.Printf(">>>>> msg.MsgId    = %x\n", msg.MsgId)

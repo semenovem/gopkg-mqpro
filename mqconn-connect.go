@@ -47,12 +47,13 @@ func (c *Mqconn) connect() error {
   default:
     c.log.Panic("Unknown connection type")
   }
-  c.log.Info("Opened the queue")
 
   if err != nil {
     c.log.Errorf("Failed attempt to open queue: %v", err)
     return err
   }
+
+  c.log.Info("Opened the queue")
 
   if c.fnInMsg != nil {
     err := c.registerEventInMsg()

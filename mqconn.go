@@ -1,7 +1,6 @@
 package mqpro
 
 import (
-  "errors"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "github.com/sirupsen/logrus"
   "sync"
@@ -9,20 +8,21 @@ import (
 )
 
 type Mqconn struct {
-  cfg            Cfg
-  log            *logrus.Entry
-  typeConn       TypeConn              // тип подключения
-  mgr            *ibmmq.MQQueueManager // Менеджер очереди
-  que            *ibmmq.MQObject       // Объект открытой очереди
-  mx             sync.Mutex
-  stateConn      stateConn
-  chMgr          chan reqStateConn
-  fnInMsg        func(*Msg)               // подписка на входящие сообщения
-  ctlo           *ibmmq.MQCTLO            // объект подписки ibmmq
-  fnsConn        map[uint32]chan struct{} // подписки на установку соединения
-  fnsDisconn     map[uint32]chan struct{} // подписки на закрытие соединения
-  ind            uint32                   // простой атомарный счетчик
-  reconnectDelay time.Duration            // таймаут попыток повторного подключения
+  cfg             *Cfg
+  log             *logrus.Entry
+  typeConn        TypeConn              // тип подключения
+  mgr             *ibmmq.MQQueueManager // Менеджер очереди
+  que             *ibmmq.MQObject       // Объект открытой очереди
+  mx              sync.Mutex
+  stateConn       stateConn
+  chMgr           chan reqStateConn
+  fnInMsg         func(*Msg)               // подписка на входящие сообщения
+  ctlo            *ibmmq.MQCTLO            // объект подписки ibmmq
+  fnsConn         map[uint32]chan struct{} // подписки на установку соединения
+  fnsDisconn      map[uint32]chan struct{} // подписки на закрытие соединения
+  ind             uint32                   // простой атомарный счетчик
+  reconnectDelay  time.Duration            // таймаут попыток повторного подключения
+  msgWaitInterval time.Duration            // Ожидание сообщения
 
   // менеджер imbmq одновременно может отправлять/принимать одно сообщение
   mxPut    sync.Mutex
@@ -45,7 +45,6 @@ type Cfg struct {
   Tls              bool
   KeyRepository    string
   CertificateLabel string
-  WaitInterval     int32 // The WaitInterval is in milliseconds
 }
 
 type TypeConn int
@@ -57,9 +56,9 @@ const (
   TypePut TypeConn = iota + 1
   TypeGet
   TypeBrowse
-  defReconnectDelay = time.Second * 3
-  defWaitInterval   = 1000 * 3
-  defMaxMsgLength   = 1024 * 1024 * 100
+  defReconnectDelay  = time.Second * 3
+  defMaxMsgLength    = 1024 * 1024 * 100
+  defMsgWaitInterval = time.Millisecond * 100
 )
 
 const (
@@ -78,13 +77,14 @@ const (
   operGet queueOper = iota
   operGetByMsgId
   operGetByCorrelId
-  operPut
+  operBrowseFirst
+  operBrowseNext
 )
 
 var typeConnTxt = map[TypeConn]string{
-  TypePut:    "TypePut",
-  TypeGet:    "TypeGet",
-  TypeBrowse: "TypeBrowse",
+  TypePut:    "put",
+  TypeGet:    "get",
+  TypeBrowse: "browse",
 }
 
 type Msg struct {
@@ -93,10 +93,3 @@ type Msg struct {
   Payload  []byte
   Props    map[string]interface{}
 }
-
-var (
-  ErrConnBroken = errors.New("ibm mq conn: connection broken")
-  ErrPutMsg     = errors.New("ibm mq: failed to put message")
-  ErrGetMsg     = errors.New("ibm mq: failed to get message")
-  ErrBrowseMsg  = errors.New("ibm mq: failed to browse message")
-)

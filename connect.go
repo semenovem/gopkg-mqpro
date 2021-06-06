@@ -14,10 +14,10 @@ func (p *Mqpro) Connect() error {
   p.ctx = ctx
   p.ctxCancel = cancel
 
-  Log.Trace("Request to establish connection to IBM MQ...")
+  p.log.Trace("Request to establish connection to IBM MQ...")
 
   if len(p.conns) == 0 {
-    Log.Error(ErrNoData)
+    p.log.Error(ErrNoData)
     return ErrNoData
   }
 
@@ -53,10 +53,10 @@ func (p *Mqpro) waitConnAll(wg *sync.WaitGroup, conns []*Mqconn) {
 }
 
 func (p *Mqpro) Disconnect() {
-  Log.Trace("Request disconnect...")
+  p.log.Trace("Request disconnect...")
 
   if p.ctx == nil {
-    Log.Trace("Already disconnected")
+    p.log.Trace("Already disconnected")
     return
   }
   if p.ctx.Err() != nil {
@@ -77,7 +77,7 @@ func (p *Mqpro) Disconnect() {
   case <-p.waitDisconn():
   case <-time.After(p.delayBeforeDisconnect):
   }
-  Log.Info("Disconnected")
+  p.log.Info("Disconnected")
 }
 
 func (p *Mqpro) waitConnPut() <-chan struct{} {
@@ -94,7 +94,7 @@ func (p *Mqpro) waitConnBrowse() <-chan struct{} {
 
 func (p *Mqpro) waitConn(conns []*Mqconn) <-chan struct{} {
   if len(conns) == 0 {
-    Log.Panic(ErrNoConnection)
+    p.log.Panic(ErrNoConnection)
   }
 
   cc := make(chan struct{})

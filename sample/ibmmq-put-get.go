@@ -1,6 +1,7 @@
 package main
 
 import (
+  "context"
   "fmt"
   mqpro "github.com/semenovem/gopkg_mqpro"
   "net/http"
@@ -10,7 +11,9 @@ import (
 // положить / считать сообщение из очереди
 // curl host:port/putget
 func putGetMsg(w http.ResponseWriter, _ *http.Request) {
-  time.Sleep(time.Second * 2)
+
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  defer cancel()
 
   // Свойства сообщения
   props := map[string]interface{}{
@@ -27,7 +30,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
 
   fmt.Println("\n--------------------------------")
   fmt.Printf("Отправляет сообщение в очередь с установленным correlId:\n")
-  _, err := ibmmq.Put(rootCtx, msg)
+  _, err := ibmmq.Put(ctx, msg)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -35,7 +38,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
 
   fmt.Println("\n--------------------------------")
   fmt.Printf("Получает сообщение по correlId = %x\n", correlId)
-  msg, ok, err := ibmmq.GetByCorrelId(rootCtx, correlId)
+  msg, ok, err := ibmmq.GetByCorrelId(ctx, correlId)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -59,7 +62,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
   }
   fmt.Println("\n--------------------------------")
   fmt.Printf("Отправляет сообщение в очередь:\n")
-  msgId, err := ibmmq.Put(rootCtx, msg)
+  msgId, err := ibmmq.Put(ctx, msg)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -67,7 +70,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
 
   fmt.Println("\n--------------------------------")
   fmt.Printf("Получает сообщение по msgId = %x\n", msgId)
-  msg, ok, err = ibmmq.GetByMsgId(rootCtx, msgId)
+  msg, ok, err = ibmmq.GetByMsgId(ctx, msgId)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -91,7 +94,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
   }
   fmt.Println("\n--------------------------------")
   fmt.Printf("Отправляет сообщение в очередь:\n")
-  _, err = ibmmq.Put(rootCtx, msg)
+  _, err = ibmmq.Put(ctx, msg)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -99,7 +102,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
 
   fmt.Println("\n--------------------------------")
   fmt.Println("Получает сообщение первое доступное сообщение")
-  msg, ok, err = ibmmq.Get(rootCtx)
+  msg, ok, err = ibmmq.Get(ctx)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return

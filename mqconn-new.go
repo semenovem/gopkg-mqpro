@@ -1,22 +1,23 @@
 package mqpro
 
-import "github.com/sirupsen/logrus"
+import (
+  "fmt"
+  "github.com/sirupsen/logrus"
+)
 
 func MqconnNew(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
   o := &Mqconn{
-    cfg:            *c,
-    fnsConn:        map[uint32]chan struct{}{},
-    fnsDisconn:     map[uint32]chan struct{}{},
-    reconnectDelay: defReconnectDelay,
-    stateConn:      stateDisconnect,
+    cfg:             c,
+    fnsConn:         map[uint32]chan struct{}{},
+    fnsDisconn:      map[uint32]chan struct{}{},
+    reconnectDelay:  defReconnectDelay,
+    stateConn:       stateDisconnect,
+    msgWaitInterval: defMsgWaitInterval,
   }
 
   m := map[string]interface{}{
-    "hostPort": o.endpoint(),
-    "manager":  c.MgrName,
-    "channel":  c.ChannelName,
-    "queue":    c.QueueName,
-    "type":     typeConnTxt[tc],
+    "conn": fmt.Sprintf("%s|%s|%s|%s|%s",
+      o.endpoint(), c.MgrName, c.ChannelName, c.QueueName, typeConnTxt[tc]),
   }
 
   o.log = l.WithFields(m)
@@ -26,10 +27,6 @@ func MqconnNew(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
   }
 
   o.typeConn = tc
-
-  if c.WaitInterval == 0 {
-    c.WaitInterval = defWaitInterval
-  }
 
   if c.MaxMsgLength == 0 {
     c.MaxMsgLength = defMaxMsgLength

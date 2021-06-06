@@ -7,10 +7,10 @@ cd sample
 make net
 
 TODO - вынести генерацию криптоматериалов в отдельный контейнер 
+bash crypto/gen.sh
 
 // в отдельном терминале - менеджер ibmmq
-make ibmmq
-bash crypto/gen.sh
+make ibmmqtls
 
 // в отдельном терминале - приложение примера использования
 make dev
@@ -27,6 +27,7 @@ curl sample/browse
 curl sample/putget
 curl sample/sub
 curl sample/unsub
+curl sample/correl
 
 ```
 

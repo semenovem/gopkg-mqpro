@@ -7,7 +7,7 @@ import (
 // GetByCorrelId Получение сообщения по correlId
 func (p *Mqpro) GetByCorrelId(ctx context.Context, correlId []byte) (*Msg, bool, error) {
   fn := func(c *Mqconn) (*Msg, bool, error) {
-    return c.GetByCorrelId(correlId)
+    return c.GetByCorrelId(ctx, correlId)
   }
   return p.callGet(ctx, fn)
 }
@@ -15,7 +15,7 @@ func (p *Mqpro) GetByCorrelId(ctx context.Context, correlId []byte) (*Msg, bool,
 // Get Получение очередного сообщения
 func (p *Mqpro) Get(ctx context.Context) (*Msg, bool, error) {
   fn := func(c *Mqconn) (*Msg, bool, error) {
-    return c.Get()
+    return c.Get(ctx)
   }
   return p.callGet(ctx, fn)
 }
@@ -23,15 +23,17 @@ func (p *Mqpro) Get(ctx context.Context) (*Msg, bool, error) {
 // GetByMsgId Получение сообщения по его MsgID.
 func (p *Mqpro) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, bool, error) {
   fn := func(c *Mqconn) (*Msg, bool, error) {
-    return c.GetByMsgId(msgId)
+    return c.GetByMsgId(ctx, msgId)
   }
   return p.callGet(ctx, fn)
 }
 
 //
-func (p *Mqpro) callGet(ctx context.Context, fn func(c *Mqconn) (*Msg, bool, error)) (*Msg, bool, error) {
+func (p *Mqpro) callGet(ctx context.Context, fn func(c *Mqconn) (*Msg, bool, error)) (
+  *Msg, bool, error) {
 
   if len(p.connGet) == 0 {
+    p.log.Error(ErrNoConnection)
     return nil, false, ErrNoConnection
   }
 

@@ -3,7 +3,7 @@ package mqpro
 // RegisterEvenInMsg Добавляет обработчик входящих сообщений
 func (p *Mqpro) RegisterEvenInMsg(fn func(*Msg)) {
   if p.fnEventInMsg != nil {
-    Log.Panic("Subscription already exists")
+    p.log.Panic("Subscription already exists")
   }
 
   p.fnEventInMsg = fn

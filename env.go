@@ -20,6 +20,7 @@ type envCfg struct {
   MQ0Tls           bool   `env:"ENV_MQ_0_TLS"`
   MQ0KeyRepository string `env:"ENV_MQ_0_KEY_REPOSITORY"`
   MQ0MaxMsgLength  int32  `env:"ENV_MQ_0_MAX_MSG_LENGTH"`
+  MQ0WaitInterval  int32  `env:"ENV_MQ_0_WAIT_INTERVAL"`
 
   MQ1Host          string `env:"ENV_MQ_1_HOST"`
   MQ1Port          int    `env:"ENV_MQ_1_PORT"`
@@ -35,27 +36,28 @@ type envCfg struct {
   MQ1Tls           bool   `env:"ENV_MQ_1_TLS"`
   MQ1KeyRepository string `env:"ENV_MQ_1_KEY_REPOSITORY"`
   MQ1MaxMsgLength  int32  `env:"ENV_MQ_1_MAX_MSG_LENGTH"`
+  MQ1WaitInterval  int32  `env:"ENV_MQ_1_WAIT_INTERVAL"`
 }
 
 // UseDefEnv для настройки использовать стандартные названия переменных
 func (p *Mqpro) UseDefEnv() {
-  p.SetConn(getConnFromEnv()...)
+  p.SetConn(p.getConnFromEnv()...)
 }
 
-func getConnFromEnv() []*Mqconn {
+func (p *Mqpro) getConnFromEnv() []*Mqconn {
   var cfg = &envCfg{}
 
   if err := env.Parse(cfg); err != nil {
-    Log.Error(err)
+    p.log.Error(err)
   }
 
-  Log.Debugf("Application configuration: %+v", *cfg)
+  p.log.Debugf("mqpro configuration: %+v", *cfg)
 
   connLi := make([]*Mqconn, 0)
 
   if cfg.MQ0Host != "" {
     if cfg.MQ0PutQueue != "" {
-      conn := MqconnNew(TypePut, Log, &Cfg{
+      conn := MqconnNew(TypePut, p.log, &Cfg{
         Host:          cfg.MQ0Host,
         Port:          cfg.MQ0Port,
         MgrName:       cfg.MQ0Mgr,
@@ -73,7 +75,7 @@ func getConnFromEnv() []*Mqconn {
     }
 
     if cfg.MQ0GetQueue != "" {
-      conn := MqconnNew(TypeGet, Log, &Cfg{
+      conn := MqconnNew(TypeGet, p.log, &Cfg{
         Host:          cfg.MQ0Host,
         Port:          cfg.MQ0Port,
         MgrName:       cfg.MQ0Mgr,
@@ -91,7 +93,7 @@ func getConnFromEnv() []*Mqconn {
     }
 
     if cfg.MQ0BrowseQ != "" {
-      conn := MqconnNew(TypeBrowse, Log, &Cfg{
+      conn := MqconnNew(TypeBrowse, p.log, &Cfg{
         Host:          cfg.MQ0Host,
         Port:          cfg.MQ0Port,
         MgrName:       cfg.MQ0Mgr,
@@ -111,7 +113,7 @@ func getConnFromEnv() []*Mqconn {
 
   if cfg.MQ1Host != "" {
     if cfg.MQ1PutQueue != "" {
-      conn := MqconnNew(TypePut, Log, &Cfg{
+      conn := MqconnNew(TypePut, p.log, &Cfg{
         Host:          cfg.MQ1Host,
         Port:          cfg.MQ1Port,
         MgrName:       cfg.MQ1Mgr,
@@ -129,7 +131,7 @@ func getConnFromEnv() []*Mqconn {
     }
 
     if cfg.MQ1GetQueue != "" {
-      conn := MqconnNew(TypeGet, Log, &Cfg{
+      conn := MqconnNew(TypeGet, p.log, &Cfg{
         Host:          cfg.MQ1Host,
         Port:          cfg.MQ1Port,
         MgrName:       cfg.MQ1Mgr,
@@ -147,7 +149,7 @@ func getConnFromEnv() []*Mqconn {
     }
 
     if cfg.MQ1BrowseQ != "" {
-      conn := MqconnNew(TypeBrowse, Log, &Cfg{
+      conn := MqconnNew(TypeBrowse, p.log, &Cfg{
         Host:          cfg.MQ1Host,
         Port:          cfg.MQ1Port,
         MgrName:       cfg.MQ1Mgr,

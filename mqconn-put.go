@@ -11,46 +11,48 @@ func (c *Mqconn) Put(msg *Msg) ([]byte, error) {
   l := c.log.WithField("method", "Put")
 
   if msg.CorrelId != nil {
-    l = c.log.WithField("correlId", fmt.Sprintf("%x", msg.CorrelId))
-  }
-
-  if !c.IsConnected() {
-    return nil, ErrNoConnection
+    l = l.WithField("correlId", fmt.Sprintf("%x", msg.CorrelId))
   }
 
   d, err := c.put(msg, l)
-
-  if err != nil {
-    if HasConnBroken(err) {
-      c.reqError()
-      err = ErrConnBroken
-    } else {
-      err = ErrPutMsg
-    }
+  if err == ErrConnBroken {
+    c.reqError()
   }
 
   return d, err
 }
 
 func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
+  if !c.IsConnected() {
+    return nil, ErrNoConnection
+  }
+
   c.mxPut.Lock()
   defer c.mxPut.Unlock()
 
-  l.Trace("Start")
+  l.Info("Start")
 
+  putmqmd := ibmmq.NewMQMD()
+  pmo := ibmmq.NewMQPMO()
   cmho := ibmmq.NewMQCMHO()
+
   putMsgHandle, err := c.mgr.CrtMH(cmho)
   if err != nil {
-    return nil, err
+    l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
+
+    if IsConnBroken(err) {
+      err = ErrConnBroken
+    } else {
+      err = ErrPutMsg
+    }
+
+    return nil, ErrPutMsg
   }
 
   err = setProps(&putMsgHandle, msg.Props, l)
   if err != nil {
-    return nil, err
+    return nil, ErrPutMsg
   }
-
-  putmqmd := ibmmq.NewMQMD()
-  pmo := ibmmq.NewMQPMO()
 
   if msg.CorrelId != nil {
     putmqmd.CorrelId = msg.CorrelId
@@ -70,10 +72,17 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
   err = c.que.Put(putmqmd, pmo, d)
   if err != nil {
     l.Error("Ошибка отправки сообщения: ", err)
+
+    if IsConnBroken(err) {
+      err = ErrConnBroken
+    } else {
+      err = ErrPutMsg
+    }
+
     return nil, err
   }
 
-  l.Debugf("Success. MsgId: %x", putmqmd.MsgId)
+  l.Infof("Success. MsgId: %x", putmqmd.MsgId)
 
   return putmqmd.MsgId, nil
 }

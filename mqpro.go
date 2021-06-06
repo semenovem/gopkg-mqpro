@@ -8,14 +8,6 @@ import (
   "time"
 )
 
-var Log *logrus.Entry
-
-func init() {
-  l := logrus.New()
-  l.SetLevel(logrus.TraceLevel)
-  Log = logrus.NewEntry(l)
-}
-
 type Mqpro struct {
   rootCtx               context.Context
   ctx                   context.Context
@@ -40,6 +32,10 @@ var (
   ErrNoEstablishedConnection = errors.New("ibm mq: no established connections")
   ErrNoConnection            = errors.New("ibm mq: no connections")
   ErrNoData                  = errors.New("ibm mq: no data to connect to IBM MQ")
+  ErrConnBroken              = errors.New("ibm mq conn: connection broken")
+  ErrPutMsg                  = errors.New("ibm mq: failed to put message")
+  ErrGetMsg                  = errors.New("ibm mq: failed to get message")
+  ErrBrowseMsg               = errors.New("ibm mq: failed to browse message")
 )
 
 func New(rootCtx context.Context) *Mqpro {
@@ -50,6 +46,7 @@ func New(rootCtx context.Context) *Mqpro {
     rootCtx:               rootCtx,
     delayBeforeDisconnect: defDisconnDelay,
     reconnDelay:           defReconnDelay,
+    log:                   logrus.NewEntry(l).WithField("pkg", "mqpro"),
   }
 }
 
@@ -65,7 +62,7 @@ func (p *Mqpro) SetConn(connLi ...*Mqconn) {
       p.connBrowse = append(p.connBrowse, conn)
 
     default:
-      Log.Panic("Unknown connection type")
+      p.log.Panic("Unknown connection type")
     }
 
     p.conns = append(p.conns, conn)
@@ -77,5 +74,5 @@ func (p *Mqpro) SetConn(connLi ...*Mqconn) {
 }
 
 func (p *Mqpro) SetLogger(l *logrus.Entry) {
-  Log = l
+  p.log = l
 }

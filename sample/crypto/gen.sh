@@ -22,4 +22,3 @@ runmqakm -keydb -create -db "$CLIENT_DB" -pw "$PSW" -type pkcs12 -expire 1000 -s
 runmqakm -cert -add -label "QM1.cert" \
   -db "$CLIENT_DB" -stashed \
   -trust enable -file "$CACERT"
-

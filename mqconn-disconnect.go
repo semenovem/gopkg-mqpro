@@ -21,9 +21,6 @@ func (c *Mqconn) disconnect() {
 func (c *Mqconn) _disconnect() {
   c._unregisterInMsg()
 
-  // TODO обработка ситуации, когда идет обмен данных - подождать
-  // MQRC_CALL_IN_PROGRESS
-
   if c.que != nil {
     c.isWarnConn(c.que.Close(0))
     c.que = nil
