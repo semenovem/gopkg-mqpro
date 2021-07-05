@@ -1,10 +1,9 @@
 #!/bin/bash
 
 # Генерирует криптоматериалы
-
 PSW='&wA*+<_Afh2*4#Z'
 
-BIN=$(dirname $([[ $0 == /* ]] && echo "$0" || echo "$PWD/${0#./}"))
+BIN=$(dirname "$([[ $0 == /* ]] && echo "$0" || echo "$PWD/${0#./}")")
 export PATH="${PATH}:/opt/mqm/bin"
 
 rm -rf "$BIN"/{client,server}
@@ -22,3 +21,5 @@ runmqakm -keydb -create -db "$CLIENT_DB" -pw "$PSW" -type pkcs12 -expire 1000 -s
 runmqakm -cert -add -label "QM1.cert" \
   -db "$CLIENT_DB" -stashed \
   -trust enable -file "$CACERT"
+
+sleep 10

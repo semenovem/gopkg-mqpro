@@ -36,6 +36,10 @@ var (
   ErrPutMsg                  = errors.New("ibm mq: failed to put message")
   ErrGetMsg                  = errors.New("ibm mq: failed to get message")
   ErrBrowseMsg               = errors.New("ibm mq: failed to browse message")
+  ErrPropsNoField            = errors.New("ibm mq: property is missing")
+  errMsgNoField              = "ibm mq: property '%s' is missing"
+  errMsgFieldTypeTxt         = "ibm mq: invalid field type '%s'. Got '%T'"
+  errMsgFieldType            = errors.New("ibm mq: invalid field type")
 )
 
 func New(rootCtx context.Context) *Mqpro {

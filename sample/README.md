@@ -4,34 +4,32 @@
 
 ```
 cd sample
+
+// 1) собрать образ / создать  docker сеть / сгенерировать криптоматериалы
+make docker
 make net
+make crypto
 
-TODO - вынести генерацию криптоматериалов в отдельный контейнер 
-bash crypto/gen.sh
-
-// в отдельном терминале - менеджер ibmmq
+// 2) в отдельном терминале - менеджер ibmmq
 make ibmmqtls
 
-// в отдельном терминале - приложение примера использования
+// 3) в отдельном терминале - приложение примера использования
 make dev
 
-// в отдельном терминале - контейнер, подключенный к сети приложения для curl запросов
+// 4) в отдельном терминале - контейнер, подключенный к сети приложения для curl запросов
 make curl
 
-готово
-в контейнере с curl: 
-
-curl sample/get
+// 5) готово. в контейнере с curl доступны команды: 
 curl sample/put
+curl sample/get
 curl sample/browse
 curl sample/putget
 curl sample/sub
 curl sample/unsub
 curl sample/correl
-
 ```
 
-
+#### links
 https://colinpaice.blog/setting-up-tls-for-mq-with-your-own-certificate-authority-using-ikeyman/
 
 https://developer.ibm.com/components/ibm-mq/tutorials/mq-secure-msgs-tls/

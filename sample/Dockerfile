@@ -7,8 +7,6 @@ ENV GOPATH="/go" \
     ORG="github.com/ibm-messaging" \
     GOROOT="/usr/local/go-${GOVERSION}"
 
-ENV PATH=${PATH}:$GOPATH/bin:$GOROOT/bin
-
 
 # Install the Git
 RUN export DEBIAN_FRONTEND=noninteractive \
@@ -66,10 +64,7 @@ ENV MQ_INSTALLATION_PATH=/opt/mqm
 ENV CGO_CFLAGS="-I$MQ_INSTALLATION_PATH/inc/"
 ENV CGO_LDFLAGS="-L$MQ_INSTALLATION_PATH/lib64 -Wl,-rpath,$MQ_INSTALLATION_PATH/lib64"
 
-# -------------------
-# ------------------- golang
-# -------------------
-
+# golang for ibmmq
 ARG FILENAME=go${GOVERSION}.linux-amd64.tar.gz
 RUN cd /tmp \
   && curl -LO "https://golang.org/dl/$FILENAME" \
@@ -77,17 +72,15 @@ RUN cd /tmp \
   && rm "${FILENAME}" \
   && mv go "/usr/local/go-${GOVERSION}"
 
+RUN cd /go && \
+  ${GOROOT}/bin/go install ./src/github.com/ibm-messaging/mq-golang/mqmetric
+
+# golang
+ARG GOVERSION=1.16.4
+
 ENV GOROOT="/usr/local/go-${GOVERSION}"
 ENV PATH="${PATH}:$GOROOT/bin"
 
-RUN cd /go && \
-  go install ./src/github.com/ibm-messaging/mq-golang/mqmetric
-
-# --------------------
-# --------------------
-# --------------------
-
-ARG GOVERSION=1.16.4
 ARG FILENAME=go${GOVERSION}.linux-amd64.tar.gz
 RUN cd /tmp \
   && curl -LO "https://golang.org/dl/$FILENAME" \

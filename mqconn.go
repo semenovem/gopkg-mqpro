@@ -87,6 +87,7 @@ var typeConnTxt = map[TypeConn]string{
   TypeBrowse: "browse",
 }
 
+// Msg отправляемое / получаемое сообщение
 type Msg struct {
   MsgId    []byte
   CorrelId []byte

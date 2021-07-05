@@ -113,5 +113,7 @@ func (c *Mqconn) handlerInMsg(
     Props:    props,
   }
 
+  c.log.Info("Получено сообщение")
+
   go c.fnInMsg(msg)
 }

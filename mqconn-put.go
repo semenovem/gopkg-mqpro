@@ -46,7 +46,7 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
       err = ErrPutMsg
     }
 
-    return nil, ErrPutMsg
+    return nil, err
   }
 
   err = setProps(&putMsgHandle, msg.Props, l)

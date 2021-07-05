@@ -36,6 +36,12 @@ docker:
  		-t "$(IMG)" .
 
 
+## crypto - gen crypto
+.PHONY: crypto
+crypto:
+	@bash crypto/run.sh
+
+
 ## ibmmq
 .PHONY: ibmmq
 ibmmq:
@@ -94,8 +100,7 @@ dev:
 		--env ENV_MQ_0_KEY_REPOSITORY="crypto/client/keys" \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash
-		#"$(IMG)" go run *.go
+		"$(IMG)" go run *.go
 
 
 ## curl - контейнер, присоединенный к сети, для выполнения curl запросов

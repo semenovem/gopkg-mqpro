@@ -44,8 +44,7 @@ func init() {
     l := logrus.New()
     l.SetLevel(lev)
 
-    //// TODO don't commit it
-    //l.SetLevel(logrus.TraceLevel)
+    l.SetLevel(logrus.TraceLevel)
 
     ibmmq.SetLogger(logrus.NewEntry(l).WithField("pkg", "mqpro"))
   }
