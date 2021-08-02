@@ -82,6 +82,9 @@ func (c *Mqconn) _connectMgr() error {
   cd.ConnectionName = c.endpoint()
   cd.MaxMsgLength = c.cfg.MaxMsgLength
 
+  // TODO попробовать mutual authentication
+  //cd.CertificateLabel
+
   cno.SecurityParms = csp
   cno.ClientConn = cd
   cno.Options = ibmmq.MQCNO_CLIENT_BINDING

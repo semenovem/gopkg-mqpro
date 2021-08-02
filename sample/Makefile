@@ -100,7 +100,7 @@ dev:
 		--env ENV_MQ_0_KEY_REPOSITORY="crypto/client/keys" \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" go run *.go
+		"$(IMG)" bash run.sh
 
 
 ## curl - контейнер, присоединенный к сети, для выполнения curl запросов

@@ -15,7 +15,7 @@ var flag bool
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
 
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*60)
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*3)
   defer cancel()
 
   // Свойства сообщения

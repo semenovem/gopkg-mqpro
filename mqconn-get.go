@@ -129,7 +129,6 @@ loopCtx:
         buffer = make([]byte, 0, datalen)
         continue
       case ibmmq.MQRC_NO_MSG_AVAILABLE:
-        l.Trace("No message")
         err = nil
         break loopGet
       }
@@ -166,6 +165,7 @@ loopCtx:
     Props:    props,
     CorrelId: getmqmd.CorrelId,
     MsgId:    getmqmd.MsgId,
+    Time:     getmqmd.PutDateTime,
   }
 
   return ret, true, nil

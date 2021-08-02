@@ -12,7 +12,7 @@ import (
 // curl host:port/putget
 func putGetMsg(w http.ResponseWriter, _ *http.Request) {
 
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
   defer cancel()
 
   // Свойства сообщения

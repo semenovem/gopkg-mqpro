@@ -88,10 +88,13 @@ func api404(w http.ResponseWriter, r *http.Request) {
 func logMsg(msg *mqpro.Msg) {
   fmt.Println("\n--------------------------------")
   fmt.Println("Получили сообщение:")
-  if len(msg.Payload) < 1024 {
+  if len(msg.Payload) < 100 {
     fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
+  } else {
+    fmt.Printf(">>>>> len msg.Payload  = %d\n", len(msg.Payload))
   }
   fmt.Printf(">>>>> msg.Props    = %+v\n", msg.Props)
   fmt.Printf(">>>>> msg.CorrelId = %x\n", msg.CorrelId)
   fmt.Printf(">>>>> msg.MsgId    = %x\n", msg.MsgId)
+  fmt.Printf(">>>>> msg.Time     = %s\n", msg.Time.Format(time.RFC822))
 }

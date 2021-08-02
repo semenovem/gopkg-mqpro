@@ -10,13 +10,12 @@ import (
 // Получает сообщение из очереди
 // curl host:port/get
 func getMsgByCorrelId(w http.ResponseWriter, _ *http.Request) {
-  fmt.Println("Получение сообщения из IBM MQ по CorrelId (ожидание в течение 10 сек)")
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  fmt.Println("Получение сообщения из IBM MQ по CorrelId (ожидание в течение 5 сек)")
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
   defer cancel()
 
   go func() {
-    //time.Sleep(time.Millisecond * 100)
-    ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+    ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
     defer cancel()
     msg, ok, err := ibmmq.GetByCorrelId(ctx, correlId2)
     if err != nil {
