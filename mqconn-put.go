@@ -32,36 +32,6 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
 
   l.Info("Start")
 
-  putmqmd := ibmmq.NewMQMD()
-  pmo := ibmmq.NewMQPMO()
-  cmho := ibmmq.NewMQCMHO()
-
-  putMsgHandle, err := c.mgr.CrtMH(cmho)
-  if err != nil {
-    l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
-
-    if IsConnBroken(err) {
-      err = ErrConnBroken
-    } else {
-      err = ErrPutMsg
-    }
-
-    return nil, err
-  }
-
-  err = setProps(&putMsgHandle, msg.Props, l)
-  if err != nil {
-    return nil, ErrPutMsg
-  }
-
-  if msg.CorrelId != nil {
-    putmqmd.CorrelId = msg.CorrelId
-  }
-
-  pmo.Options = ibmmq.MQPMO_NO_SYNCPOINT
-  pmo.OriginalMsgHandle = putMsgHandle
-  putmqmd.Format = ibmmq.MQFMT_STRING
-
   var d []byte
   if msg.Payload == nil {
     d = make([]byte, 0)
@@ -69,7 +39,47 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     d = msg.Payload
   }
 
-  err = c.que.Put(putmqmd, pmo, d)
+  putmqmd := ibmmq.NewMQMD()
+  pmo := ibmmq.NewMQPMO()
+  cmho := ibmmq.NewMQCMHO()
+
+  pmo.Options = ibmmq.MQPMO_NO_SYNCPOINT
+
+  if msg.CorrelId != nil {
+    putmqmd.CorrelId = msg.CorrelId
+  }
+
+  switch c.h {
+  case HeaderRfh2:
+    putmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
+    h := NewMQRFH2()
+    h.NameValues = msg.Props
+    hd, _ := h.MarshalBinary()
+    d = append(hd, d...)
+  default:
+    putmqmd.Format = ibmmq.MQFMT_STRING
+
+    putMsgHandle, err := c.mgr.CrtMH(cmho)
+    if err != nil {
+      l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
+
+      if IsConnBroken(err) {
+        err = ErrConnBroken
+      } else {
+        err = ErrPutMsg
+      }
+
+      return nil, err
+    }
+
+    err = setProps(&putMsgHandle, msg.Props, l)
+    if err != nil {
+      return nil, ErrPutMsg
+    }
+    pmo.OriginalMsgHandle = putMsgHandle
+  }
+
+  err := c.que.Put(putmqmd, pmo, d)
   if err != nil {
     l.Error("Ошибка отправки сообщения: ", err)
 

@@ -32,5 +32,13 @@ func MqconnNew(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
     c.MaxMsgLength = defMaxMsgLength
   }
 
+  if c.Header != "" {
+    h, err := parseHeaderType(c.Header)
+    if err != nil {
+      o.log.Panic(errHeaderParseType)
+    }
+    o.h = h
+  }
+
   return o
 }

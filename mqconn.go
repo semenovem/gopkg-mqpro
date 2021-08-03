@@ -3,6 +3,7 @@ package mqpro
 import (
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "github.com/sirupsen/logrus"
+  "strings"
   "sync"
   "time"
 )
@@ -13,6 +14,7 @@ type Mqconn struct {
   typeConn        TypeConn              // тип подключения
   mgr             *ibmmq.MQQueueManager // Менеджер очереди
   que             *ibmmq.MQObject       // Объект открытой очереди
+  h               header                // тип заголовков
   mx              sync.Mutex
   stateConn       stateConn
   chMgr           chan reqStateConn
@@ -25,6 +27,7 @@ type Mqconn struct {
   msgWaitInterval time.Duration            // Ожидание сообщения
 
   // менеджер imbmq одновременно может отправлять/принимать одно сообщение
+  // TODO -  использовать только один мьютекс
   mxPut    sync.Mutex
   mxGet    sync.Mutex
   mxBrowse sync.Mutex
@@ -36,7 +39,8 @@ type Cfg struct {
   Port             int
   MgrName          string
   ChannelName      string
-  QueueName        string
+  QueueName        string // название очереди
+  Header           string // тип заголовков
   AppName          string
   User             string
   Pass             string
@@ -51,6 +55,25 @@ type TypeConn int
 type stateConn int
 type reqStateConn int
 type queueOper int
+type header int
+
+const (
+  HeaderBase header = iota
+  HeaderRfh2
+)
+
+var headerMap = map[string]header{
+  "prop": HeaderBase,
+  "rfh2": HeaderRfh2,
+}
+
+func parseHeaderType(n string) (header, error) {
+  h, ok := headerMap[strings.ToLower(n)]
+  if ok {
+    return h, nil
+  }
+  return 0, errHeaderParseType
+}
 
 const (
   TypePut TypeConn = iota + 1
@@ -92,6 +115,6 @@ type Msg struct {
   MsgId    []byte
   CorrelId []byte
   Payload  []byte
-  Props map[string]interface{}
-  Time  time.Time
+  Props    map[string]interface{}
+  Time     time.Time
 }

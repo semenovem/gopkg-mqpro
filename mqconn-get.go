@@ -68,10 +68,12 @@ func (c *Mqconn) get(ctx context.Context, oper queueOper, id []byte, l *logrus.E
   getmqmd := ibmmq.NewMQMD()
   gmo := ibmmq.NewMQGMO()
   cmho := ibmmq.NewMQCMHO()
+  gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
 
   c.mxGet.Lock()
   getMsgHandle, err := c.mgr.CrtMH(cmho)
   c.mxGet.Unlock()
+
   if err != nil {
     l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
 
@@ -90,8 +92,14 @@ func (c *Mqconn) get(ctx context.Context, oper queueOper, id []byte, l *logrus.E
   }()
 
   gmo.MsgHandle = getMsgHandle
-  gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
-  getmqmd.Format = ibmmq.MQFMT_STRING
+
+  // TODO - если MQFMT_RF_HEADER_2 - при получении не требуется - можно удалить код ниже:
+  switch c.h {
+  case HeaderRfh2:
+    getmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
+  default:
+    getmqmd.Format = ibmmq.MQFMT_STRING
+  }
 
   switch oper {
   case operGet:

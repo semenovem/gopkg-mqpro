@@ -13,6 +13,7 @@ type envCfg struct {
   MQ0PutQueue      string `env:"ENV_MQ_0_PUT_QUEUE"`
   MQ0GetQueue      string `env:"ENV_MQ_0_GET_QUEUE"`
   MQ0BrowseQ       string `env:"ENV_MQ_0_BROWSE_QUEUE"`
+  MQ0Header        string `env:"ENV_MQ_0_HEADER"` // тип заголовков (свойств) rfh2
   MQ0App           string `env:"ENV_MQ_0_APP"`
   MQ0User          string `env:"ENV_MQ_0_USER"`
   MQ0Pass          string `env:"ENV_MQ_0_PASS"`
@@ -29,6 +30,7 @@ type envCfg struct {
   MQ1PutQueue      string `env:"ENV_MQ_1_PUT_QUEUE"`
   MQ1GetQueue      string `env:"ENV_MQ_1_GET_QUEUE"`
   MQ1BrowseQ       string `env:"ENV_MQ_1_BROWSE_QUEUE"`
+  MQ1Header        string `env:"ENV_MQ_1_HEADER"`
   MQ1App           string `env:"ENV_MQ_1_APP"`
   MQ1User          string `env:"ENV_MQ_1_USER"`
   MQ1Pass          string `env:"ENV_MQ_1_PASS"`
@@ -63,6 +65,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         MgrName:       cfg.MQ0Mgr,
         ChannelName:   cfg.MQ0Channel,
         QueueName:     cfg.MQ0PutQueue,
+        Header:        cfg.MQ0Header,
         AppName:       cfg.MQ0App,
         User:          cfg.MQ0User,
         Pass:          cfg.MQ0Pass,
@@ -80,6 +83,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         Port:          cfg.MQ0Port,
         MgrName:       cfg.MQ0Mgr,
         ChannelName:   cfg.MQ0Channel,
+        Header:        cfg.MQ0Header,
         QueueName:     cfg.MQ0GetQueue,
         AppName:       cfg.MQ0App,
         User:          cfg.MQ0User,
@@ -99,6 +103,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         MgrName:       cfg.MQ0Mgr,
         ChannelName:   cfg.MQ0Channel,
         QueueName:     cfg.MQ0BrowseQ,
+        Header:        cfg.MQ0Header,
         AppName:       cfg.MQ0App,
         User:          cfg.MQ0User,
         Pass:          cfg.MQ0Pass,
@@ -119,6 +124,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         MgrName:       cfg.MQ1Mgr,
         ChannelName:   cfg.MQ1Channel,
         QueueName:     cfg.MQ1PutQueue,
+        Header:        cfg.MQ1Header,
         AppName:       cfg.MQ1App,
         User:          cfg.MQ1User,
         Pass:          cfg.MQ1Pass,
@@ -137,6 +143,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         MgrName:       cfg.MQ1Mgr,
         ChannelName:   cfg.MQ1Channel,
         QueueName:     cfg.MQ1GetQueue,
+        Header:        cfg.MQ1Header,
         AppName:       cfg.MQ1App,
         User:          cfg.MQ1User,
         Pass:          cfg.MQ1Pass,
@@ -155,6 +162,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         MgrName:       cfg.MQ1Mgr,
         ChannelName:   cfg.MQ1Channel,
         QueueName:     cfg.MQ1BrowseQ,
+        Header:        cfg.MQ1Header,
         AppName:       cfg.MQ1App,
         User:          cfg.MQ1User,
         Pass:          cfg.MQ1Pass,

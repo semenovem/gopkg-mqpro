@@ -24,7 +24,7 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
     "anotherProp": "... another prop",
   }
 
-  size := 1024
+  size := 8 * 1
   b := make([]byte, size)
 
   for i := 0; i < size; i++ {

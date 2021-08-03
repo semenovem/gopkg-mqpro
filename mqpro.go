@@ -40,6 +40,7 @@ var (
   errMsgNoField              = "ibm mq: property '%s' is missing"
   errMsgFieldTypeTxt         = "ibm mq: invalid field type '%s'. Got '%T'"
   errMsgFieldType            = errors.New("ibm mq: invalid field type")
+  errHeaderParseType         = errors.New("ibm mq: header type parsing error")
 )
 
 func New(rootCtx context.Context) *Mqpro {

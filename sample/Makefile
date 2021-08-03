@@ -93,6 +93,7 @@ dev:
 		--env ENV_MQ_0_PUT_QUEUE=DEV.QUEUE.1 \
 		--env ENV_MQ_0_GET_QUEUE=DEV.QUEUE.1 \
 		--env ENV_MQ_0_BROWSE_QUEUE=DEV.QUEUE.1 \
+		--env ENV_MQ_0_HEADER=RFH2 \
 		--env ENV_MQ_0_APP=gopack.mqrpo.sample \
 		--env ENV_MQ_0_USER=app \
 		--env ENV_MQ_0_PASS=11 \
