@@ -109,3 +109,12 @@ dev:
 curl:
 	@docker run -it --rm --network $(NETWORK) ubuntu:20.04 sh -c \
      "apt update && apt install -y curl && echo '| Для выхода из контейнера ctrl+D' && bash"
+
+
+## test
+.PHONY: test
+test:
+	@docker run --rm -it \
+		-w /app \
+		-v "${PWD}/..:/app:rw" \
+		"$(IMG)" bash

@@ -2,6 +2,7 @@ package mqpro
 
 import (
   "fmt"
+  "strconv"
 )
 
 type tProp int
@@ -29,83 +30,183 @@ const (
 )
 
 func (m *Msg) Int(f string) (int, error) {
-  v, err := m.getter(f, tInt)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(int), nil
+  switch o.(type) {
+  case int:
+    return o.(int), nil
+  case string:
+    n, err := strconv.ParseInt(o.(string), 10, 64)
+    if err != nil {
+      return 0, err
+    }
+    return int(n), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Int8(f string) (int8, error) {
-  v, err := m.getter(f, tInt8)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(int8), nil
+  switch o.(type) {
+  case int8:
+    return o.(int8), nil
+  case string:
+    n8, err := strconv.ParseInt(o.(string), 10, 8)
+    if err != nil {
+      return 0, err
+    }
+    return int8(n8), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Int16(f string) (int16, error) {
-  v, err := m.getter(f, tInt16)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(int16), nil
+  switch o.(type) {
+  case int16:
+    return o.(int16), nil
+  case string:
+    n16, err := strconv.ParseInt(o.(string), 10, 16)
+    if err != nil {
+      return 0, err
+    }
+    return int16(n16), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Int32(f string) (int32, error) {
-  v, err := m.getter(f, tInt32)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(int32), nil
+  switch o.(type) {
+  case int32:
+    return o.(int32), nil
+  case string:
+    n32, err := strconv.ParseInt(o.(string), 10, 32)
+    if err != nil {
+      return 0, err
+    }
+    return int32(n32), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Int64(f string) (int64, error) {
-  v, err := m.getter(f, tInt64)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(int64), nil
+  switch o.(type) {
+  case int64:
+    return o.(int64), nil
+  case string:
+    n64, err := strconv.ParseInt(o.(string), 10, 64)
+    if err != nil {
+      return 0, err
+    }
+    return n64, nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Uint(f string) (uint, error) {
-  v, err := m.getter(f, tUint)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(uint), nil
+  switch o.(type) {
+  case uint:
+    return o.(uint), nil
+  case string:
+    n, err := strconv.ParseInt(o.(string), 10, 64)
+    if err != nil {
+      return 0, err
+    }
+    return uint(n), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Uint8(f string) (uint8, error) {
-  v, err := m.getter(f, tUint8)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(uint8), nil
+  switch o.(type) {
+  case uint8:
+    return o.(uint8), nil
+  case string:
+    n8, err := strconv.ParseInt(o.(string), 10, 8)
+    if err != nil {
+      return 0, err
+    }
+    return uint8(n8), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Uint16(f string) (uint16, error) {
-  v, err := m.getter(f, tUint16)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(uint16), nil
+  switch o.(type) {
+  case uint16:
+    return o.(uint16), nil
+  case string:
+    n16, err := strconv.ParseInt(o.(string), 10, 16)
+    if err != nil {
+      return 0, err
+    }
+    return uint16(n16), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Uint32(f string) (uint32, error) {
-  v, err := m.getter(f, tUint32)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(uint32), nil
+  switch o.(type) {
+  case uint32:
+    return o.(uint32), nil
+  case string:
+    n32, err := strconv.ParseInt(o.(string), 10, 32)
+    if err != nil {
+      return 0, err
+    }
+    return uint32(n32), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Uint64(f string) (uint64, error) {
-  v, err := m.getter(f, tUint64)
-  if err != nil {
-    return 0, err
+  o, ok := m.Props[f]
+  if !ok {
+    return 0, fmt.Errorf(errMsgNoField, f)
   }
-  return v.(uint64), nil
+  switch o.(type) {
+  case uint64:
+    return o.(uint64), nil
+  case string:
+    n64, err := strconv.ParseInt(o.(string), 10, 64)
+    if err != nil {
+      return 0, err
+    }
+    return uint64(n64), nil
+  }
+  return 0, fmt.Errorf(errMsgFieldTypeTxt, f, o)
 }
 
 func (m *Msg) Float32(f string) (float32, error) {

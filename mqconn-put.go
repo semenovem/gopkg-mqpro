@@ -52,10 +52,13 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
   switch c.h {
   case HeaderRfh2:
     putmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
-    h := NewMQRFH2()
-    h.NameValues = msg.Props
-    hd, _ := h.MarshalBinary()
+    hd, err := c.Rfh2Marshal(msg.Props)
+    if err != nil {
+      l.Error("Не удалось подготовить сообщение с заголовками rfh2: ", err)
+      return nil, err
+    }
     d = append(hd, d...)
+
   default:
     putmqmd.Format = ibmmq.MQFMT_STRING
 
@@ -78,6 +81,10 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     }
     pmo.OriginalMsgHandle = putMsgHandle
   }
+
+  // TODO для отладки
+  //fmt.Println("MQPRO: props:", msg.Props)
+  //fmt.Println("MQPRO: HeaderRfh2: payload:", string(d))
 
   err := c.que.Put(putmqmd, pmo, d)
   if err != nil {

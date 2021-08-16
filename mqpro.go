@@ -2,7 +2,6 @@ package mqpro
 
 import (
   "context"
-  "errors"
   "github.com/sirupsen/logrus"
   "sync"
   "time"
@@ -22,26 +21,6 @@ type Mqpro struct {
   reconnDelay           time.Duration // Задержка при повторных попытках подключения к MQ
   log                   *logrus.Entry
 }
-
-const (
-  defDisconnDelay = time.Millisecond * 500 // По умолчанию задержка перед разрывом соединения
-  defReconnDelay  = time.Second * 3        // По умолчанию задержка повторных попыткок соединения
-)
-
-var (
-  ErrNoEstablishedConnection = errors.New("ibm mq: no established connections")
-  ErrNoConnection            = errors.New("ibm mq: no connections")
-  ErrNoData                  = errors.New("ibm mq: no data to connect to IBM MQ")
-  ErrConnBroken              = errors.New("ibm mq conn: connection broken")
-  ErrPutMsg                  = errors.New("ibm mq: failed to put message")
-  ErrGetMsg                  = errors.New("ibm mq: failed to get message")
-  ErrBrowseMsg               = errors.New("ibm mq: failed to browse message")
-  ErrPropsNoField            = errors.New("ibm mq: property is missing")
-  errMsgNoField              = "ibm mq: property '%s' is missing"
-  errMsgFieldTypeTxt         = "ibm mq: invalid field type '%s'. Got '%T'"
-  errMsgFieldType            = errors.New("ibm mq: invalid field type")
-  errHeaderParseType         = errors.New("ibm mq: header type parsing error")
-)
 
 func New(rootCtx context.Context) *Mqpro {
   l := logrus.New()

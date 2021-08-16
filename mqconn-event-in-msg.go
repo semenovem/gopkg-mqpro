@@ -113,6 +113,24 @@ func (c *Mqconn) handlerInMsg(
     Props:    props,
   }
 
+  if c.h == HeaderRfh2 {
+    headers, err := c.Rfh2Unmarshal(buffer)
+    if err != nil {
+      c.log.Warn(err)
+      return
+    }
+    msg.MQRFH2 = headers
+
+    var ofs int32
+    for _, h := range headers {
+      unionPropsDeep(msg.Props, h.NameValues)
+      ofs += h.StrucLength
+    }
+    msg.Payload = buffer[ofs:]
+  }
+
+  //logMsg(msg, buffer)
+
   c.log.Info("Получено сообщение")
 
   go c.fnInMsg(msg)

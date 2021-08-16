@@ -174,7 +174,45 @@ loopCtx:
     CorrelId: getmqmd.CorrelId,
     MsgId:    getmqmd.MsgId,
     Time:     getmqmd.PutDateTime,
+    MQRFH2:   make([]*MQRFH2, 0),
   }
 
+  if c.h == HeaderRfh2 {
+    headers, err := c.Rfh2Unmarshal(buffer)
+    if err != nil {
+      c.log.Error(err)
+      return nil, false, err
+    }
+    ret.MQRFH2 = headers
+
+    var ofs int32
+    for _, h := range headers {
+      unionPropsDeep(ret.Props, h.NameValues)
+      ofs += h.StrucLength
+    }
+    ret.Payload = buffer[ofs:]
+  }
+
+  //logMsg(ret, buffer)
+
   return ret, true, nil
+}
+
+// Вывод инфоормации о ibmmq сообщении
+func logMsg(msg *Msg, b []byte) {
+  fmt.Println("\n--------------------------------")
+  fmt.Println("Сообщение:")
+  if len(msg.Payload) < 200 {
+    fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
+  } else {
+    fmt.Printf(">>>>> msg.Payload len = %d\n", len(msg.Payload))
+  }
+
+  if len(b) > 0 {
+    fmt.Printf(">>>>> original buffer  = %+v\n", b)
+  }
+
+  fmt.Printf(">>>>> msg.Props    = %+v\n", msg.Props)
+  //fmt.Printf(">>>>> msg.CorrelId = %x\n", msg.CorrelId)
+  //fmt.Printf(">>>>> msg.MsgId    = %x\n", msg.MsgId)
 }

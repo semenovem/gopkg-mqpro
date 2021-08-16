@@ -1,9 +1,9 @@
 package mqpro
 
 import (
+  "fmt"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "github.com/sirupsen/logrus"
-  "strings"
   "sync"
   "time"
 )
@@ -11,23 +11,26 @@ import (
 type Mqconn struct {
   cfg             *Cfg
   log             *logrus.Entry
-  typeConn        TypeConn              // тип подключения
+  typeConn        TypeConn              // Тип подключения
   mgr             *ibmmq.MQQueueManager // Менеджер очереди
   que             *ibmmq.MQObject       // Объект открытой очереди
   h               header                // тип заголовков
   mx              sync.Mutex
   stateConn       stateConn
   chMgr           chan reqStateConn
-  fnInMsg         func(*Msg)               // подписка на входящие сообщения
-  ctlo            *ibmmq.MQCTLO            // объект подписки ibmmq
-  fnsConn         map[uint32]chan struct{} // подписки на установку соединения
-  fnsDisconn      map[uint32]chan struct{} // подписки на закрытие соединения
-  ind             uint32                   // простой атомарный счетчик
-  reconnectDelay  time.Duration            // таймаут попыток повторного подключения
+  fnInMsg         func(*Msg)               // Подписка на входящие сообщения
+  ctlo            *ibmmq.MQCTLO            // Объект подписки ibmmq
+  fnsConn         map[uint32]chan struct{} // Подписки на установку соединения
+  fnsDisconn      map[uint32]chan struct{} // Подписки на закрытие соединения
+  ind             uint32                   // Простой атомарный счетчик
+  reconnectDelay  time.Duration            // Таймаут попыток повторного подключения
   msgWaitInterval time.Duration            // Ожидание сообщения
+  rfh2            *rfh2Cfg                 // Данные для заголовков RFH2
 
   // менеджер imbmq одновременно может отправлять/принимать одно сообщение
-  // TODO -  использовать только один мьютекс
+  // TODO - использовать только один мьютекс
+  mxOper sync.Mutex
+
   mxPut    sync.Mutex
   mxGet    sync.Mutex
   mxBrowse sync.Mutex
@@ -40,7 +43,7 @@ type Cfg struct {
   MgrName          string
   ChannelName      string
   QueueName        string // название очереди
-  Header           string // тип заголовков
+  Header           string // Тип заголовков [prop | rfh2]
   AppName          string
   User             string
   Pass             string
@@ -51,70 +54,41 @@ type Cfg struct {
   CertificateLabel string
 }
 
-type TypeConn int
-type stateConn int
-type reqStateConn int
-type queueOper int
-type header int
-
-const (
-  HeaderBase header = iota
-  HeaderRfh2
-)
-
-var headerMap = map[string]header{
-  "prop": HeaderBase,
-  "rfh2": HeaderRfh2,
-}
-
-func parseHeaderType(n string) (header, error) {
-  h, ok := headerMap[strings.ToLower(n)]
-  if ok {
-    return h, nil
+func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
+  o := &Mqconn{
+    cfg:             c,
+    fnsConn:         map[uint32]chan struct{}{},
+    fnsDisconn:      map[uint32]chan struct{}{},
+    reconnectDelay:  defReconnectDelay,
+    stateConn:       stateDisconnect,
+    msgWaitInterval: defMsgWaitInterval,
   }
-  return 0, errHeaderParseType
-}
 
-const (
-  TypePut TypeConn = iota + 1
-  TypeGet
-  TypeBrowse
-  defReconnectDelay  = time.Second * 3
-  defMaxMsgLength    = 1024 * 1024 * 100
-  defMsgWaitInterval = time.Millisecond * 100
-)
+  m := map[string]interface{}{
+    "conn": fmt.Sprintf("%s|%s|%s|%s|%s",
+      o.endpoint(), c.MgrName, c.ChannelName, c.QueueName, typeConnTxt[tc]),
+  }
 
-const (
-  stateDisconnect stateConn = iota
-  stateConnect
-  stateErr
-)
+  o.log = l.WithFields(m)
 
-const (
-  reqConnect reqStateConn = iota
-  reqReconnect
-  reqDisconnect
-)
+  if tc != TypePut && tc != TypeGet && tc != TypeBrowse {
+    o.log.Panic("Unknown connection type")
+  }
 
-const (
-  operGet queueOper = iota
-  operGetByMsgId
-  operGetByCorrelId
-  operBrowseFirst
-  operBrowseNext
-)
+  o.typeConn = tc
 
-var typeConnTxt = map[TypeConn]string{
-  TypePut:    "put",
-  TypeGet:    "get",
-  TypeBrowse: "browse",
-}
+  if c.MaxMsgLength == 0 {
+    c.MaxMsgLength = defMaxMsgLength
+  }
 
-// Msg отправляемое / получаемое сообщение
-type Msg struct {
-  MsgId    []byte
-  CorrelId []byte
-  Payload  []byte
-  Props    map[string]interface{}
-  Time     time.Time
+  if c.Header != "" {
+    h, err := parseHeaderType(c.Header)
+    if err != nil {
+      o.log.Panic(errHeaderParseType)
+    }
+    o.h = h
+    o.rfh2 = newRfh2Cfg()
+  }
+
+  return o
 }
