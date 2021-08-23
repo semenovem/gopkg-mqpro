@@ -38,3 +38,5 @@ https://github.com/ibm-messaging/mq-dev-patterns
 set up mutual
 https://developer.ibm.com/components/ibm-mq/tutorials/configuring-mutual-tls-authentication-java-messaging-app/
 
+rfh2
+https://www.ibm.com/docs/en/ibm-mq/9.0?topic=mqrfh2-namevaluelength-mqlong

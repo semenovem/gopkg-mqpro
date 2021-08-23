@@ -46,9 +46,9 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
 
   msgId, err := ibmmq.Put(ctx, msg)
   if err != nil {
-    fmt.Fprintf(w, "put Error: %s\n", err.Error())
+    _, _ = fmt.Fprintf(w, "put Error: %s\n", err.Error())
     return
   }
 
-  fmt.Fprintf(w, "put Ok. msgId: %x\n", msgId)
+  _, _ = fmt.Fprintf(w, "put Ok. msgId: %x\n", msgId)
 }

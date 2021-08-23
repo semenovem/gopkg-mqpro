@@ -101,7 +101,7 @@ func putGetMsg(w http.ResponseWriter, _ *http.Request) {
   }
 
   fmt.Println("\n--------------------------------")
-  fmt.Println("Получает сообщение первое доступное сообщение")
+  fmt.Println("Получает первое доступное сообщение")
   msg, ok, err = ibmmq.Get(ctx)
   if err != nil {
     fmt.Println("ERROR: ", err)

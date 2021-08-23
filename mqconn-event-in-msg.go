@@ -30,7 +30,7 @@ func (c *Mqconn) registerEventInMsg() error {
   return nil
 }
 
-// подписка на входящие сообщения
+// Подписка на входящие сообщения
 func (c *Mqconn) _registerEventInMsg() error {
   cmho := ibmmq.NewMQCMHO()
   mh, err := c.mgr.CrtMH(cmho)
@@ -111,6 +111,15 @@ func (c *Mqconn) handlerInMsg(
     CorrelId: md.CorrelId,
     Payload:  buffer,
     Props:    props,
+    Time:     md.PutDateTime,
+  }
+
+  if c.DevMode {
+    c.devMsg = *msg
+    f := devMode(&c.devMsg, buffer, "subscribe")
+    defer func() {
+      f()
+    }()
   }
 
   if c.h == HeaderRfh2 {
@@ -124,12 +133,16 @@ func (c *Mqconn) handlerInMsg(
     var ofs int32
     for _, h := range headers {
       unionPropsDeep(msg.Props, h.NameValues)
-      ofs += h.StrucLength
+      ofs += h.StructLength
     }
     msg.Payload = buffer[ofs:]
-  }
 
-  //logMsg(msg, buffer)
+    if c.DevMode {
+      c.devMsg.Payload = buffer[ofs:]
+      c.devMsg.MQRFH2 = headers
+      c.devMsg.Props = msg.Props
+    }
+  }
 
   c.log.Info("Получено сообщение")
 

@@ -82,23 +82,8 @@ ibmmqtls:
 dev:
 	@docker run --rm -it \
 		--name sample \
-		--hostname sample \
+		--hostname s \
 		--network $(NETWORK) \
-		--env ENV_LOG_LEVEL=debug \
-		--env ENV_API_PORT=80 \
-		--env ENV_MQ_0_HOST=mq0 \
-		--env ENV_MQ_0_PORT=1414 \
-		--env ENV_MQ_0_MGR=QM1 \
-		--env ENV_MQ_0_CHANNEL=DEV.APP.SVRCONN \
-		--env ENV_MQ_0_PUT_QUEUE=DEV.QUEUE.1 \
-		--env ENV_MQ_0_GET_QUEUE=DEV.QUEUE.1 \
-		--env ENV_MQ_0_BROWSE_QUEUE=DEV.QUEUE.1 \
-		--env ENV_MQ_0_HEADER=RFH2 \
-		--env ENV_MQ_0_APP=gopack.mqrpo.sample \
-		--env ENV_MQ_0_USER=app \
-		--env ENV_MQ_0_PASS=11 \
-		--env ENV_MQ_0_TLS=true \
-		--env ENV_MQ_0_KEY_REPOSITORY="crypto/client/keys" \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
 		"$(IMG)" bash run.sh

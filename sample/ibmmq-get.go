@@ -16,16 +16,14 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
 
   msg, ok, err := ibmmq.Get(ctx)
   if err != nil {
-    fmt.Fprintf(w, "[get] Error: %s\n", err.Error())
+    _, _ = fmt.Fprintf(w, "[get] Error: %s\n", err.Error())
     return
   }
 
   if !ok {
-    fmt.Fprintf(w, "[get]. Message queue is empty\n")
+    _, _ = fmt.Fprintf(w, "[get]. Message queue is empty\n")
     return
   }
 
-  logMsg(msg)
-
-  fmt.Fprintf(w, "[get] Ok. msgId: %x\n", msg.MsgId)
+  _, _ = fmt.Fprintf(w, "[get] Ok. msgId: %x\n", msg.MsgId)
 }

@@ -66,22 +66,26 @@ func TestRfh2Marshal_toHeadersBinary(t *testing.T) {
 }
 
 func TestRfh2Marshal_cnvVal(t *testing.T) {
-  assert.Equal(t, "string", string(toXmlVal("string")))
-  assert.Equal(t, "[]byte", string(toXmlVal([]byte("[]byte"))))
-  assert.Equal(t, "true", string(toXmlVal(true)))
+  f := func(s string, b[]byte) bool {
+    return bytes.Equal([]byte(s), b)
+  }
 
-  assert.Equal(t, "3232", string(toXmlVal(uint(3232))))
-  assert.Equal(t, "8", string(toXmlVal(uint8(8))))
-  assert.Equal(t, "16", string(toXmlVal(uint16(16))))
-  assert.Equal(t, "32", string(toXmlVal(uint32(32))))
-  assert.Equal(t, "64", string(toXmlVal(uint64(64))))
+  assert.True(t, f("string", toXmlVal("string")))
+  assert.True(t, f("[]byte", toXmlVal([]byte("[]byte"))))
+  assert.True(t, f("true", toXmlVal(true)))
 
-  assert.Equal(t, "3232", string(toXmlVal(int(3232))))
-  assert.Equal(t, "8", string(toXmlVal(int8(8))))
-  assert.Equal(t, "16", string(toXmlVal(int16(16))))
-  assert.Equal(t, "32", string(toXmlVal(int32(32))))
-  assert.Equal(t, "64", string(toXmlVal(int64(64))))
+  assert.True(t, f("3232", toXmlVal(uint(3232))))
+  assert.True(t, f("8", toXmlVal(uint8(8))))
+  assert.True(t, f("16", toXmlVal(uint16(16))))
+  assert.True(t, f("32", toXmlVal(uint32(32))))
+  assert.True(t, f("64", toXmlVal(uint64(64))))
 
-  assert.Equal(t, "234.345", string(toXmlVal(float32(234.345))))
-  assert.Equal(t, "234.3456666", string(toXmlVal(234.3456666)))
+  assert.True(t, f("3232", toXmlVal(int(3232))))
+  assert.True(t, f("8", toXmlVal(int8(8))))
+  assert.True(t, f("16", toXmlVal(int16(16))))
+  assert.True(t, f("32", toXmlVal(int32(32))))
+  assert.True(t, f("64", toXmlVal(int64(64))))
+
+  assert.True(t, f("234.345", toXmlVal(float32(234.345))))
+  assert.True(t, f("234.3456666", toXmlVal(234.3456666)))
 }

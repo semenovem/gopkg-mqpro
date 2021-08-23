@@ -22,10 +22,12 @@ type Mqconn struct {
   ctlo            *ibmmq.MQCTLO            // Объект подписки ibmmq
   fnsConn         map[uint32]chan struct{} // Подписки на установку соединения
   fnsDisconn      map[uint32]chan struct{} // Подписки на закрытие соединения
-  ind             uint32                   // Простой атомарный счетчик
+  ind             uint32                   // Счетчик
   reconnectDelay  time.Duration            // Таймаут попыток повторного подключения
   msgWaitInterval time.Duration            // Ожидание сообщения
   rfh2            *rfh2Cfg                 // Данные для заголовков RFH2
+  DevMode         bool                     // Режим разработки расширенное логирование
+  devMsg          Msg                      // Для разработки
 
   // менеджер imbmq одновременно может отправлять/принимать одно сообщение
   // TODO - использовать только один мьютекс
@@ -52,6 +54,7 @@ type Cfg struct {
   Tls              bool
   KeyRepository    string
   CertificateLabel string
+  DevMode          bool
 }
 
 func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
@@ -62,6 +65,7 @@ func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
     reconnectDelay:  defReconnectDelay,
     stateConn:       stateDisconnect,
     msgWaitInterval: defMsgWaitInterval,
+    DevMode:         c.DevMode,
   }
 
   m := map[string]interface{}{
