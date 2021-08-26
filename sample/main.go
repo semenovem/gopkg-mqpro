@@ -5,7 +5,6 @@ import (
   "encoding/hex"
   "fmt"
   mqpro "github.com/semenovem/gopkg_mqpro"
-  "github.com/sirupsen/logrus"
   "net/http"
   "os"
   "os/signal"
@@ -29,25 +28,6 @@ func init() {
 
   correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
   correlId2, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480444")
-
-  http.HandleFunc("/", api404)
-  http.HandleFunc("/put", putMsg)
-  http.HandleFunc("/get", getMsg)
-  http.HandleFunc("/putget", putGetMsg)
-  http.HandleFunc("/sub", onRegisterInMsg)
-  http.HandleFunc("/unsub", offRegisterInMsg)
-  http.HandleFunc("/browse", onBrowse)
-  http.HandleFunc("/correl", getMsgByCorrelId)
-
-  lev, err := logrus.ParseLevel(os.Getenv("ENV_LOG_LEVEL"))
-  if err == nil {
-    l := logrus.New()
-    l.SetLevel(lev)
-
-    l.SetLevel(logrus.TraceLevel)
-
-    ibmmq.SetLogger(logrus.NewEntry(l).WithField("pkg", "mqpro"))
-  }
 }
 
 func main() {
@@ -77,13 +57,15 @@ func main() {
     fmt.Println("ListenAndServe: ", err)
   }()
 
+  if cfg.SimpleSubscriber {
+    subscr()
+  }
+
+
   <-rootCtx.Done()
   time.Sleep(time.Second * 1)
 }
 
-func api404(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintf(w, "404\n")
-}
 
 func logMsg(msg *mqpro.Msg) {
   fmt.Println("\n--------------------------------")

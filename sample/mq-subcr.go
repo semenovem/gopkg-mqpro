@@ -10,7 +10,7 @@ import (
 // curl host:port/sub
 func onRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Включено получение сообщений из очереди")
-  ibmmq.RegisterEvenInMsg(handlerInMsg)
+  subscr()
 
   _, _ = fmt.Fprintf(w, "[subcribe] Ok\n")
 }
@@ -19,12 +19,21 @@ func onRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
 // curl host:port/unsub
 func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отключено получение входящих сообщений")
-  ibmmq.UnregisterEvenInMsg()
+  unsubscr()
 
   _, _ = fmt.Fprintf(w, "[unsubcribe] Ok\n")
 }
 
 // Обработчик входящих сообщений
-func handlerInMsg(_ *mqpro.Msg) {
+func handlerInMsg(msg *mqpro.Msg) {
   fmt.Println("Вызван обработчик входящих сообщений")
+  logMsg(msg)
+}
+
+func subscr()  {
+  ibmmq.RegisterEvenInMsg(handlerInMsg)
+}
+
+func unsubscr()  {
+  ibmmq.UnregisterEvenInMsg()
 }

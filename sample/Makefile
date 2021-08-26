@@ -77,23 +77,71 @@ ibmmqtls:
     ibmcom/mq:9.2.2.0-r1
 
 
-## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
-.PHONY: dev
-dev:
-	@docker run --rm -it \
-		--name sample \
-		--hostname s \
-		--network $(NETWORK) \
-		-w /app/sample \
-		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash run.sh
-
-
 ## curl - контейнер, присоединенный к сети, для выполнения curl запросов
 .PHONY: curl
 curl:
 	@docker run -it --rm --network $(NETWORK) ubuntu:20.04 sh -c \
      "apt update && apt install -y curl && echo '| Для выхода из контейнера ctrl+D' && bash"
+
+
+## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+.PHONY: dev
+dev:
+	@docker run --rm -it \
+		--name client1 \
+		--hostname c1 \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:rw" \
+		"$(IMG)" bash dev/run.sh client.env
+
+
+## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+.PHONY: dev2
+dev2:
+	@docker run --rm -it \
+		--name client2 \
+		--hostname c2 \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh client.env
+
+
+## dev3 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+.PHONY: dev3
+dev3:
+	@docker run --rm -it \
+		--name client3 \
+		--hostname c3 \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh client.env
+
+
+## push - контейнер для разработки
+.PHONY: push
+push:
+	@docker run --rm -it \
+		--name push \
+		--hostname push \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh initiator.env
+
+
+## server - контейнер для разработки
+.PHONY: server
+server:
+	@docker run --rm -it \
+		--name push \
+		--hostname push \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh server.env
 
 
 ## test
