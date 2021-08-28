@@ -8,8 +8,6 @@ import (
   "time"
 )
 
-var flag bool
-
 // Отправляет сообщение в очередь
 // curl host:port/put
 func putMsg(w http.ResponseWriter, _ *http.Request) {
@@ -34,14 +32,6 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
   msg := &mqpro.Msg{
     Payload:  b,
     Props:    props,
-    CorrelId: correlId,
-  }
-
-  flag = !flag
-  if flag {
-    msg.CorrelId = correlId
-  } else {
-    msg.CorrelId = correlId2
   }
 
   msgId, err := ibmmq.Put(ctx, msg)

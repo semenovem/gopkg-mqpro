@@ -12,28 +12,43 @@ func onRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Включено получение сообщений из очереди")
   subscr()
 
-  _, _ = fmt.Fprintf(w, "[subcribe] Ok\n")
+  printCfg()
+  _, _ = fmt.Fprintf(w, "[sub] Ok\n")
 }
 
 // Отписаться
 // curl host:port/unsub
 func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
+  if cfg.Mirror {
+    fmt.Println("Отключено получение сообщений из очереди")
+    _, _ = fmt.Fprintf(w, "[unsub] ERROR. use curl host:port/off-mirror\n")
+    return
+  }
+
   fmt.Println("Отключено получение входящих сообщений")
   unsubscr()
 
-  _, _ = fmt.Fprintf(w, "[unsubcribe] Ok\n")
+  printCfg()
+  _, _ = fmt.Fprintf(w, "[unsub] Ok\n")
+}
+
+func subscr() {
+  cfg.SimpleSubscriber = true
+  ibmmq.RegisterEventInMsg(handlerInMsg)
+}
+
+func unsubscr() {
+  cfg.SimpleSubscriber = false
+  ibmmq.UnregisterEventInMsg()
 }
 
 // Обработчик входящих сообщений
-func handlerInMsg(msg *mqpro.Msg) {
+func handlerInMsg(m *mqpro.Msg) {
   fmt.Println("Вызван обработчик входящих сообщений")
-  logMsg(msg)
-}
+  fmt.Printf("Режим Mirror = %v", cfg.Mirror)
+  logMsgIn(m)
 
-func subscr()  {
-  ibmmq.RegisterEvenInMsg(handlerInMsg)
-}
-
-func unsubscr()  {
-  ibmmq.UnregisterEvenInMsg()
+  if cfg.Mirror {
+    mirror(m)
+  }
 }
