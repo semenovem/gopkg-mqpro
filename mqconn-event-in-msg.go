@@ -114,13 +114,15 @@ func (c *Mqconn) handlerInMsg(
     Time:     md.PutDateTime,
   }
 
+  var devMsg Msg
   if c.DevMode {
-    c.devMsg = *msg
-    f := devMode(&c.devMsg, buffer, "subscribe")
+    devMsg = *msg
+    f1 := devMode(&devMsg, buffer, "subscribe")
     defer func() {
-      f()
+      f1()
     }()
   }
+
 
   if c.h == HeaderRfh2 {
     headers, err := c.Rfh2Unmarshal(buffer)
@@ -138,9 +140,9 @@ func (c *Mqconn) handlerInMsg(
     msg.Payload = buffer[ofs:]
 
     if c.DevMode {
-      c.devMsg.Payload = buffer[ofs:]
-      c.devMsg.MQRFH2 = headers
-      c.devMsg.Props = msg.Props
+      devMsg.Payload = buffer[ofs:]
+      devMsg.MQRFH2 = headers
+      devMsg.Props = msg.Props
     }
   }
 

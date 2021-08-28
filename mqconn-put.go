@@ -49,10 +49,11 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     putmqmd.CorrelId = msg.CorrelId
   }
 
-  if c.DevMode {
-    c.devMsg = *msg
+  var devMsg Msg
 
-    f := devMode(&c.devMsg, payload, "put")
+  if c.DevMode {
+    devMsg = *msg
+    f := devMode(&devMsg, payload, "put")
     defer func() {
       f()
     }()
@@ -69,10 +70,11 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     payload = append(hd, payload...)
 
     if c.DevMode {
-      c.devMsg.MQRFH2, err = c.Rfh2Unmarshal(hd)
+      devMsg.MQRFH2, err = c.Rfh2Unmarshal(hd)
       if err != nil {
         return nil, err
       }
+      devMsg.Payload = payload
     }
 
   default:
@@ -114,8 +116,8 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
   l.Infof("Success. MsgId: %x", putmqmd.MsgId)
 
   if c.DevMode {
-    c.devMsg.Time = putmqmd.PutDateTime
-    c.devMsg.MsgId = putmqmd.MsgId
+    devMsg.Time = putmqmd.PutDateTime
+    devMsg.MsgId = putmqmd.MsgId
   }
 
   return putmqmd.MsgId, nil

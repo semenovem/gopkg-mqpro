@@ -4,6 +4,12 @@ import (
   "context"
 )
 
+
+// Get2 Получение очередного сообщения
+//func (p *Mqpro) Get2(ctx context.Context, s ...string) (*Msg, bool, error) {
+//
+//}
+
 // GetByCorrelId Получение сообщения по correlId
 func (p *Mqpro) GetByCorrelId(ctx context.Context, correlId []byte) (*Msg, bool, error) {
   fn := func(c *Mqconn) (*Msg, bool, error) {

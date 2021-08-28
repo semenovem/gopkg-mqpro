@@ -178,9 +178,10 @@ loopCtx:
     MQRFH2:   make([]*MQRFH2, 0),
   }
 
+  var devMsg Msg
   if c.DevMode {
-    c.devMsg = *msg
-    f := devMode(&c.devMsg, buffer, "get")
+    devMsg = *msg
+    f := devMode(&devMsg, buffer, "get")
     defer func() {
       f()
     }()
@@ -202,9 +203,9 @@ loopCtx:
     msg.Payload = buffer[ofs:]
 
     if c.DevMode {
-      c.devMsg.Payload = buffer[ofs:]
-      c.devMsg.MQRFH2 = headers
-      c.devMsg.Props = msg.Props
+      devMsg.Payload = buffer[ofs:]
+      devMsg.MQRFH2 = headers
+      devMsg.Props = msg.Props
     }
   }
 
