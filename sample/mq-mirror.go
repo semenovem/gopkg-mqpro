@@ -30,7 +30,6 @@ func offMirror(w http.ResponseWriter, _ *http.Request) {
   _, _ = fmt.Fprintf(w, "[off-mirror] Ok\n")
 }
 
-
 // Отправляет зеркальный ответ
 func mirror(msg *mqpro.Msg) {
   fmt.Println()
@@ -52,4 +51,3 @@ func mirror(msg *mqpro.Msg) {
     logMsgOut(msg)
   }
 }
-

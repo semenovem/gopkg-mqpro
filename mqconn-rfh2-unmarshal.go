@@ -110,34 +110,74 @@ func rfh2ParseXml(buf []byte) (map[string]interface{}, error) {
     return nil, err
   }
 
-  mm := make(map[string]interface{})
-  for n, v := range m.m {
-    mm[n] = v
-  }
-
-  return mm, nil
+  return m.m, nil
 }
 
 type rfh2Xml struct {
   m map[string]interface{}
 }
 
-// UnmarshalXML
-// TODO сейчас без поддержки вложенности тегов
-func (c *rfh2Xml) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-  c.m = make(map[string]interface{})
-  key := start.Name.Local
+type gg struct {
+  root *gg
+  a    map[string]interface{}
+}
 
+func (c *rfh2Xml) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+  root := make(map[string]interface{})
+  root[start.Name.Local] = nil
+  path := []string{start.Name.Local}
+
+loop:
   for {
     t, _ := d.Token()
+
+    key := path[len(path)-1]
+    mnt := root
+
+    for _, k := range path[:len(path)-1] {
+      switch mnt[k].(type) {
+      case map[string]interface{}:
+        mnt = mnt[k].(map[string]interface{})
+      }
+    }
+
     switch tt := t.(type) {
     case xml.StartElement:
-    case xml.EndElement:
-      if tt.Name == start.Name {
-        return nil
+      //fmt.Printf(">>> StartElement: <%s>:<%s>\n", key, tt.Name.Local)
+
+      switch mnt[key].(type) {
+      case map[string]interface{}:
+      default:
+        m := make(map[string]interface{})
+        mnt[key] = m
+        m[tt.Name.Local] = nil
       }
+
+      m := mnt[key].(map[string]interface{})
+      m[tt.Name.Local] = nil
+
+      path = append(path, tt.Name.Local)
+
+    case xml.EndElement:
+      //fmt.Printf(">>> EndElement:   <%s>\n", key)
+
+      if tt.Name == start.Name {
+        break loop
+      }
+      path = path[:len(path)-1]
+
     case xml.CharData:
-      c.m[key] = string(tt)
+      //fmt.Printf(">>> CharData:     <%s>  [%s] \n", key, tt.Copy())
+
+      switch mnt[key].(type) {
+      case map[string]interface{}:
+      default:
+        mnt[key] = string(tt.Copy())
+      }
     }
   }
+
+  c.m = root
+
+  return nil
 }

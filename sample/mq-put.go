@@ -30,8 +30,8 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
   }
 
   msg := &mqpro.Msg{
-    Payload:  b,
-    Props:    props,
+    Payload: b,
+    Props:   props,
   }
 
   msgId, err := ibmmq.Put(ctx, msg)

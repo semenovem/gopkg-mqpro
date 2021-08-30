@@ -88,8 +88,8 @@ curl:
 .PHONY: dev
 dev:
 	@docker run --rm -it \
-		--name client1 \
-		--hostname c1 \
+		--name client \
+		--hostname c \
 		--network $(NETWORK) \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \

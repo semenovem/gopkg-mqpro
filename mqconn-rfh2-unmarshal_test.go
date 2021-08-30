@@ -2,6 +2,7 @@ package mqpro
 
 import (
   "bytes"
+  "encoding/xml"
   "fmt"
   "github.com/stretchr/testify/assert"
   "testing"
@@ -39,7 +40,6 @@ func TestRfh2Unmarshal_parsePayload(t *testing.T) {
   assert.Equal(t, "map[second11:value_second]", fmt.Sprintf("%v", h.NameValues[1]))
 }
 
-// TODO реализован тест без вложенных тегов
 func TestRfh2Unmarshal_parseNameValue(t *testing.T) {
   b := []byte("<first>value_first3</first>")
   b = append(b, make([]byte, len(b)%4)...)
@@ -47,4 +47,15 @@ func TestRfh2Unmarshal_parseNameValue(t *testing.T) {
   m, err := rfh2ParseXml(b)
   assert.NoError(t, err)
   assert.Equal(t, "map[first:value_first3]", fmt.Sprintf("%v", m))
+}
+
+func TestRfh2Unmarshal_rfh2Xml(t *testing.T) {
+  b := []byte("<usr><first>value_first1</first>  <second>34523<third>333</third></second></usr>")
+
+  m := rfh2Xml{}
+  err := xml.Unmarshal(b, &m)
+  assert.NoError(t, err)
+
+  assert.Equal(t, "map[usr:map[first:value_first1 second:map[third:333]]]",
+    fmt.Sprintf("%v", m.m))
 }

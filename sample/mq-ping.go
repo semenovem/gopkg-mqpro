@@ -8,8 +8,6 @@ import (
   "time"
 )
 
-
-
 // Отправляет сообщение в очередь и ждет ответа
 // curl host:port/ping
 // Requirements:
@@ -24,16 +22,9 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
 
   // Свойства сообщения
   props := map[string]interface{}{
-   "firstProp":   "this is first prop",
-   "anotherProp": "... another prop",
+    "firstProp":   "this is first prop",
+    "anotherProp": "... another prop",
   }
-
-
-  //props := map[string]interface{}{
-  //  "usr": "<vtb.bhive.operation>1</vtb.bhive.operation><vtb.bhive.status>0</vtb.bhive.status>",
-  //}
-  //
-  //
 
   size := 8 * 1
   b := make([]byte, size)
@@ -43,8 +34,8 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
   }
 
   msg := &mqpro.Msg{
-    Payload:  b,
-    Props:    props,
+    Payload: b,
+    Props:   props,
   }
 
   msgId, err := ibmmq.Put(ctx, msg)
@@ -75,5 +66,5 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
 
   logMsgIn(reply)
 
-    _, _ = fmt.Fprintf(w, "[ping] Ok. msgId: %x\n", msgId)
+  _, _ = fmt.Fprintf(w, "[ping] Ok. msgId: %x\n", msgId)
 }
