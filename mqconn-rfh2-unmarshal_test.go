@@ -8,24 +8,25 @@ import (
 )
 
 func TestRfh2Unmarshal_parsePayload(t *testing.T) {
+  intOrd := endian
   txt1 := "<first>value_first3</first>"
   tag1 := []byte(txt1)
   l1 := len(tag1) + tailFour(len(tag1))
   b1 := make([]byte, 4+l1)
-  endian.PutUint32(b1[:4], uint32(l1))
+  intOrd.PutUint32(b1[:4], uint32(l1))
   copy(b1[4:], tag1)
 
   txt2 := "<second11>value_second</second11>"
   tag2 := []byte(txt2)
   l2 := len(tag2) + tailFour(len(tag2))
   b2 := make([]byte, 4+l2)
-  endian.PutUint32(b2[:4], uint32(l2))
+  intOrd.PutUint32(b2[:4], uint32(l2))
   copy(b2[4:], tag2)
   buf := append([]byte{}, b1...)
   buf = append(buf, b2...)
 
   h := &MQRFH2{}
-  err := rfh2ParseData(buf, h)
+  err := rfh2ParseData(buf, h, intOrd)
   assert.NoError(t, err)
 
   assert.Len(t, h.NameValues, 2)

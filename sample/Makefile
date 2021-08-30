@@ -77,38 +77,59 @@ ibmmqtls:
     ibmcom/mq:9.2.2.0-r1
 
 
-## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
-.PHONY: dev
-dev:
-	@docker run --rm -it \
-		--name sample \
-		--hostname sample \
-		--network $(NETWORK) \
-		--env ENV_LOG_LEVEL=debug \
-		--env ENV_API_PORT=80 \
-		--env ENV_MQ_0_HOST=mq0 \
-		--env ENV_MQ_0_PORT=1414 \
-		--env ENV_MQ_0_MGR=QM1 \
-		--env ENV_MQ_0_CHANNEL=DEV.APP.SVRCONN \
-		--env ENV_MQ_0_PUT_QUEUE=DEV.QUEUE.1 \
-		--env ENV_MQ_0_GET_QUEUE=DEV.QUEUE.1 \
-		--env ENV_MQ_0_BROWSE_QUEUE=DEV.QUEUE.1 \
-		--env ENV_MQ_0_HEADER=RFH2 \
-		--env ENV_MQ_0_APP=gopack.mqrpo.sample \
-		--env ENV_MQ_0_USER=app \
-		--env ENV_MQ_0_PASS=11 \
-		--env ENV_MQ_0_TLS=true \
-		--env ENV_MQ_0_KEY_REPOSITORY="crypto/client/keys" \
-		-w /app/sample \
-		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash run.sh
-
-
 ## curl - контейнер, присоединенный к сети, для выполнения curl запросов
 .PHONY: curl
 curl:
 	@docker run -it --rm --network $(NETWORK) ubuntu:20.04 sh -c \
      "apt update && apt install -y curl && echo '| Для выхода из контейнера ctrl+D' && bash"
+
+
+## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+.PHONY: dev
+dev:
+	@docker run --rm -it \
+		--name client1 \
+		--hostname c1 \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:rw" \
+		"$(IMG)" bash dev/run.sh client.env
+
+
+## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+.PHONY: dev2
+dev2:
+	@docker run --rm -it \
+		--name client2 \
+		--hostname c2 \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh client.env
+
+
+## dev3 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+.PHONY: dev3
+dev3:
+	@docker run --rm -it \
+		--name client3 \
+		--hostname c3 \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh client.env
+
+
+## server - контейнер для разработки
+.PHONY: server
+server:
+	@docker run --rm -it \
+		--name server \
+		--hostname s \
+		--network $(NETWORK) \
+		-w /app/sample \
+		-v "${PWD}/..:/app:ro" \
+		"$(IMG)" bash dev/run.sh server.env
 
 
 ## test

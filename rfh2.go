@@ -12,6 +12,7 @@ const (
 )
 
 var endian = binary.LittleEndian
+var endian2 = binary.BigEndian
 
 type rfh2Cfg struct {
   StructId       string
@@ -38,7 +39,7 @@ func newRfh2Cfg() *rfh2Cfg {
 type MQRFH2 struct {
   StructId       string
   Version        int32
-  StrucLength    int32
+  StructLength   int32
   Encoding       int32
   CodedCharSetId int32
   Format         string

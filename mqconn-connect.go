@@ -69,7 +69,7 @@ func (c *Mqconn) endpoint() string {
   return fmt.Sprintf("%s(%d)", c.cfg.Host, c.cfg.Port)
 }
 
-// подключение к менеджеру
+// Подключение к менеджеру
 func (c *Mqconn) _connectMgr() error {
   if c.mgr != nil {
     return nil
@@ -116,7 +116,7 @@ func (c *Mqconn) _connectMgr() error {
   return nil
 }
 
-// открытие очереди отправки
+// Открытие очереди отправки
 func (c *Mqconn) openQuePut() error {
   mqod := ibmmq.NewMQOD()
   mqod.ObjectType = ibmmq.MQOT_Q
@@ -129,12 +129,12 @@ func (c *Mqconn) openQuePut() error {
   return nil
 }
 
-// открыть очередь получения
+// Открыть очередь получения
 func (c *Mqconn) openQueGet() error {
   mqod := ibmmq.NewMQOD()
   mqod.ObjectType = ibmmq.MQOT_Q
   mqod.ObjectName = c.cfg.QueueName
-  que, err := c.mgr.Open(mqod, ibmmq.MQOO_INPUT_EXCLUSIVE)
+  que, err := c.mgr.Open(mqod, ibmmq.MQOO_INPUT_SHARED)
   if err != nil {
     return err
   }
@@ -144,10 +144,9 @@ func (c *Mqconn) openQueGet() error {
 
 func (c *Mqconn) openBrowse() error {
   mqod := ibmmq.NewMQOD()
-  openOptions := ibmmq.MQOO_BROWSE
   mqod.ObjectType = ibmmq.MQOT_Q
   mqod.ObjectName = c.cfg.QueueName
-  que, err := c.mgr.Open(mqod, openOptions)
+  que, err := c.mgr.Open(mqod, ibmmq.MQOO_BROWSE)
   if err != nil {
     return err
   }

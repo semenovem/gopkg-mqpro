@@ -28,3 +28,11 @@ func (c *Mqconn) isWarn(err error) {
     c.log.Warn(err)
   }
 }
+
+func (c *Mqconn) GetRootTag() string {
+  return c.rootTag
+}
+
+func (c *Mqconn) SetRootTag(tag string) {
+  c.rootTag = tag
+}

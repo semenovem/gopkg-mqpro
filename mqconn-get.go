@@ -47,7 +47,7 @@ func (c *Mqconn) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, bool, erro
   return msg, ok, err
 }
 
-// получение сообщения
+// Получение сообщения
 func (c *Mqconn) get(ctx context.Context, oper queueOper, id []byte, l *logrus.Entry) (
   *Msg, bool, error) {
 
@@ -93,11 +93,11 @@ func (c *Mqconn) get(ctx context.Context, oper queueOper, id []byte, l *logrus.E
 
   gmo.MsgHandle = getMsgHandle
 
-  // TODO - если MQFMT_RF_HEADER_2 - при получении не требуется - можно удалить код ниже:
   switch c.h {
   case HeaderRfh2:
     getmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
   default:
+    // TODO код, получения стандартных заголовков перенести сюда
     getmqmd.Format = ibmmq.MQFMT_STRING
   }
 
@@ -160,6 +160,7 @@ loopCtx:
     }
   }
 
+  // TODO закрыть условием о типе заголовка
   props, err := properties(getMsgHandle)
   if err != nil {
     l.Errorf("Ошибка получения свойств сообщения: %s", err)
@@ -168,7 +169,7 @@ loopCtx:
 
   l.Info("Success")
 
-  ret := &Msg{
+  msg := &Msg{
     Payload:  buffer,
     Props:    props,
     CorrelId: getmqmd.CorrelId,
@@ -177,42 +178,36 @@ loopCtx:
     MQRFH2:   make([]*MQRFH2, 0),
   }
 
+  var devMsg Msg
+  if c.DevMode {
+    devMsg = *msg
+    f := devMode(&devMsg, buffer, "get")
+    defer func() {
+      f()
+    }()
+  }
+
   if c.h == HeaderRfh2 {
     headers, err := c.Rfh2Unmarshal(buffer)
     if err != nil {
       c.log.Error(err)
       return nil, false, err
     }
-    ret.MQRFH2 = headers
+    msg.MQRFH2 = headers
 
     var ofs int32
     for _, h := range headers {
-      unionPropsDeep(ret.Props, h.NameValues)
-      ofs += h.StrucLength
+      unionPropsDeep(msg.Props, h.NameValues)
+      ofs += h.StructLength
     }
-    ret.Payload = buffer[ofs:]
+    msg.Payload = buffer[ofs:]
+
+    if c.DevMode {
+      devMsg.Payload = buffer[ofs:]
+      devMsg.MQRFH2 = headers
+      devMsg.Props = msg.Props
+    }
   }
 
-  //logMsg(ret, buffer)
-
-  return ret, true, nil
-}
-
-// Вывод инфоормации о ibmmq сообщении
-func logMsg(msg *Msg, b []byte) {
-  fmt.Println("\n--------------------------------")
-  fmt.Println("Сообщение:")
-  if len(msg.Payload) < 200 {
-    fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
-  } else {
-    fmt.Printf(">>>>> msg.Payload len = %d\n", len(msg.Payload))
-  }
-
-  if len(b) > 0 {
-    fmt.Printf(">>>>> original buffer  = %+v\n", b)
-  }
-
-  fmt.Printf(">>>>> msg.Props    = %+v\n", msg.Props)
-  //fmt.Printf(">>>>> msg.CorrelId = %x\n", msg.CorrelId)
-  //fmt.Printf(">>>>> msg.MsgId    = %x\n", msg.MsgId)
+  return msg, true, nil
 }

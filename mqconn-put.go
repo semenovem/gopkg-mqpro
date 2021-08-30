@@ -32,11 +32,11 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
 
   l.Info("Start")
 
-  var d []byte
+  var payload []byte
   if msg.Payload == nil {
-    d = make([]byte, 0)
+    payload = make([]byte, 0)
   } else {
-    d = msg.Payload
+    payload = msg.Payload
   }
 
   putmqmd := ibmmq.NewMQMD()
@@ -49,6 +49,16 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     putmqmd.CorrelId = msg.CorrelId
   }
 
+  var devMsg Msg
+
+  if c.DevMode {
+    devMsg = *msg
+    f := devMode(&devMsg, payload, "put")
+    defer func() {
+      f()
+    }()
+  }
+
   switch c.h {
   case HeaderRfh2:
     putmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
@@ -57,7 +67,15 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
       l.Error("Не удалось подготовить сообщение с заголовками rfh2: ", err)
       return nil, err
     }
-    d = append(hd, d...)
+    payload = append(hd, payload...)
+
+    if c.DevMode {
+      devMsg.MQRFH2, err = c.Rfh2Unmarshal(hd)
+      if err != nil {
+        return nil, err
+      }
+      devMsg.Payload = payload
+    }
 
   default:
     putmqmd.Format = ibmmq.MQFMT_STRING
@@ -82,11 +100,7 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     pmo.OriginalMsgHandle = putMsgHandle
   }
 
-  // TODO для отладки
-  //fmt.Println("MQPRO: props:", msg.Props)
-  //fmt.Println("MQPRO: HeaderRfh2: payload:", string(d))
-
-  err := c.que.Put(putmqmd, pmo, d)
+  err := c.que.Put(putmqmd, pmo, payload)
   if err != nil {
     l.Error("Ошибка отправки сообщения: ", err)
 
@@ -100,6 +114,11 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
   }
 
   l.Infof("Success. MsgId: %x", putmqmd.MsgId)
+
+  if c.DevMode {
+    devMsg.Time = putmqmd.PutDateTime
+    devMsg.MsgId = putmqmd.MsgId
+  }
 
   return putmqmd.MsgId, nil
 }

@@ -7,8 +7,9 @@ import (
 )
 
 const (
-  defDisconnDelay = time.Millisecond * 500 // По умолчанию задержка перед разрывом соединения
-  defReconnDelay  = time.Second * 3        // По умолчанию задержка повторных попыткок соединения
+  defDisconnDelay  = time.Millisecond * 500 // По умолчанию задержка перед разрывом соединения
+  defReconnDelay   = time.Second * 3        // По умолчанию задержка повторных попыток соединения
+  defRootTagHeader = "usr"                  // Корневой тэг для заголовков rhf2 формата
 )
 
 var (
@@ -25,6 +26,10 @@ var (
   errHeaderParseType         = errors.New("ibm mq: header type parsing error")
   ErrFormatRFH2              = errors.New("ibm mq rfh2: error decoding header")
   ErrParseRfh2               = errors.New("ibm mq rfh2: error parse value")
+  ErrRegisterEventInMsg      = errors.New("ibm mq: inbound message handler registration error")
+  ErrXml                     = errors.New("ibm mq: error when converting headers to xml. " +
+    "Permissible: 'map[string]interface{}'")
+  ErrXmlInconvertible = errors.New("ibm mq: Non-convertible data format")
 )
 
 type TypeConn int

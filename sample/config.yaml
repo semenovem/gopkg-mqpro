@@ -1,0 +1,9 @@
+host:
+port:
+mgr:
+channel:
+header: "rfh2"
+queues:
+  first:
+    name:
+

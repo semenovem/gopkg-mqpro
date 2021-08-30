@@ -5,7 +5,6 @@ import (
   "encoding/hex"
   "fmt"
   mqpro "github.com/semenovem/gopkg_mqpro"
-  "github.com/sirupsen/logrus"
   "net/http"
   "os"
   "os/signal"
@@ -29,25 +28,6 @@ func init() {
 
   correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
   correlId2, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480444")
-
-  http.HandleFunc("/", api404)
-  http.HandleFunc("/put", putMsg)
-  http.HandleFunc("/get", getMsg)
-  http.HandleFunc("/putget", putGetMsg)
-  http.HandleFunc("/sub", onRegisterInMsg)
-  http.HandleFunc("/unsub", offRegisterInMsg)
-  http.HandleFunc("/browse", onBrowse)
-  http.HandleFunc("/correl", getMsgByCorrelId)
-
-  lev, err := logrus.ParseLevel(os.Getenv("ENV_LOG_LEVEL"))
-  if err == nil {
-    l := logrus.New()
-    l.SetLevel(lev)
-
-    l.SetLevel(logrus.TraceLevel)
-
-    ibmmq.SetLogger(logrus.NewEntry(l).WithField("pkg", "mqpro"))
-  }
 }
 
 func main() {
@@ -69,32 +49,17 @@ func main() {
     p, err := strconv.Atoi(os.Getenv("ENV_API_PORT"))
     if err != nil {
       fmt.Println("not set correct ENV_API_PORT: ", err)
-      panic("")
+      panic("not set correct ENV_API_PORT")
     }
 
-    fmt.Println()
     err = http.ListenAndServe(fmt.Sprintf(":%d", p), nil)
     fmt.Println("ListenAndServe: ", err)
   }()
 
+  if cfg.SimpleSubscriber || cfg.Mirror {
+    subscr()
+  }
+
   <-rootCtx.Done()
   time.Sleep(time.Second * 1)
-}
-
-func api404(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintf(w, "404\n")
-}
-
-func logMsg(msg *mqpro.Msg) {
-  fmt.Println("\n--------------------------------")
-  fmt.Println("Получили сообщение:")
-  if len(msg.Payload) < 300 {
-    fmt.Printf(">>>>> msg.Payload  = %s\n", string(msg.Payload))
-  } else {
-    fmt.Printf(">>>>> len msg.Payload  = %d\n", len(msg.Payload))
-  }
-  fmt.Printf(">>>>> msg.Props    = %+v\n", msg.Props)
-  fmt.Printf(">>>>> msg.CorrelId = %x\n", msg.CorrelId)
-  fmt.Printf(">>>>> msg.MsgId    = %x\n", msg.MsgId)
-  fmt.Printf(">>>>> msg.Time     = %s\n", msg.Time.Format(time.RFC822))
 }

@@ -1,9 +1,10 @@
 package mqpro
 
-// RegisterEvenInMsg Добавляет обработчик входящих сообщений
-func (p *Mqpro) RegisterEvenInMsg(fn func(*Msg)) {
+// RegisterEventInMsg Добавляет обработчик входящих сообщений
+func (p *Mqpro) RegisterEventInMsg(fn func(*Msg)) error {
   if p.fnEventInMsg != nil {
-    p.log.Panic("Subscription already exists")
+    p.log.Error("Subscription already exists")
+    return ErrRegisterEventInMsg
   }
 
   p.fnEventInMsg = fn
@@ -11,10 +12,12 @@ func (p *Mqpro) RegisterEvenInMsg(fn func(*Msg)) {
   for _, conn := range p.connGet {
     conn.RegisterEventInMsg(p.fnEventInMsg)
   }
+
+  return nil
 }
 
-// UnregisterEvenInMsg Удалит подписку на входящие сообщения
-func (p *Mqpro) UnregisterEvenInMsg() {
+// UnregisterEventInMsg Удалит подписку на входящие сообщения
+func (p *Mqpro) UnregisterEventInMsg() {
   p.fnEventInMsg = nil
   for _, conn := range p.connGet {
     conn.UnregisterInMsg()
