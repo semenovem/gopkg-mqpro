@@ -120,18 +120,6 @@ dev3:
 		"$(IMG)" bash dev/run.sh client.env
 
 
-## browse - контейнер для разработки
-.PHONY: browse
-browse:
-	@docker run --rm -it \
-		--name browse \
-		--hostname b \
-		--network $(NETWORK) \
-		-w /app/sample \
-		-v "${PWD}/..:/app:ro" \
-		"$(IMG)" bash dev/run.sh browse.env
-
-
 ## server - контейнер для разработки
 .PHONY: server
 server:

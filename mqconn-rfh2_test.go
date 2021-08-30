@@ -13,11 +13,14 @@ func testLog() *logrus.Entry {
   return logrus.NewEntry(l)
 }
 
-func testRfh2Conn() *Mqconn {
+func testRfh2Conn(tag string) *Mqconn {
   cfg := &Cfg{
     Header: HeaderRfh2Txt,
   }
-  return NewMqconn(TypePut, testLog(), cfg)
+
+  c := NewMqconn(TypePut, testLog(), cfg)
+  c.SetRootTag(tag)
+  return c
 }
 
 func TestRfh2Marshal_Marshal(t *testing.T) {
@@ -25,7 +28,7 @@ func TestRfh2Marshal_Marshal(t *testing.T) {
     "first":  "value_first",
     "second": 123,
   }
-  c := testRfh2Conn()
+  c := testRfh2Conn("")
 
   b, err := c.Rfh2Marshal(p)
   assert.NoError(t, err)
@@ -65,27 +68,52 @@ func TestRfh2Marshal_toHeadersBinary(t *testing.T) {
   assert.True(t, bytes.Equal(buf, b))
 }
 
-func TestRfh2Marshal_cnvVal(t *testing.T) {
-  f := func(s string, b[]byte) bool {
-    return bytes.Equal([]byte(s), b)
+func TestRfh2Marshal_toXml(t *testing.T) {
+  f := func(k string, v interface{}) string {
+    b, _ := toXml(k, v)
+    return string(b)
   }
 
-  assert.True(t, f("string", toXmlVal("string")))
-  assert.True(t, f("[]byte", toXmlVal([]byte("[]byte"))))
-  assert.True(t, f("true", toXmlVal(true)))
+  assert.Equal(t, "<tag>string</tag>", f("tag", "string"))
+  assert.Equal(t, "<tag>true</tag>", f("tag", true))
+  assert.Equal(t, "<tag>100</tag>", f("tag", int8(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", int16(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", int32(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", int64(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", uint(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", uint8(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", uint16(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", uint32(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", uint64(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", byte(100)))
+  assert.Equal(t, "<tag>100</tag>", f("tag", rune(100)))
+  assert.Equal(t, "<tag>100.111</tag>", f("tag", float32(100.111)))
+  assert.Equal(t, "<tag>100.111555</tag>", f("tag", 100.111555))
 
-  assert.True(t, f("3232", toXmlVal(uint(3232))))
-  assert.True(t, f("8", toXmlVal(uint8(8))))
-  assert.True(t, f("16", toXmlVal(uint16(16))))
-  assert.True(t, f("32", toXmlVal(uint32(32))))
-  assert.True(t, f("64", toXmlVal(uint64(64))))
+  m := map[string]interface{}{
+    "first": "val-first",
+  }
 
-  assert.True(t, f("3232", toXmlVal(int(3232))))
-  assert.True(t, f("8", toXmlVal(int8(8))))
-  assert.True(t, f("16", toXmlVal(int16(16))))
-  assert.True(t, f("32", toXmlVal(int32(32))))
-  assert.True(t, f("64", toXmlVal(int64(64))))
+  assert.Equal(t,
+    "<tag><first>val-first</first></tag>",
+    f("tag", m))
 
-  assert.True(t, f("234.345", toXmlVal(float32(234.345))))
-  assert.True(t, f("234.3456666", toXmlVal(234.3456666)))
+  _, err := toXml("tag", f)
+  assert.EqualError(t, err, ErrXmlInconvertible.Error())
+
+  m["first"] = map[string]string{
+    "second": "val-second",
+  }
+
+  assert.Equal(t,
+    "<tag><first><second>val-second</second></first></tag>",
+    f("tag", m))
+
+  li := []string{
+    "valfirst", "valsecond",
+  }
+
+  assert.Equal(t,
+    "<tag>valfirst</tag><tag>valsecond</tag>",
+    f("tag", li))
 }

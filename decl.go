@@ -27,6 +27,9 @@ var (
   ErrFormatRFH2              = errors.New("ibm mq rfh2: error decoding header")
   ErrParseRfh2               = errors.New("ibm mq rfh2: error parse value")
   ErrRegisterEventInMsg      = errors.New("ibm mq: inbound message handler registration error")
+  ErrXml                     = errors.New("ibm mq: error when converting headers to xml. " +
+    "Permissible: 'map[string]interface{}'")
+  ErrXmlInconvertible = errors.New("ibm mq: Non-convertible data format")
 )
 
 type TypeConn int
