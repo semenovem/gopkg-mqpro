@@ -30,9 +30,9 @@ func (c *Mqconn) isWarn(err error) {
 }
 
 func (c *Mqconn) GetRootTag() string {
-  return c.rootTag
+  return c.rfh2RootTag
 }
 
 func (c *Mqconn) SetRootTag(tag string) {
-  c.rootTag = tag
+  c.rfh2RootTag = tag
 }

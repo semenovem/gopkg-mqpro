@@ -27,7 +27,7 @@ type Mqconn struct {
   msgWaitInterval time.Duration            // Ожидание сообщения
   rfh2            *rfh2Cfg                 // Данные для заголовков RFH2
   DevMode         bool                     // Режим разработки расширенное логирование
-  rootTag         string                   // В какой тег оборачивать заголовки
+  rfh2RootTag     string                   // В какой тег оборачивать заголовки
 
   // менеджер imbmq одновременно может отправлять/принимать одно сообщение
   // TODO - использовать только один мьютекс
@@ -55,6 +55,7 @@ type Cfg struct {
   KeyRepository    string
   CertificateLabel string
   DevMode          bool
+  RootTag          string
 }
 
 func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
@@ -66,7 +67,7 @@ func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
     stateConn:       stateDisconnect,
     msgWaitInterval: defMsgWaitInterval,
     DevMode:         c.DevMode,
-    rootTag:         defRootTagHeader,
+    rfh2RootTag:     c.RootTag,
   }
 
   m := map[string]interface{}{

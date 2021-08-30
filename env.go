@@ -23,6 +23,7 @@ type envCfg struct {
   MQ0MaxMsgLength  int32  `env:"ENV_MQ_0_MAX_MSG_LENGTH"`
   MQ0WaitInterval  int32  `env:"ENV_MQ_0_WAIT_INTERVAL"`
   MQ0DevMode       bool   `env:"ENV_MQ_0_DEV_MODE"`
+  MQ0RootTag       string `env:"ENV_MQ_0_ROOT_TAG" envDefault:"usr"`
 
   MQ1Host          string `env:"ENV_MQ_1_HOST"`
   MQ1Port          int    `env:"ENV_MQ_1_PORT"`
@@ -41,6 +42,7 @@ type envCfg struct {
   MQ1MaxMsgLength  int32  `env:"ENV_MQ_1_MAX_MSG_LENGTH"`
   MQ1WaitInterval  int32  `env:"ENV_MQ_1_WAIT_INTERVAL"`
   MQ1DevMode       bool   `env:"ENV_MQ_1_DEV_MODE"`
+  MQ1RootTag       string `env:"ENV_MQ_1_ROOT_TAG" envDefault:"usr"`
 }
 
 // UseDefEnv для настройки использовать стандартные названия переменных
@@ -76,6 +78,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         KeyRepository: cfg.MQ0KeyRepository,
         MaxMsgLength:  cfg.MQ0MaxMsgLength,
         DevMode:       cfg.MQ0DevMode,
+        RootTag:       cfg.MQ0RootTag,
       })
       connLi = append(connLi, conn)
     }
@@ -96,6 +99,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         KeyRepository: cfg.MQ0KeyRepository,
         MaxMsgLength:  cfg.MQ0MaxMsgLength,
         DevMode:       cfg.MQ0DevMode,
+        RootTag:       cfg.MQ0RootTag,
       })
       connLi = append(connLi, conn)
     }
@@ -116,6 +120,7 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         KeyRepository: cfg.MQ0KeyRepository,
         MaxMsgLength:  cfg.MQ0MaxMsgLength,
         DevMode:       cfg.MQ0DevMode,
+        RootTag:       cfg.MQ0RootTag,
       })
       connLi = append(connLi, conn)
     }
@@ -137,7 +142,8 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         Tls:           cfg.MQ1Tls,
         KeyRepository: cfg.MQ1KeyRepository,
         MaxMsgLength:  cfg.MQ1MaxMsgLength,
-        DevMode:       cfg.MQ0DevMode,
+        DevMode:       cfg.MQ1DevMode,
+        RootTag:       cfg.MQ1RootTag,
       })
       connLi = append(connLi, conn)
     }
@@ -157,7 +163,8 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         Tls:           cfg.MQ1Tls,
         KeyRepository: cfg.MQ1KeyRepository,
         MaxMsgLength:  cfg.MQ1MaxMsgLength,
-        DevMode:       cfg.MQ0DevMode,
+        DevMode:       cfg.MQ1DevMode,
+        RootTag:       cfg.MQ1RootTag,
       })
       connLi = append(connLi, conn)
     }
@@ -177,7 +184,8 @@ func (p *Mqpro) getConnFromEnv() []*Mqconn {
         Tls:           cfg.MQ1Tls,
         KeyRepository: cfg.MQ1KeyRepository,
         MaxMsgLength:  cfg.MQ1MaxMsgLength,
-        DevMode:       cfg.MQ0DevMode,
+        DevMode:       cfg.MQ1DevMode,
+        RootTag:       cfg.MQ1RootTag,
       })
       connLi = append(connLi, conn)
     }

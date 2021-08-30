@@ -13,9 +13,9 @@ func (c *Mqconn) Rfh2Marshal(p map[string]interface{}) ([]byte, error) {
   if p != nil && len(p) > 0 {
     var err error
 
-    if c.rootTag != "" {
+    if c.rfh2RootTag != "" {
       p = map[string]interface{}{
-        c.rootTag: p,
+        c.rfh2RootTag: p,
       }
     }
 
