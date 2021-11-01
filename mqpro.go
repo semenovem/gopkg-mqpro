@@ -22,15 +22,12 @@ type Mqpro struct {
   log                   *logrus.Entry
 }
 
-func New(rootCtx context.Context) *Mqpro {
-  l := logrus.New()
-  l.SetLevel(logrus.TraceLevel)
-
+func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
   return &Mqpro{
     rootCtx:               rootCtx,
     delayBeforeDisconnect: defDisconnDelay,
     reconnDelay:           defReconnDelay,
-    log:                   logrus.NewEntry(l).WithField("pkg", "mqpro"),
+    log:                   l,
   }
 }
 
