@@ -26,7 +26,7 @@ type Config struct {
   User      string         `yaml:"user"`
   Pass      int            `yaml:"pass"`
   Header    string         `yaml:"header"`
-  RootTag   interface{}    `yaml:"rootTag"`
+  RootTag   string         `yaml:"rootTag"`
   Transport []TransportCfg `yaml:"transport"`
 }
 
@@ -39,11 +39,17 @@ func (p *Mqpro) ParseConfig(f string) error {
     return errors.Wrap(err, "Error reading configuration file")
   }
 
-  var c Config
+  c := new(Config)
   err = yaml.Unmarshal(byt, c)
   if err != nil {
     return errors.Wrapf(err, "Configuration file parsing error '%s'", f)
   }
 
+  p.Cfg(c)
+
   return nil
+}
+
+func (p *Mqpro) Cfg(c *Config) {
+  p.cfg = c
 }

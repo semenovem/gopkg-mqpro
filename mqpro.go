@@ -20,6 +20,7 @@ type Mqpro struct {
   delayBeforeDisconnect time.Duration // Задержка перед разрывом соединения
   reconnDelay           time.Duration // Задержка при повторных попытках подключения к MQ
   log                   *logrus.Entry
+  cfg                   *Config
 }
 
 func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
