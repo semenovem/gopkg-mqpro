@@ -3,7 +3,7 @@ package main
 import (
   "bytes"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro"
+  mqpro "github.com/semenovem/gopkg_mqpro/v2"
   "time"
 )
 

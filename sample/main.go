@@ -4,7 +4,8 @@ import (
   "context"
   "encoding/hex"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro"
+  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/sirupsen/logrus"
   "net/http"
   "os"
   "os/signal"
@@ -13,8 +14,9 @@ import (
   "time"
 )
 
+var log = logrus.NewEntry(logrus.New())
 var rootCtx, rootCtxCancel = context.WithCancel(context.Background())
-var ibmmq = mqpro.New(rootCtx)
+var ibmmq = mqpro.New(rootCtx, log)
 var correlId []byte
 var correlId2 []byte
 

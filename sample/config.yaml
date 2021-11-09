@@ -1,9 +1,26 @@
-host:
-port:
-mgr:
-channel:
-header: "rfh2"
-queues:
-  first:
-    name:
 
+logMode: short
+logCli: true
+logLevel: INFO
+devMode: true
+
+host: mq0
+port: 1414
+manager: QM1
+channel: DEV.APP.SVRCONN
+app: afsc.adapter
+user: app
+pass: 11111111
+
+header: "rfh2"
+rootTag:
+
+transport:
+  - alias: first
+    browse: first_queue_browse
+    put: first_queue_put
+    get: first_queue_get
+  - alias: second
+    browse: second_queue_browse
+    put: second_queue_put
+    get: second_queue_get

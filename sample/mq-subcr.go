@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro"
+  mqpro "github.com/semenovem/gopkg_mqpro/v2"
   "net/http"
 )
 
