@@ -1,7 +1,4 @@
 
-logMode: short
-logCli: true
-logLevel: INFO
 devMode: true
 
 host: mq0
@@ -13,14 +10,23 @@ user: app
 pass: 11111111
 
 header: "rfh2"
-rootTag:
+rootTag: tg
+offRootTag: false
 
-transport:
+tls:
+KeyRepository:
+MaxMsgLength:
+
+#browseQueue: DEV.QUEUE.2
+#putQueue: DEV.QUEUE.1
+#getQueue: DEV.QUEUE.2
+
+multiQueues:
   - alias: first
-    browse: first_queue_browse
-    put: first_queue_put
-    get: first_queue_get
+    browse: DEV.QUEUE.2
+    put: DEV.QUEUE.1
+    get: DEV.QUEUE.2
   - alias: second
-    browse: second_queue_browse
-    put: second_queue_put
-    get: second_queue_get
+    browse: DEV.QUEUE.1
+    put: DEV.QUEUE.2
+    get: DEV.QUEUE.1
