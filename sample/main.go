@@ -36,6 +36,7 @@ func main() {
   fmt.Println("Старт тестового приложения работы с IBM MQ")
   defer fmt.Println("Остановка приложения")
 
+/*
   go func() {
     ibmmq.UseDefEnv()
 
@@ -45,6 +46,7 @@ func main() {
       rootCtxCancel()
     }
   }()
+ */
 
   // api
   go func() {

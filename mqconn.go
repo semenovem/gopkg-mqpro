@@ -71,8 +71,8 @@ func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
   }
 
   m := map[string]interface{}{
-    "conn": fmt.Sprintf("%s|%s|%s|%s|%s",
-      o.endpoint(), c.MgrName, c.ChannelName, c.QueueName, typeConnTxt[tc]),
+    "conn": fmt.Sprintf("%s|%s|%s|%s",
+      o.endpoint(), c.MgrName, c.QueueName, typeConnTxt[tc]),
   }
 
   o.log = l.WithFields(m)

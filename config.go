@@ -5,6 +5,7 @@ import (
   "fmt"
   "github.com/caarlos0/env/v6"
   "github.com/pkg/errors"
+  "github.com/sirupsen/logrus"
   "gopkg.in/yaml.v3"
   "io/ioutil"
 )
@@ -37,7 +38,7 @@ type Config struct {
   MultiQueues   []QueCfg `yaml:"multiQueues"`
 }
 
-func (p *Mqpro) ParseConfig(f string) (*Config, error) {
+func ParseConfig(f string) (*Config, error) {
   if f == "" {
     return nil, ErrConfigPathEmpty
   }
@@ -54,10 +55,10 @@ func (p *Mqpro) ParseConfig(f string) (*Config, error) {
 }
 
 // UseDefEnv2 получение конфигурации из стандартных переменных окружения
-func (p *Mqpro) UseDefEnv2() *Config {
+func UseDefEnv2(l *logrus.Entry) *Config {
   var c = &Config{}
   if err := env.Parse(c); err != nil {
-    p.log.Error(err)
+    l.Error(err)
   }
   return c
 }

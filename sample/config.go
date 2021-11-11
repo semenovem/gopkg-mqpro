@@ -4,6 +4,7 @@ import (
   "bytes"
   "fmt"
   "github.com/caarlos0/env"
+  mqpro "github.com/semenovem/gopkg_mqpro/v2"
   "github.com/sirupsen/logrus"
   "strings"
 )
@@ -11,9 +12,10 @@ import (
 var cfg = &appConfig{}
 
 type appConfig struct {
-  ApiPort    int    `env:"ENV_API_PORT"`     // Порт api управления
-  LogLevel   string `env:"ENV_LOG_LEVEL"`    // Уровень логирования приложения
-  MqLogLevel string `env:"ENV_MQ_LOG_LEVEL"` // Уровень логирования ibmmq
+  ApiPort    int    `env:"ENV_API_PORT"`        // Порт api управления
+  LogLevel   string `env:"ENV_LOG_LEVEL"`       // Уровень логирования приложения
+  MqLogLevel string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
+  MqConfig   string `env:"ENV_MQPRO_CONFIG"`    // Файл конфигурации IBMMQ
 
   // При старте подписаться на входящие сообщения
   SimpleSubscriber bool `env:"ENV_SIMPLE_SUBSCRIBER"`
@@ -60,7 +62,24 @@ func init() {
   l.SetLevel(lev)
   ibmmq.SetLogger(logrus.NewEntry(l).WithField("pkg", "mqpro"))
 
-  printCfg()
+  if cfg.MqConfig != "" {
+    c, err := mqpro.ParseConfig(cfg.MqConfig)
+    if err == nil {
+      ibmmq.Cfg(c)
+    } else {
+      fmt.Println("ERROR: не удалось получить конфигурацию из файла")
+      fatal = true
+    }
+  } else {
+    c := mqpro.UseDefEnv2(log)
+    ibmmq.Cfg(c)
+  }
+
+  ibmmq.SetConn()
+
+  // Вывод конфигурации
+  //ibmmq.PrintCfg()
+  //printCfg()
 
   if fatal {
     panic("")
@@ -76,7 +95,7 @@ func printCfg() {
   f("Список переменных окружения и настроек:\n")
   f("ENV_API_PORT           = %d\n", cfg.ApiPort)
   f("ENV_LOG_LEVEL          = %s\n", strings.ToUpper(cfg.LogLevel))
-  f("ENV_MQ_LOG_LEVEL       = %s\n", strings.ToUpper(cfg.MqLogLevel))
+  f("ENV_MQPRO_LOG_LEVEL    = %s\n", strings.ToUpper(cfg.MqLogLevel))
   f("ENV_SIMPLE_SUBSCRIBER  = %t\n", cfg.SimpleSubscriber)
   f("ENV_MIRROR             = %t\n", cfg.Mirror)
   f("cfg.logInfo            = %t\n", cfg.logInfo)
