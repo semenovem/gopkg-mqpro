@@ -10,6 +10,7 @@ user: app
 pass: 11111111
 
 header: "rfh2"
+#codedCharSetId: 1208
 rootTag: tg
 offRootTag: false
 

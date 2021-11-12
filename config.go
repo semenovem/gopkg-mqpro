@@ -18,24 +18,25 @@ type QueCfg struct {
 }
 
 type Config struct {
-  DevMode       bool     `yaml:"devMode" env:"ENV_MQPRO_DEV_MODE"`
-  Host          string   `yaml:"host" env:"ENV_MQPRO_HOST"`
-  Port          int      `yaml:"port" env:"ENV_MQPRO_PORT"`
-  Manager       string   `yaml:"manager" env:"ENV_MQPRO_MANAGER"`
-  Channel       string   `yaml:"channel" env:"ENV_MQPRO_CHANNEL"`
-  App           string   `yaml:"app" env:"ENV_MQPRO_APP"`
-  User          string   `yaml:"user" env:"ENV_MQPRO_USER"`
-  Pass          string   `yaml:"pass" env:"ENV_MQPRO_PASS"`
-  BrowseQueue   string   `yaml:"browseQueue" env:"ENV_MQPRO_BROWSE_QUEUE"`
-  PutQueue      string   `yaml:"putQueue" env:"ENV_MQPRO_PUT_QUEUE"`
-  GetQueue      string   `yaml:"getQueue" env:"ENV_MQPRO_GET_QUEUE"`
-  Header        string   `yaml:"header" env:"ENV_MQPRO_HEADER"`
-  RootTag       string   `yaml:"rootTag" env:"ENV_MQPRO_ROOT_TAG"`
-  OffRootTag    bool     `yaml:"offRootTag" env:"ENV_MQPRO_OFF_ROOT_TAG"`
-  Tls           bool     `yaml:"tls" env:"ENV_MQPRO_TLS"`
-  KeyRepository string   `yaml:"keyRepository" env:"ENV_MQPRO_KEY_REPOSITORY"`
-  MaxMsgLength  int32    `yaml:"maxMsgLength" env:"ENV_MQPRO_MAX_MSG_LENGTH"`
-  MultiQueues   []QueCfg `yaml:"multiQueues"`
+  DevMode        bool     `yaml:"devMode" env:"ENV_MQPRO_DEV_MODE"`
+  Host           string   `yaml:"host" env:"ENV_MQPRO_HOST"`
+  Port           int      `yaml:"port" env:"ENV_MQPRO_PORT"`
+  Manager        string   `yaml:"manager" env:"ENV_MQPRO_MANAGER"`
+  Channel        string   `yaml:"channel" env:"ENV_MQPRO_CHANNEL"`
+  App            string   `yaml:"app" env:"ENV_MQPRO_APP"`
+  User           string   `yaml:"user" env:"ENV_MQPRO_USER"`
+  Pass           string   `yaml:"pass" env:"ENV_MQPRO_PASS"`
+  BrowseQueue    string   `yaml:"browseQueue" env:"ENV_MQPRO_BROWSE_QUEUE"`
+  PutQueue       string   `yaml:"putQueue" env:"ENV_MQPRO_PUT_QUEUE"`
+  GetQueue       string   `yaml:"getQueue" env:"ENV_MQPRO_GET_QUEUE"`
+  Header         string   `yaml:"header" env:"ENV_MQPRO_HEADER"`
+  CodedCharSetId int32    `yaml:"codedCharSetId" env:"ENV_MQPRO_CODED_CHAR_SET_ID"`
+  RootTag        string   `yaml:"rootTag" env:"ENV_MQPRO_ROOT_TAG"`
+  OffRootTag     bool     `yaml:"offRootTag" env:"ENV_MQPRO_OFF_ROOT_TAG"`
+  Tls            bool     `yaml:"tls" env:"ENV_MQPRO_TLS"`
+  KeyRepository  string   `yaml:"keyRepository" env:"ENV_MQPRO_KEY_REPOSITORY"`
+  MaxMsgLength   int32    `yaml:"maxMsgLength" env:"ENV_MQPRO_MAX_MSG_LENGTH"`
+  MultiQueues    []QueCfg `yaml:"multiQueues"`
 }
 
 func ParseConfig(f string) (*Config, error) {

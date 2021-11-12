@@ -44,8 +44,9 @@ type Cfg struct {
   Port             int
   MgrName          string
   ChannelName      string
-  QueueName        string // название очереди
+  QueueName        string // Название очереди
   Header           string // Тип заголовков [prop | rfh2]
+  CodedCharSetId   int32  // Тип кодирования
   AppName          string
   User             string
   Pass             string
@@ -94,6 +95,10 @@ func NewMqconn(tc TypeConn, l *logrus.Entry, c *Cfg) *Mqconn {
     }
     o.h = h
     o.rfh2 = newRfh2Cfg()
+
+    if o.cfg.CodedCharSetId != 0 {
+      o.rfh2.CodedCharSetId = o.cfg.CodedCharSetId
+    }
   }
 
   return o
