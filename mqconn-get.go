@@ -56,7 +56,7 @@ func (c *Mqconn) get(ctx context.Context, oper queueOper, id []byte, l *logrus.E
     return nil, false, ErrNoConnection
   }
 
-  l.Info("Start")
+  l.Trace("Start")
 
   var (
     datalen int
@@ -167,7 +167,7 @@ loopCtx:
     return nil, false, ErrGetMsg
   }
 
-  l.Info("Success")
+  l.Debug("Success")
 
   msg := &Msg{
     Payload:  buffer,

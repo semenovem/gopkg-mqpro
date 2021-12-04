@@ -30,7 +30,7 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
   c.mxPut.Lock()
   defer c.mxPut.Unlock()
 
-  l.Info("Start")
+  l.Trace("Start")
 
   var payload []byte
   if msg.Payload == nil {
@@ -113,7 +113,7 @@ func (c *Mqconn) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
     return nil, err
   }
 
-  l.Infof("Success. MsgId: %x", putmqmd.MsgId)
+  l.Debugf("Success. MsgId: %x", putmqmd.MsgId)
 
   if c.DevMode {
     devMsg.Time = putmqmd.PutDateTime

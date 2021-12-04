@@ -24,7 +24,7 @@ func (c *Mqconn) browse(ctx context.Context) (<-chan *Msg, error) {
     return nil, ErrNoConnection
   }
 
-  l.Info("Start open BROWSE")
+  l.Trace("Start open BROWSE")
 
   var (
     ch   = make(chan *Msg)
@@ -57,7 +57,7 @@ func (c *Mqconn) browse(ctx context.Context) (<-chan *Msg, error) {
       close(w)
     }
     close(ch)
-    l.Info("Закрытие канала обзора сообщений BROWSE")
+    l.Debug("Закрытие канала обзора сообщений BROWSE")
   }(wait)
 
   select {
@@ -69,7 +69,7 @@ func (c *Mqconn) browse(ctx context.Context) (<-chan *Msg, error) {
     return nil, err
   }
 
-  l.Info("Success open for BROWSE")
+  l.Debug("Success open for BROWSE")
 
   return ch, nil
 }
