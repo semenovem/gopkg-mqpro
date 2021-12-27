@@ -17,6 +17,11 @@ type QueCfg struct {
   Get    string `yaml:"get"`
 }
 
+type Queues struct {
+  Alias string   `yaml:"alias"`
+  Name  string   `yaml:"name"`
+}
+
 type Config struct {
   DevMode        bool     `yaml:"devMode" env:"ENV_MQPRO_DEV_MODE"`
   Host           string   `yaml:"host" env:"ENV_MQPRO_HOST"`
@@ -37,6 +42,7 @@ type Config struct {
   KeyRepository  string   `yaml:"keyRepository" env:"ENV_MQPRO_KEY_REPOSITORY"`
   MaxMsgLength   int32    `yaml:"maxMsgLength" env:"ENV_MQPRO_MAX_MSG_LENGTH"`
   MultiQueues    []QueCfg `yaml:"multiQueues"`
+  Queues         []Queues `yaml:"queues"`
 }
 
 func ParseConfig(f string) (*Config, error) {
@@ -65,6 +71,9 @@ func UseDefEnv2(l *logrus.Entry) *Config {
 }
 
 func (p *Mqpro) Cfg(c *Config) {
+  p.mx.Lock()
+  defer p.mx.Unlock()
+
   p.cfg = c
 
   if c.OffRootTag {
@@ -79,7 +88,7 @@ func (p *Mqpro) Cfg(c *Config) {
   }
 
   if (c.GetQueue != "" || c.PutQueue != "" || c.BrowseQueue != "") && len(c.MultiQueues) != 0 {
-    p.log.Warnf("Указаны данные очередей в single/meulti использовании и multi наборе. " +
+    p.log.Warnf("Указаны данные очередей в single использовании и multi наборе. " +
       "Будут использоваться очереди только из single набора")
   }
 }

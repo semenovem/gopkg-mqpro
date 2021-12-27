@@ -42,7 +42,7 @@ func init() {
 
   lev, err := logrus.ParseLevel(cfg.LogLevel)
   if err != nil {
-    fmt.Println("WARN: не установлен уровень логирования приложения ENV_LOG_LEVEL")
+    fmt.Printf("WARN: не установлен уровень логирования приложения ENV_LOG_LEVEL. <%s>\n", err)
     fatal = true
     lev = logrus.TraceLevel
   }
@@ -53,7 +53,7 @@ func init() {
 
   lev, err = logrus.ParseLevel(cfg.MqLogLevel)
   if err != nil {
-    fmt.Println("WARN: не установлен уровень логирования ibmmq ENV_MQ_LOG_LEVEL")
+    fmt.Printf("WARN: не установлен уровень логирования ibmmq ENV_MQ_LOG_LEVEL. <%s>\n", err)
     fatal = true
     lev = logrus.TraceLevel
   }

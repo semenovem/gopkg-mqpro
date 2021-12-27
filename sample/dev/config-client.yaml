@@ -7,11 +7,11 @@ manager: QM1
 channel: DEV.APP.SVRCONN
 app: afsc.adapter
 user: app
-pass: 11111111
+pass: 11
 
 header: "rfh2"
 #codedCharSetId: 1208
-rootTag: tg
+#rootTag: tg
 offRootTag: false
 
 tls:
@@ -22,6 +22,7 @@ MaxMsgLength:
 #putQueue: DEV.QUEUE.1
 #getQueue: DEV.QUEUE.2
 
+# deprecated
 multiQueues:
   - alias: first
     browse: DEV.QUEUE.2
@@ -31,3 +32,9 @@ multiQueues:
     browse: DEV.QUEUE.1
     put: DEV.QUEUE.2
     get: DEV.QUEUE.1
+
+queues:
+  - alias: outPay
+    name: DEV.QUEUE.2
+  - alias: replyPay
+    name: DEV.QUEUE.2

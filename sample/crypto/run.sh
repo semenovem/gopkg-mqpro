@@ -12,11 +12,11 @@ docker build \
 
 ID=$(docker run -d "$IMG_CRYPTO" bash /app/gen.sh)
 
-rm -rf "$BIN"/{client,server}
+rm -rf "${BIN:?}"/{client,server}
 
 sleep 3
 
-docker cp "${ID}:/app/server" "${BIN}"
-docker cp "${ID}:/app/client" "${BIN}"
+docker cp "${ID:?}:/app/server" "${BIN:?}"
+docker cp "${ID:?}:/app/client" "${BIN:?}"
 
 docker stop "$ID"

@@ -16,3 +16,16 @@ https://www.ibm.com/docs/en/ibm-mq/9.0?topic=mqrfh2-namevaluelength-mqlong
 https://www.ibm.com/docs/en/ibm-mq/9.1?topic=objects-working-alias-queues
 
 https://www.ibm.com/docs/en/ibm-mq/9.1?topic=systems-examples-using-dmpmqmsg-utility
+
+
+ams
+---
+https://www.ibm.com/docs/en/ibm-mq/9.0?topic=scenarios-quick-start-guide-ams-unix
+https://www.ibm.com/docs/en/ibm-mq/8.0?topic=interception-mca-example
+https://www.ibm.com/docs/en/ibm-mq/9.2?topic=ams-quick-start-guide-java-clients
+https://www.ibm.com/docs/en/ibm-mq/9.0?topic=scenarios-quick-start-guide-ams-java-clients
+
+https://www.ibm.com/docs/en/ibm-mq/9.0?topic=policies-creating-security-in-ams
+https://www.ibm.com/docs/en/ibm-mq/9.0?topic=policies-displaying-dumping-security-in-ams
+
+MQS_KEYSTORE_CONF=

@@ -30,7 +30,9 @@ var (
   ErrXml                     = errors.New("ibm mq: error when converting headers to xml. " +
     "Permissible: 'map[string]interface{}'")
   ErrXmlInconvertible = errors.New("ibm mq: Non-convertible data format")
-  ErrConfigPathEmpty         = errors.New("ibm mq: configuration file path not specified")
+  ErrConfigPathEmpty  = errors.New("ibm mq: configuration file path not specified")
+  ErrNoConfig         = errors.New("ibm mq: no configuration")
+  ErrAliasExist         = errors.New("ibm mq: the queue already exists")
 )
 
 type TypeConn int

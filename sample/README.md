@@ -20,11 +20,11 @@ make dev
 make curl
 
 // 5) готово. в контейнере с curl доступны команды: 
-curl sample/put
-curl sample/get
-curl sample/browse
-curl sample/putget
-curl sample/sub
-curl sample/unsub
-curl sample/correl
+curl client/put
+curl client/get
+curl client/browse
+curl client/putget
+curl client/sub
+curl client/unsub
+curl client/correl
 ```

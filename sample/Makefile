@@ -31,7 +31,6 @@ install:
 .PHONY: docker
 docker:
 	@docker build \
-		--no-cache \
  		-f ./Dockerfile \
  		-t "$(IMG)" .
 
@@ -93,7 +92,9 @@ dev:
 		--network $(NETWORK) \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash dev/run.sh client.env
+		"$(IMG)" bash
+
+#dev/run.sh client.env
 
 
 ## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`

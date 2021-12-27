@@ -2,6 +2,7 @@ package mqpro
 
 import (
   "context"
+  "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "github.com/sirupsen/logrus"
   "sync"
   "time"
@@ -21,6 +22,9 @@ type Mqpro struct {
   reconnDelay           time.Duration // Задержка при повторных попытках подключения к MQ
   log                   *logrus.Entry
   cfg                   *Config
+  // Для новой версии
+  mgr2  *ibmmq.MQQueueManager      // Менеджер очереди
+  conn2 map[string]*ibmmq.MQObject // Список очередей
 }
 
 func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {

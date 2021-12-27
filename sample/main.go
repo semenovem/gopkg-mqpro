@@ -2,9 +2,9 @@ package main
 
 import (
   "context"
-  "encoding/hex"
   "fmt"
   mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "github.com/sirupsen/logrus"
   "net/http"
   "os"
@@ -17,8 +17,8 @@ import (
 var log = logrus.NewEntry(logrus.New())
 var rootCtx, rootCtxCancel = context.WithCancel(context.Background())
 var ibmmq = mqpro.New(rootCtx, log)
-var correlId []byte
-var correlId2 []byte
+
+var mqPayOut = queue.New(rootCtx, log.WithField("a", "PayOut"))
 
 func init() {
   go func() {
@@ -27,26 +27,22 @@ func init() {
     <-sig
     rootCtxCancel()
   }()
-
-  correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
-  correlId2, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480444")
 }
 
 func main() {
   fmt.Println("Старт тестового приложения работы с IBM MQ")
   defer fmt.Println("Остановка приложения")
 
-/*
   go func() {
     ibmmq.UseDefEnv()
 
-    err := ibmmq.Connect()
+    //err := ibmmq.Connect()
+    err := ibmmq.Connect2()
     if err != nil {
       fmt.Println("Err: ошибка запуска приложения:", err)
       rootCtxCancel()
     }
   }()
- */
 
   // api
   go func() {
@@ -65,5 +61,5 @@ func main() {
   }
 
   <-rootCtx.Done()
-  time.Sleep(time.Second * 1)
+  time.Sleep(time.Millisecond * 300)
 }
