@@ -15,7 +15,7 @@ func clearQueue(w http.ResponseWriter, _ *http.Request) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
   defer cancel()
 
-  ch, err := ibmmq.Browse(ctx)
+  ch, err := ibmmqOper1In.Browse(ctx)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -25,7 +25,7 @@ func clearQueue(w http.ResponseWriter, _ *http.Request) {
   for msg := range ch {
     i++
 
-    m, ok, err := ibmmq.GetByMsgId(ctx, msg.MsgId)
+    m, ok, err := ibmmqOper1In.GetByMsgId(ctx, msg.MsgId)
     if err != nil {
       fmt.Println("[ERROR] при получении сообщения из очереди: ", err)
       continue

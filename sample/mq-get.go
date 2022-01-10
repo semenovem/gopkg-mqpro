@@ -15,7 +15,7 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
   defer cancel()
 
-  msg, ok, err := ibmmq.Get(ctx)
+  msg, ok, err := ibmmqOper1In.Get(ctx)
   if err != nil {
     fmt.Println("[ERROR] при получении сообщения: ", err)
     _, _ = fmt.Fprintf(w, "[get] Error: %s\n", err.Error())

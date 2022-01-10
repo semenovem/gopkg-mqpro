@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "net/http"
   "time"
 )
@@ -31,10 +31,10 @@ func offMirror(w http.ResponseWriter, _ *http.Request) {
 }
 
 // Отправляет зеркальный ответ
-func mirror(msg *mqpro.Msg) {
+func mirror(msg *queue.Msg) {
   fmt.Println()
   fmt.Println("Отправляем ответ: ")
-  reply := &mqpro.Msg{
+  reply := &queue.Msg{
     CorrelId: msg.MsgId,
     Payload:  msg.Payload,
     Props:    msg.Props,
@@ -43,7 +43,7 @@ func mirror(msg *mqpro.Msg) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
   defer cancel()
 
-  id, err := ibmmq.Put(ctx, reply)
+  id, err := ibmmqOper1In.Put(ctx, reply)
   if err != nil {
     fmt.Println(">>>>> [ERROR]: Ошибка при отправке ответа")
   } else {

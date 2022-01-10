@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "net/http"
 )
 
@@ -34,16 +34,16 @@ func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
 
 func subscr() {
   cfg.SimpleSubscriber = true
-  ibmmq.RegisterEventInMsg(handlerInMsg)
+  ibmmqOper1In.RegisterInMsg(handlerInMsg)
 }
 
 func unsubscr() {
   cfg.SimpleSubscriber = false
-  ibmmq.UnregisterEventInMsg()
+  ibmmqOper1In.UnregisterInMsg()
 }
 
 // Обработчик входящих сообщений
-func handlerInMsg(m *mqpro.Msg) {
+func handlerInMsg(m *queue.Msg) {
   fmt.Println("Вызван обработчик входящих сообщений")
   fmt.Printf("Режим Mirror = %v", cfg.Mirror)
   logMsgIn(m)

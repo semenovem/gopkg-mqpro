@@ -31,6 +31,12 @@ func init() {
 
   http.HandleFunc("/config", apiPrintCfg)
   http.HandleFunc("/clear", clearQueue)
+
+  http.HandleFunc("/conn", apiConn)
+  http.HandleFunc("/disconn", apiDisconn)
+
+  http.HandleFunc("/open", apiOpen)
+  http.HandleFunc("/close", apiClose)
 }
 
 func api404(w http.ResponseWriter, _ *http.Request) {
@@ -39,14 +45,51 @@ func api404(w http.ResponseWriter, _ *http.Request) {
     "/get, /correl, /msgid, /config, /clear, /sub, /unsub, /browse, /put]\n")
 }
 
+func apiConn(w http.ResponseWriter, _ *http.Request) {
+  fmt.Fprint(w, "start ibmmq connect:\n")
+  err := ibmmq.Connect2()
+  if err != nil {
+    fmt.Fprintf(w, "ERROR: %s\n", err.Error())
+  }
+  fmt.Fprintf(w, "end\n")
+}
+
+func apiDisconn(w http.ResponseWriter, _ *http.Request) {
+  fmt.Fprint(w, "start ibmmq disconnect:\n")
+  err := ibmmq.Disconnect2()
+  if err != nil {
+    fmt.Fprintf(w, "ERROR: %s\n", err.Error())
+  }
+  fmt.Fprintf(w, "end\n")
+}
+
+func apiOpen(w http.ResponseWriter, _ *http.Request) {
+  fmt.Fprint(w, "opening ibmmq queue:\n")
+  err := ibmmqOper1In.Open()
+  if err != nil {
+    fmt.Fprintf(w, "ERROR: %s\n", err.Error())
+  }
+  fmt.Fprintf(w, "end\n")
+}
+
+
+func apiClose(w http.ResponseWriter, _ *http.Request) {
+  fmt.Fprint(w, "closing ibmmq queue:\n")
+  err := ibmmqOper1In.Close()
+  if err != nil {
+    fmt.Fprintf(w, "ERROR: %s\n", err.Error())
+  }
+  fmt.Fprintf(w, "end\n")
+}
+
+
+
+
 // Включает режим DevMode для библиотеки mqpro
 // curl host:port/on-dev-mode
 func onDevMode(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Включает режим DevMode для библиотеки mqpro")
-  conns := ibmmq.GetConns()
-  for _, c := range conns {
-    c.DevMode = true
-  }
+  ibmmq.DevMode(true)
   printCfg()
   _, _ = fmt.Fprint(w, "[on-dev-mode] Ok\n")
 }
@@ -55,10 +98,7 @@ func onDevMode(w http.ResponseWriter, _ *http.Request) {
 // curl host:port/off-dev-mode
 func offDevMode(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Выключает режим DevMode для библиотеки mqpro")
-  conns := ibmmq.GetConns()
-  for _, c := range conns {
-    c.DevMode = false
-  }
+  ibmmq.DevMode(false)
   printCfg()
   _, _ = fmt.Fprint(w, "[off-dev-mode] Ok\n")
 }

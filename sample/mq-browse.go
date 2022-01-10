@@ -10,7 +10,7 @@ import (
 func onBrowse(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Просмотр сообщений в очереди")
 
-  ch, err := ibmmq.Browse(rootCtx)
+  ch, err := ibmmqOper1In.Browse(rootCtx)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return

@@ -20,7 +20,3 @@ runmqakm -cert -extract -db "$_STORE_" -pw "$_PASS_" \
   -target "$TMP" || exit 1
 
 openssl x509 -noout -text -in "$TMP"
-
-
-runmqckm -cert -extract -db filename -pw password -label label -target filename
-         -format ascii

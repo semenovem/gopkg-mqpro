@@ -24,4 +24,4 @@ set +o allexport
 
 /usr/local/go-1.16.4/bin/go run *.go
 
-sleep 3
+sleep 2

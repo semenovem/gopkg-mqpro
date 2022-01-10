@@ -3,7 +3,7 @@ package main
 import (
   "bytes"
   "fmt"
-  "github.com/caarlos0/env"
+  "github.com/caarlos0/env/v6"
   mqpro "github.com/semenovem/gopkg_mqpro/v2"
   "github.com/sirupsen/logrus"
   "strings"
@@ -12,10 +12,18 @@ import (
 var cfg = &appConfig{}
 
 type appConfig struct {
-  ApiPort    int    `env:"ENV_API_PORT"`        // Порт api управления
-  LogLevel   string `env:"ENV_LOG_LEVEL"`       // Уровень логирования приложения
+  ApiPort  int    `env:"ENV_API_PORT"`  // Порт api управления
+  LogLevel string `env:"ENV_LOG_LEVEL"` // Уровень логирования приложения
+
   MqLogLevel string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
-  MqConfig   string `env:"ENV_MQPRO_CONFIG"`    // Файл конфигурации IBMMQ
+  // Deprecated
+  MqConfig string `env:"ENV_MQPRO_CONFIG"` // Файл конфигурации IBMMQ
+
+  // Данные очередей
+  MqQueOper1Put string `env:"ENV_MQPRO_QUEUE_OPER1_PUT"`
+  MqQueOper1Get string `env:"ENV_MQPRO_QUEUE_OPER1_GET"`
+  MqQueOper2Put string `env:"ENV_MQPRO_QUEUE_OPER2_PUT"`
+  MqQueOper2Get string `env:"ENV_MQPRO_QUEUE_OPER2_GET"`
 
   // При старте подписаться на входящие сообщения
   SimpleSubscriber bool `env:"ENV_SIMPLE_SUBSCRIBER"`
@@ -33,16 +41,30 @@ func init() {
   )
 
   if err := env.Parse(cfg); err != nil {
-    fmt.Println("ERROR: ", err)
+    log.Error(err)
+    fatal = true
   }
 
   if cfg.ApiPort == 0 {
-    fmt.Println("WARN: не установлен порт api ENV_API_PORT")
+    log.Warn("Не установлен порт api ENV_API_PORT")
+    fatal = true
+  }
+
+  cfgIbmmq, err := mqpro.ParseDefaultEnv()
+  if err != nil {
+    log.Warn("Ошибка получения значений переменных окружения для настройки ibmmq")
+    fatal=true
+  }
+
+  err = ibmmq.Cfg(cfgIbmmq)
+  if err != nil {
+    log.Warn(err)
+    fatal = true
   }
 
   lev, err := logrus.ParseLevel(cfg.LogLevel)
   if err != nil {
-    fmt.Printf("WARN: не установлен уровень логирования приложения ENV_LOG_LEVEL. <%s>\n", err)
+    log.Warn("Не установлен уровень логирования приложения ENV_LOG_LEVEL. <%s>\n", err)
     fatal = true
     lev = logrus.TraceLevel
   }
@@ -52,30 +74,25 @@ func init() {
   }
 
   lev, err = logrus.ParseLevel(cfg.MqLogLevel)
-  if err != nil {
-    fmt.Printf("WARN: не установлен уровень логирования ibmmq ENV_MQ_LOG_LEVEL. <%s>\n", err)
+  if err == nil {
+    logIbmmq.Logger.SetLevel(lev)
+  } else {
+    log.Warn("Не установлен уровень логирования ibmmq ENV_MQ_LOG_LEVEL. <%s>\n", err)
     fatal = true
     lev = logrus.TraceLevel
   }
 
-  l := logrus.New()
-  l.SetLevel(lev)
-  ibmmq.SetLogger(logrus.NewEntry(l).WithField("pkg", "mqpro"))
-
-  if cfg.MqConfig != "" {
-    c, err := mqpro.ParseConfig(cfg.MqConfig)
-    if err == nil {
-      ibmmq.Cfg(c)
-    } else {
-      fmt.Println("ERROR: не удалось получить конфигурацию из файла")
-      fatal = true
-    }
-  } else {
-    c := mqpro.UseDefEnv2(log)
-    ibmmq.Cfg(c)
+  err = ibmmqOper1In.CfgQueue(cfg.MqQueOper1Get)
+  if err != nil {
+    fatal = true
+    log.Warn(err)
   }
 
-  ibmmq.SetConn()
+  //err = ibmmqOper1Out.CfgQueue(cfg.MqQueOper1Put)
+  //if err != nil {
+  //  fatal = true
+  //  log.Warn(err)
+  //}
 
   // Вывод конфигурации
   //ibmmq.PrintCfg()
@@ -99,11 +116,6 @@ func printCfg() {
   f("ENV_SIMPLE_SUBSCRIBER  = %t\n", cfg.SimpleSubscriber)
   f("ENV_MIRROR             = %t\n", cfg.Mirror)
   f("cfg.logInfo            = %t\n", cfg.logInfo)
-
-  conns := ibmmq.GetConns()
-  if len(conns) > 0 {
-    f("mqpro.DevMode          = %t\n", conns[0].DevMode)
-  }
 
   fmt.Println(buf.String())
 }

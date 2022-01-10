@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "net/http"
   "time"
 )
@@ -29,12 +29,12 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
     b[i] = byte(i)
   }
 
-  msg := &mqpro.Msg{
+  msg := &queue.Msg{
     Payload: b,
     Props:   props,
   }
 
-  msgId, err := ibmmq.Put(ctx, msg)
+  msgId, err := ibmmqOper1In.Put(ctx, msg)
   if err != nil {
     _, _ = fmt.Fprintf(w, "put Error: %s\n", err.Error())
     return

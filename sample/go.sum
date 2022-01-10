@@ -1,11 +1,7 @@
-github.com/caarlos0/env v3.5.0+incompatible h1:Yy0UN8o9Wtr/jGHZDpCBLpNrzcFLLM2yixi/rBrKyJs=
-github.com/caarlos0/env v3.5.0+incompatible/go.mod h1:tdCsowwCzMLdkqRYDlHpZCp2UooDD3MspDBjZ2AD02Y=
 github.com/caarlos0/env/v6 v6.6.0 h1:kVhajCpqX5pSfH41gFd8cPXPZahqJrnn9HxJ1vKftW4=
 github.com/caarlos0/env/v6 v6.6.0/go.mod h1:P0BVSgU9zfkxfSpFUs6KsO3uWR4k3Ac0P66ibAGTybM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/ibm-messaging/mq-golang v3.0.0+incompatible h1:Yc3c8emAyveT54uNDRMkgvS+EBAHeLNWHkc3hk5x+IY=
-github.com/ibm-messaging/mq-golang v3.0.0+incompatible/go.mod h1:qjsZDb7m1oKnbPeDma2JVJTKgyCA91I4bcJ1qHY+gcA=
 github.com/ibm-messaging/mq-golang/v5 v5.2.4 h1:Sn+XpnhlTzBs/xPRAHzSx+YjCdxhmzJu5bv4pWTWu/I=
 github.com/ibm-messaging/mq-golang/v5 v5.2.4/go.mod h1:ywCwmYbJOU/E0rl+z4GiNoxVMty68O+LVO39a1VMXrE=
 github.com/matryer/is v1.4.0 h1:sosSmIWwkYITGrxZ25ULNDeKiMNzFSr4V/eqBQP0PeE=

@@ -3,27 +3,27 @@ package main
 import (
   "bytes"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "time"
 )
 
-func logMsgIn(m *mqpro.Msg) {
+func logMsgIn(m *queue.Msg) {
   logMsg(m, "\n--------------------------------\nПолучили сообщение:")
 }
 
-func logMsgOut(m *mqpro.Msg) {
+func logMsgOut(m *queue.Msg) {
   logMsg(m, "\n--------------------------------\nОтправили сообщение:")
 }
 
-func logMsgBrowse(m *mqpro.Msg) {
+func logMsgBrowse(m *queue.Msg) {
   logMsg(m, "\n--------------------------------\nСообщение:")
 }
 
-func logMsgDel(m *mqpro.Msg) {
+func logMsgDel(m *queue.Msg) {
   logMsg(m, "\n--------------------------------\nУдалено сообщение:")
 }
 
-func logMsg(msg *mqpro.Msg, s string) {
+func logMsg(msg *queue.Msg, s string) {
   if !cfg.logInfo {
     return
   }
