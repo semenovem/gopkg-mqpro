@@ -1,71 +1,86 @@
 package queue
 
 import (
-  "github.com/ibm-messaging/mq-golang/v5/ibmmq"
-  "time"
+	"github.com/ibm-messaging/mq-golang/v5/ibmmq"
+	"time"
 )
 
-func (c *Conn) workerState() {
-  var (
-    err error
-    mgr *ibmmq.MQQueueManager
-  )
+func (q *Queue) workerState() {
+	var (
+		l     = q.log.WithField("mod", "workerState")
+		err   error
+		st    state
+		mgrMq *ibmmq.MQQueueManager
+	)
 
-  for cmd := range c.chState {
-    if c.state == cmd {
-      continue
-    }
+worker:
+	for st = range q.chState {
+		l.Debug(stateKey[q.state], " >>> ", stateKey[st])
 
-    switch c.state {
-    case stateConn:
-      if cmd != stateDisconn {
-        continue
-      }
-      c.state = stateConn
-      mgr, err = c.connToMgr()
-      if err != nil {
-        c.log.Errorf("Failed connection attempt to IBM MQ manager: %s", err)
-        go c.reqError()
-        continue
-      }
-      c.log.Info("Connected to IBM MQ manager")
-      c.mgr = mgr
+		if q.state == st {
+			continue
+		}
 
-    case stateDisconn:
-      c.state = stateDisconn
-      c.ctxCns()
-      if c.mgr != nil {
-        _ = c.mgr.Disc()
-      }
+		switch st {
+		case stateConn:
+			if q.state == stateConn || q.state == stateConnecting {
+				continue
+			}
+			q.state = stateConnecting
 
-    case stateErr:
-      if c.state == stateDisconn {
-        continue
-      }
-      c.state = stateErr
+			for {
+				select {
+				case mgrMq = <-q.manager.RegisterConn():
+				case <-q.ctx.Done():
+					continue worker
+				}
 
-      if c.mgr != nil {
-        _ = c.mgr.Disc()
-      }
+				err = q.open(mgrMq)
+				if err == nil {
+					q.state = stateConn
+					q.fireConn()
+					continue worker
+				}
 
-      select {
-      case <-c.ctx.Done():
-        continue
-      case <-time.After(c.reconnectDelay):
-        go c.reqConn()
-      }
-    }
-  }
+				l.WithField("oper", "open").Warn(err)
+
+				select {
+				case <-q.ctx.Done():
+					continue worker
+				case <-time.After(q.reconnectDelay):
+				}
+			}
+
+		case stateDisconn:
+			q.state = stateDisconn
+			q.close()
+
+		case stateErr:
+			q.state = stateErr
+			q.close()
+			go q.stateConn()
+		}
+	}
 }
 
-func (c *Conn) reqConn() {
-  c.chState <- stateConn
+func (q *Queue) stateConn() {
+	q.chState <- stateConn
 }
 
-func (c *Conn) reqError() {
-  c.chState <- stateErr
+func (q *Queue) stateError() {
+	if q.state == stateConn {
+		q.chState <- stateErr
+	}
 }
 
-func (c *Conn) reqDisconn() {
-  c.chState <- stateDisconn
+func (q *Queue) stateDisconn() {
+	q.chState <- stateDisconn
+}
+
+func (q *Queue) IsConn() bool {
+	return q.state == stateConn
+}
+
+func (q *Queue) IsDisconn() bool {
+	return q.state == stateDisconn
 }
