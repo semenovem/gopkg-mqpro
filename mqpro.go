@@ -3,64 +3,64 @@ package mqpro
 import (
   "context"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "github.com/sirupsen/logrus"
   "sync"
   "time"
 )
 
 type Mqpro struct {
-  rootCtx               context.Context
-  ctx                   context.Context
-  ctxCancel             context.CancelFunc
-  conns                 []*Mqconn
-  connGet               []*Mqconn
-  connPut               []*Mqconn
-  connBrowse            []*Mqconn
-  fnEventInMsg          func(*Msg)    // Обработчик входящих сообщений
-  mx                    sync.Mutex    // Подключение / отключение
-  delayBeforeDisconnect time.Duration // Задержка перед разрывом соединения
-  reconnDelay           time.Duration // Задержка при повторных попытках подключения к MQ
-  log                   *logrus.Entry
-  cfg                   *Config
-  // Для новой версии
-  mgr2  *ibmmq.MQQueueManager      // Менеджер очереди
-  conn2 map[string]*ibmmq.MQObject // Список очередей
+  rootCtx        context.Context
+  ctx            context.Context
+  ctxCanc        context.CancelFunc
+  mx             sync.Mutex    // Подключение / отключение
+  disconnDelay   time.Duration // Задержка перед разрывом соединения
+  reconnDelay    time.Duration // Задержка при повторных попытках подключения к MQ
+  log            *logrus.Entry
+  coreSet        *queue.CoreSet
+  mgr            *ibmmq.MQQueueManager           // Менеджер очереди
+  state          state                           // Состояние подключения к менеджеру IBMMQ
+  chState        chan state                      // Канал изменения состояния
+  chRegisterConn chan chan *ibmmq.MQQueueManager // Ожидание подключения к ibmmq
+  queues         []*queue.Queue                  // Очереди
+
+  host                              string
+  port                              int32
+  manager, channel, app, user, pass string
+  tls                               bool
+  keyRepository                     string
+  maxMsgLen                         int32
 }
 
 func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
-  return &Mqpro{
-    rootCtx:               rootCtx,
-    delayBeforeDisconnect: defDisconnDelay,
-    reconnDelay:           defReconnDelay,
-    log:                   l,
+  o := &Mqpro{
+    rootCtx:        rootCtx,
+    disconnDelay:   defDisconnDelay,
+    reconnDelay:    defReconnDelay,
+    log:            l,
+    state:          stateDisconn,
+    chState:        make(chan state, 100),
+    chRegisterConn: make(chan chan *ibmmq.MQQueueManager, 100),
+    coreSet:        &queue.CoreSet{},
   }
+
+  go o.workerState()
+  go o.workerRegisterConn()
+
+  return o
 }
 
-func (p *Mqpro) SetConn(connLi ...*Mqconn) {
-  for _, conn := range connLi {
-    switch conn.Type() {
-    case TypeGet:
-      p.connGet = append(p.connGet, conn)
-      if p.fnEventInMsg != nil {
-        conn.RegisterEventInMsg(p.fnEventInMsg)
-      }
-    case TypePut:
-      p.connPut = append(p.connPut, conn)
-    case TypeBrowse:
-      p.connBrowse = append(p.connBrowse, conn)
-
-    default:
-      p.log.Panic("Unknown connection type")
-    }
-
-    p.conns = append(p.conns, conn)
-  }
+func (m *Mqpro) DevMode(v bool) {
+  m.coreSet.DevMode = v
+  // TODO распространить на очереди
 }
 
-func (p *Mqpro) SetLogger(l *logrus.Entry) {
-  p.log = l
-}
+// Queue Объект очереди
+func (m *Mqpro) Queue(a string) *queue.Queue {
+  l := m.log.WithField("que", a)
 
-func (p *Mqpro) GetConns() []*Mqconn {
-  return p.conns
+  q := queue.New(m.rootCtx, l, m)
+  m.queues = append(m.queues, q)
+
+  return q
 }
