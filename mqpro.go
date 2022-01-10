@@ -50,11 +50,6 @@ func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
   return o
 }
 
-func (m *Mqpro) DevMode(v bool) {
-  m.coreSet.DevMode = v
-  // TODO распространить на очереди
-}
-
 // Queue Объект очереди
 func (m *Mqpro) Queue(a string) *queue.Queue {
   l := m.log.WithField("que", a)

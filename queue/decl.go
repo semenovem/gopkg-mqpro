@@ -12,13 +12,13 @@ const (
   DefRootTagHeader   = "usr"                  // Корневой тэг для заголовков rhf2 формата
   defReconnectDelay  = time.Second * 3
   defDelayClose      = time.Millisecond * 50 // Ожидание при закрытии очереди
-  defMsgWaitInterval = time.Millisecond * 100
   DefHeader          = HeaderBase
 )
 
 var (
   ErrClosed             = errors.New("ibm mq: queue is closed")
   ErrNoConnection       = errors.New("ibm mq: no connections")
+  ErrInterrupted       = errors.New("ibm mq: operation interrupted")
   ErrAlreadyOpen        = errors.New("ibm mq: queue already open")
   ErrConnBroken         = errors.New("ibm mq conn: connection broken")
   ErrPutMsg             = errors.New("ibm mq: failed to put message")

@@ -6,17 +6,17 @@ import (
 
 func (q *Queue) RegisterOpen() <-chan *ibmmq.MQObject {
   ch := make(chan *ibmmq.MQObject)
-  q.chRegisterConn <- ch
+  q.chRegisterOpen <- ch
   return ch
 }
 
 func (q *Queue) fireConn() {
-  q.chRegisterConn <- nil
+  q.chRegisterOpen <- nil
 }
 
-func (q *Queue) workerRegisterConn() {
+func (q *Queue) workerRegisterOpen() {
   var (
-    l        = q.log.WithField("fn", "workerRegisterConn")
+    l        = q.log.WithField("fn", "workerRegisterOpen")
     origCap  = int32(100)
     capacity = origCap
     inc      = origCap
@@ -45,7 +45,7 @@ func (q *Queue) workerRegisterConn() {
     }
   }
 
-  for ch = range q.chRegisterConn {
+  for ch = range q.chRegisterOpen {
     if ch == nil {
       fire()
       continue

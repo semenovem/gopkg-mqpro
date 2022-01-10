@@ -13,9 +13,9 @@ import (
 )
 
 var (
-  log                    = logger()
-  rootCtx, rootCtxCancel = context.WithCancel(context.Background())
-  logIbmmq               = log.WithField("sys", "mq")
+  log                  = logger()
+  rootCtx, rootCtxCanc = context.WithCancel(context.Background())
+  logIbmmq             = log.WithField("sys", "mq")
   ibmmq                  = mqpro.New(rootCtx, logIbmmq)
   ibmmqOper1In           = ibmmq.Queue("payIn")
   //ibmmqOper1Out          = ibmmq.Queue("payOut")
@@ -32,7 +32,7 @@ func init() {
     sig := make(chan os.Signal, 1)
     signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
     <-sig
-    rootCtxCancel()
+    rootCtxCanc()
   }()
   log.Logger.SetFormatter(formatter())
 }
@@ -43,9 +43,11 @@ func main() {
 
   go func() {
     err := ibmmq.Connect()
-    if err != nil {
+    if err == nil {
+      log.Info(">>>>> Подключение к IBMMQ успешно")
+    } else {
       log.Error("Err: ошибка запуска приложения:", err)
-      rootCtxCancel()
+      rootCtxCanc()
     }
   }()
 

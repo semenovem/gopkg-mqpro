@@ -16,9 +16,6 @@ func (q *Queue) Browse(ctx context.Context) (<-chan *Msg, error) {
 func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
   l := q.log.WithField("method", "BrowseOpen")
 
-  q.mxMsg.Lock()
-  defer q.mxMsg.Unlock()
-
   if !q.IsConnected() {
     q.log.Error(ErrNoConnection)
     return nil, ErrNoConnection
@@ -36,7 +33,8 @@ func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
   go func(w chan struct{}) {
     var msg *Msg
     cx, cancel := context.WithCancel(ctx)
-    cancel()
+    defer cancel()
+
     ll := l.WithField("method", "BrowseGet")
     oper := operBrowseFirst
 

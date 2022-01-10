@@ -75,11 +75,11 @@ func (q *Queue) open(m *ibmmq.MQQueueManager) error {
   for _, v := range q.perm {
     switch v {
     case permGet:
-      flag = flag | ibmmq.MQOO_INPUT_SHARED
+      flag |= ibmmq.MQOO_INPUT_SHARED
     case permBrowse:
-      flag = flag | ibmmq.MQOO_BROWSE
+      flag |= ibmmq.MQOO_BROWSE
     case permPut:
-      flag = flag | ibmmq.MQOO_OUTPUT
+      flag |= ibmmq.MQOO_OUTPUT
     }
   }
 

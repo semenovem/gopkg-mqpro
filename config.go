@@ -110,6 +110,13 @@ func (m *Mqpro) GetQueueConfig() *queue.CoreSet {
   return m.coreSet
 }
 
+func (m *Mqpro) SetDevMode(v bool) {
+  m.coreSet.DevMode = v
+  for _, q := range m.queues {
+    q.Set(m.coreSet)
+  }
+}
+
 // PrintCfg
 // Deprecated
 func (m *Mqpro) PrintCfg() {

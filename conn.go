@@ -4,6 +4,8 @@ import (
   "context"
   "fmt"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "sync"
   "time"
 )
 
@@ -34,9 +36,52 @@ func (m *Mqpro) Connect() error {
   }
   m.log.Info("Установлено подключение к менеджеру и очередям ibmmq")
 
-  // TODO Ожидание открытия очередей
+  // Открытие очередей
+  select {
+  case <-m.ctx.Done():
+  case err := <-m.openQues():
+    if err != nil {
+      return err
+    }
+  }
 
   return nil
+}
+
+func (m *Mqpro) openQues() <-chan error {
+  var (
+  	ch = make(chan error)
+    wg = sync.WaitGroup{}
+    err1 error
+  )
+
+  wg.Add(len(m.queues))
+
+  // Запуск открытия очередей
+  for _, q := range m.queues {
+    go func(q *queue.Queue) {
+      defer wg.Done()
+
+      err := q.Open()
+      if err != nil {
+        err1 = err
+      }
+    }(q)
+  }
+
+  go func() {
+    defer close(ch)
+    wg.Wait()
+    if err1 != nil {
+      ch <- err1
+      return
+    }
+
+    // Ожидание открытия очередей
+
+  }()
+
+  return ch
 }
 
 func (m *Mqpro) connect() error {

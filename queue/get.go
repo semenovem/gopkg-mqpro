@@ -5,7 +5,6 @@ import (
   "fmt"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "github.com/sirupsen/logrus"
-  "time"
 )
 
 func (q *Queue) Get(ctx context.Context) (*Msg, bool, error) {
@@ -70,10 +69,14 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
   cmho := ibmmq.NewMQCMHO()
   gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
 
-  q.mxMsg.Lock()
-  getMsgHandle, err := q.mgr.CrtMH(cmho)
-  q.mxMsg.Unlock()
+  var mgr *ibmmq.MQQueueManager
+  select {
+  case <-ctx.Done():
+    return nil, false, ErrInterrupted
+  case mgr = <-q.manager.RegisterConn():
+  }
 
+  getMsgHandle, err := mgr.CrtMH(cmho)
   if err != nil {
     l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
 
@@ -152,12 +155,9 @@ loopCtx:
       return nil, false, err
     }
 
-    select {
-    case <-time.After(q.msgWaitInterval):
-    case <-ctx.Done():
-      l.Debug("No message")
-      return nil, false, nil
-    }
+    l.Debug("No message")
+
+    return nil, false, nil
   }
 
   // TODO закрыть условием о типе заголовка

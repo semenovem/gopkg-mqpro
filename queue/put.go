@@ -17,7 +17,7 @@ func (q *Queue) Put(ctx context.Context, msg *Msg) ([]byte, error) {
     l = l.WithField("correlId", fmt.Sprintf("%x", msg.CorrelId))
   }
 
-  d, err := q.put(msg, l)
+  d, err := q.put(ctx, msg, l)
   if err == ErrConnBroken {
     q.stateError()
   }
@@ -25,7 +25,7 @@ func (q *Queue) Put(ctx context.Context, msg *Msg) ([]byte, error) {
   return d, err
 }
 
-func (q *Queue) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
+func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, error) {
   if !q.IsConnected() {
     return nil, ErrNoConnection
   }
@@ -83,7 +83,14 @@ func (q *Queue) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
   default:
     putmqmd.Format = ibmmq.MQFMT_STRING
 
-    putMsgHandle, err := q.mgr.CrtMH(cmho)
+    var mgr *ibmmq.MQQueueManager
+    select {
+    case <-ctx.Done():
+      return nil, ErrInterrupted
+    case mgr = <-q.manager.RegisterConn():
+    }
+
+    putMsgHandle, err := mgr.CrtMH(cmho)
     if err != nil {
       l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
 
@@ -95,6 +102,13 @@ func (q *Queue) put(msg *Msg, l *logrus.Entry) ([]byte, error) {
 
       return nil, err
     }
+    // TODO - добавлено в последней итерации. Не проверено
+    defer func() {
+      err := dltMh(putMsgHandle)
+      if err != nil {
+        l.Warnf("Ошибка удаления объекта свойств сообщения: %s", err)
+      }
+    }()
 
     err = setProps(&putMsgHandle, msg.Props, l)
     if err != nil {

@@ -72,7 +72,6 @@ func apiOpen(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprintf(w, "end\n")
 }
 
-
 func apiClose(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "closing ibmmq queue:\n")
   err := ibmmqOper1In.Close()
@@ -82,14 +81,11 @@ func apiClose(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprintf(w, "end\n")
 }
 
-
-
-
 // Включает режим DevMode для библиотеки mqpro
 // curl host:port/on-dev-mode
 func onDevMode(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Включает режим DevMode для библиотеки mqpro")
-  ibmmq.DevMode(true)
+  ibmmq.SetDevMode(true)
   printCfg()
   _, _ = fmt.Fprint(w, "[on-dev-mode] Ok\n")
 }
@@ -98,7 +94,7 @@ func onDevMode(w http.ResponseWriter, _ *http.Request) {
 // curl host:port/off-dev-mode
 func offDevMode(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Выключает режим DevMode для библиотеки mqpro")
-  ibmmq.DevMode(false)
+  ibmmq.SetDevMode(false)
   printCfg()
   _, _ = fmt.Fprint(w, "[off-dev-mode] Ok\n")
 }
