@@ -47,7 +47,7 @@ func api404(w http.ResponseWriter, _ *http.Request) {
 
 func apiConn(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "start ibmmq connect:\n")
-  err := ibmmq.Connect2()
+  err := ibmmq.Connect()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }
@@ -56,7 +56,7 @@ func apiConn(w http.ResponseWriter, _ *http.Request) {
 
 func apiDisconn(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "start ibmmq disconnect:\n")
-  err := ibmmq.Disconnect2()
+  err := ibmmq.Disconnect()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }

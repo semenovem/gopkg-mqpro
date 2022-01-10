@@ -42,7 +42,7 @@ func main() {
   defer log.Info("Остановка приложения")
 
   go func() {
-    err := ibmmq.Connect2()
+    err := ibmmq.Connect()
     if err != nil {
       log.Error("Err: ошибка запуска приложения:", err)
       rootCtxCancel()

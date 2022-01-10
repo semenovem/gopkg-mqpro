@@ -27,7 +27,7 @@ worker:
       m.state = stateConnecting
 
       for {
-        err = m.connect2()
+        err = m.connect()
         if err == nil {
           m.state = stateConn
           m.fireConn()
@@ -44,11 +44,11 @@ worker:
 
     case stateDisconn:
       m.state = stateDisconn
-      m.disconn()
+      m.disconnect()
 
     case stateErr:
       m.state = stateErr
-      m.disconn()
+      m.disconnect()
       go m.stateConn()
     }
   }

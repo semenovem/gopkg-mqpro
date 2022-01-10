@@ -7,7 +7,7 @@ import (
   "time"
 )
 
-func (m *Mqpro) Connect2() error {
+func (m *Mqpro) Connect() error {
   m.log.Debug("Request to establish connection to IBM MQ...")
 
   m.mx.Lock()
@@ -39,7 +39,7 @@ func (m *Mqpro) Connect2() error {
   return nil
 }
 
-func (m *Mqpro) connect2() error {
+func (m *Mqpro) connect() error {
   cd := ibmmq.NewMQCD()
   cno := ibmmq.NewMQCNO()
   csp := ibmmq.NewMQCSP()
@@ -92,7 +92,7 @@ func (m *Mqpro) endpoint() string {
   return fmt.Sprintf("%s(%d)", m.host, m.port)
 }
 
-func (m *Mqpro) Disconnect2() error {
+func (m *Mqpro) Disconnect() error {
   m.log.Debug("Request to disconnect from IBM MQ...")
 
   if m.IsDisconn() {
@@ -116,13 +116,13 @@ func (m *Mqpro) Disconnect2() error {
   return nil
 }
 
-func (m *Mqpro) disconn() {
+func (m *Mqpro) disconnect() {
   mgr := m.mgr
   if mgr != nil {
     m.mgr = nil
     err := mgr.Disc()
     if err != nil {
-      m.log.WithField("mod", "disconn").Warn(err)
+      m.log.WithField("mod", "disconnect").Warn(err)
     }
   }
 }
