@@ -36,7 +36,9 @@ var (
 )
 
 const (
-  msgErrPropCreation = "message property creation error: %s"
+  msgErrPropCreation = "creating a message property: %s"
+  msgErrPropDeletion = "deleting message properties: %s"
+  msgErrPropGetting  = "getting message property: %s"
 )
 
 type state int32

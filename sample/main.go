@@ -51,7 +51,7 @@ func main() {
     }
   }()
 
-  mqOper1Get.RegisterInMsg(hndIncomingMsg)
+  //mqOper1Get.RegisterInMsg(hndIncomingMsg)
 
   // api
   if cfg.ApiPort != 0 {

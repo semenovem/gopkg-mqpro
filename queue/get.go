@@ -94,7 +94,7 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
   defer func() {
     err := dltMh(getMsgHandle)
     if err != nil {
-      l.Warnf("Ошибка удаления объекта свойств сообщения: %s", err)
+      l.Warnf(msgErrPropDeletion, err)
     }
   }()
 
@@ -104,7 +104,6 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
   case HeaderRfh2:
     getmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
   default:
-    // TODO код, получения стандартных заголовков перенести сюда
     getmqmd.Format = ibmmq.MQFMT_STRING
   }
 
@@ -130,7 +129,6 @@ loopCtx:
   loopGet:
     for i := 0; i < 2; i++ {
       buffer, datalen, err = conn.q.GetSlice(getmqmd, gmo, buffer)
-
       if err == nil {
         break loopCtx
       }
@@ -148,24 +146,18 @@ loopCtx:
 
       l.Error(err)
 
-      if IsConnBroken(err) {
-        err = ErrConnBroken
-      } else {
-        err = ErrGetMsg
-      }
-
       return nil, false, err
     }
 
-    l.Debug("No message")
+    l.Trace("No message")
 
     return nil, false, nil
   }
 
   props, err := properties(getMsgHandle)
   if err != nil {
-    l.Errorf("Ошибка получения свойств сообщения: %s", err)
-    return nil, false, ErrGetMsg
+    l.Errorf(msgErrPropGetting, err)
+    return nil, false, err
   }
 
   l.Debug("Success")

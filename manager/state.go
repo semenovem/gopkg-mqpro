@@ -13,7 +13,7 @@ func (m *Mqpro) workerState() {
 
 worker:
   for st = range m.chState {
-    l.Debug(stateMapByKey[m.state], " >>> ", stateMapByKey[st])
+    //l.Debug(stateMapByKey[m.state], " >>> ", stateMapByKey[st])
 
     if st == m.state {
       continue

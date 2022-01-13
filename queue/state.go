@@ -106,7 +106,7 @@ func (q *Queue) errorHandler(err error) {
   case *ibmmq.MQReturn:
     switch p.MQRC {
     case ibmmq.MQRC_CONNECTION_BROKEN:
-    case ibmmq.MQRC_CALL_IN_PROGRESS:
+    case ibmmq.MQRC_CALL_IN_PROGRESS, ibmmq.MQRC_NOT_OPEN_FOR_INPUT:
       isNeedRestart = false
     }
   case error:

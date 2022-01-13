@@ -48,9 +48,5 @@ func _putMsg() ([]byte, error) {
     Props:   props,
   }
 
-  msgId, err := mqOper1Put.Put(ctx, msg)
-  if err != nil {
-    fmt.Println(">>>>>>>>>>>>>> ", err)
-  }
-  return msgId, err
+  return mqOper1Put.Put(ctx, msg)
 }

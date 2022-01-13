@@ -90,26 +90,20 @@ func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, err
     putMsgHandle, err := conn.m.CrtMH(cmho)
     if err != nil {
       l.Errorf(msgErrPropCreation, err)
-
-      if IsConnBroken(err) {
-        err = ErrConnBroken
-      } else {
-        err = ErrPutMsg
-      }
-
       return nil, err
     }
     // TODO - добавлено в последней итерации. Не проверено
     defer func() {
       err := dltMh(putMsgHandle)
       if err != nil {
-        l.Warnf("Ошибка удаления объекта свойств сообщения: %s", err)
+        l.Warnf(msgErrPropDeletion, err)
       }
     }()
 
     err = setProps(&putMsgHandle, msg.Props, l)
     if err != nil {
-      return nil, ErrPutMsg
+      l.Errorf(msgErrPropCreation, err)
+      return nil, err
     }
     pmo.OriginalMsgHandle = putMsgHandle
   }
@@ -117,17 +111,10 @@ func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, err
   err := conn.q.Put(putmqmd, pmo, payload)
   if err != nil {
     l.Error("Ошибка отправки сообщения: ", err)
-
-    if IsConnBroken(err) {
-      err = ErrConnBroken
-    } else {
-      err = ErrPutMsg
-    }
-
     return nil, err
   }
 
-  l.Debugf("Success. MsgId: %x", putmqmd.MsgId)
+  l.Tracef("Success. MsgId: %x", putmqmd.MsgId)
 
   if q.devMode {
     devMsg.Time = putmqmd.PutDateTime

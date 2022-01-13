@@ -118,7 +118,7 @@ func (q *Queue) handlerInMsg(
 
   props, err1 := properties(gmo.MsgHandle)
   if err1 != nil {
-    q.log.Error("Ошибка при получении свойств сообщения: ", err)
+    q.log.Errorf(msgErrPropGetting, err)
     return
   }
 
