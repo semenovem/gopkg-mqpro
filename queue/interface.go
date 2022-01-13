@@ -6,5 +6,10 @@ import (
 
 type manager interface {
   RegisterConn() <-chan *ibmmq.MQQueueManager
-  GetQueueConfig() *CoreSet
+  IsConfigured() bool
+  Reconnect()
+}
+
+type base interface {
+  GetCoreSet() *CoreSet
 }

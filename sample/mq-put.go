@@ -13,7 +13,21 @@ import (
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
 
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*3)
+  //for i := 0; i < 200; i++ {
+  // go _putMsg()
+  //}
+
+  msgId, err := _putMsg()
+  if err != nil {
+    _, _ = fmt.Fprintf(w, "put Error: %s\n", err.Error())
+    return
+  }
+
+  _, _ = fmt.Fprintf(w, "put Ok. msgId: %x\n", msgId)
+}
+
+func _putMsg() ([]byte, error) {
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*7)
   defer cancel()
 
   // Свойства сообщения
@@ -34,11 +48,9 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
     Props:   props,
   }
 
-  msgId, err := ibmmqOper1In.Put(ctx, msg)
+  msgId, err := ibmmqOper1Put.Put(ctx, msg)
   if err != nil {
-    _, _ = fmt.Fprintf(w, "put Error: %s\n", err.Error())
-    return
+    fmt.Println(">>>>>>>>>>>>>> ", err)
   }
-
-  _, _ = fmt.Fprintf(w, "put Ok. msgId: %x\n", msgId)
+  return msgId, err
 }

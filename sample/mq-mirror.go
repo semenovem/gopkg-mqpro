@@ -43,7 +43,7 @@ func mirror(msg *queue.Msg) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
   defer cancel()
 
-  id, err := ibmmqOper1In.Put(ctx, reply)
+  id, err := ibmmqOper1Get.Put(ctx, reply)
   if err != nil {
     fmt.Println(">>>>> [ERROR]: Ошибка при отправке ответа")
   } else {

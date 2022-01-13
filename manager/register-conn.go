@@ -1,10 +1,17 @@
-package mqpro
+package manager
 
 import (
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
 )
 
 func (m *Mqpro) RegisterConn() <-chan *ibmmq.MQQueueManager {
+  if m.IsDisconn() {
+    _ = m.Connect()
+  }
+  return m.registerConn()
+}
+
+func (m *Mqpro) registerConn() <-chan *ibmmq.MQQueueManager {
   ch := make(chan *ibmmq.MQQueueManager)
   m.chRegisterConn <- ch
   return ch

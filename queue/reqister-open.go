@@ -1,11 +1,7 @@
 package queue
 
-import (
-  "github.com/ibm-messaging/mq-golang/v5/ibmmq"
-)
-
-func (q *Queue) RegisterOpen() <-chan *ibmmq.MQObject {
-  ch := make(chan *ibmmq.MQObject)
+func (q *Queue) RegisterOpen() <-chan *mqConn {
+  ch := make(chan *mqConn)
   q.chRegisterOpen <- ch
   return ch
 }
@@ -21,19 +17,19 @@ func (q *Queue) workerRegisterOpen() {
     capacity = origCap
     inc      = origCap
     ind      = int32(0)
-    store    = make([]chan *ibmmq.MQObject, capacity)
-    ch       chan *ibmmq.MQObject
-    que      *ibmmq.MQObject
+    store    = make([]chan *mqConn, capacity)
+    ch       chan *mqConn
+    conn     *mqConn
   )
 
   fire := func() {
-    que := q.que
-    if que == nil || !q.IsConn() {
+    conn := q.conn
+    if conn == nil || !q.IsOpen() {
       return
     }
     for i := int32(0); i < ind; i++ {
       go func(i int32) {
-        store[i] <- que
+        store[i] <- conn
         close(store[i])
       }(i)
     }
@@ -51,9 +47,9 @@ func (q *Queue) workerRegisterOpen() {
       continue
     }
 
-    que = q.que
-    if que != nil && q.IsConn() {
-      ch <- que
+    conn = q.conn
+    if conn != nil && q.IsOpen() {
+      ch <- conn
       close(ch)
       continue
     }
@@ -61,7 +57,7 @@ func (q *Queue) workerRegisterOpen() {
     if ind >= capacity {
       l.Warnf("Exceeding the waiting queue. Increasing the queue size +%d", inc)
       capacity += inc
-      store = append(store, make([]chan *ibmmq.MQObject, inc)...)
+      store = append(store, make([]chan *mqConn, inc)...)
     }
     store[ind] = ch
     ind++

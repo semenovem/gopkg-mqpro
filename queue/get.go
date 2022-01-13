@@ -11,9 +11,8 @@ func (q *Queue) Get(ctx context.Context) (*Msg, bool, error) {
   l := q.log.WithField("method", "Get")
 
   msg, ok, err := q.get(ctx, operGet, nil, l)
-  if err == ErrConnBroken {
-    q.stateError()
-  }
+  q.errorHandler(err)
+
   return msg, ok, err
 }
 
@@ -25,9 +24,8 @@ func (q *Queue) GetByCorrelId(ctx context.Context, correlId []byte) (*Msg, bool,
   })
 
   msg, ok, err := q.get(ctx, operGetByCorrelId, correlId, l)
-  if err == ErrConnBroken {
-    q.stateError()
-  }
+  q.errorHandler(err)
+
   return msg, ok, err
 }
 
@@ -39,9 +37,7 @@ func (q *Queue) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, bool, error
   })
 
   msg, ok, err := q.get(ctx, operGetByMsgId, msgId, l)
-  if err == ErrConnBroken {
-    q.stateError()
-  }
+  q.errorHandler(err)
 
   return msg, ok, err
 }
@@ -50,9 +46,21 @@ func (q *Queue) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, bool, error
 func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.Entry) (
   *Msg, bool, error) {
 
-  if !q.IsConnected() {
-    l.Error(ErrNoConnection)
-    return nil, false, ErrNoConnection
+  if q.IsClosed() {
+    l.Error(ErrNotOpen)
+    return nil, false, ErrNotOpen
+  }
+
+  if q.ctlo != nil {
+    return nil, false, ErrBusySubsc
+  }
+
+  var conn *mqConn
+
+  select {
+  case <-ctx.Done():
+    return nil, false, ErrInterrupted
+  case conn = <-q.RegisterOpen():
   }
 
   l.Trace("Start")
@@ -69,14 +77,10 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
   cmho := ibmmq.NewMQCMHO()
   gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
 
-  var mgr *ibmmq.MQQueueManager
-  select {
-  case <-ctx.Done():
-    return nil, false, ErrInterrupted
-  case mgr = <-q.manager.RegisterConn():
-  }
+  q.mxMsg.Lock()
+  defer q.mxMsg.Unlock()
 
-  getMsgHandle, err := mgr.CrtMH(cmho)
+  getMsgHandle, err := conn.m.CrtMH(cmho)
   if err != nil {
     l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
 
@@ -125,9 +129,7 @@ loopCtx:
   for {
   loopGet:
     for i := 0; i < 2; i++ {
-      q.mxMsg.Lock()
-      buffer, datalen, err = q.que.GetSlice(getmqmd, gmo, buffer)
-      q.mxMsg.Unlock()
+      buffer, datalen, err = conn.q.GetSlice(getmqmd, gmo, buffer)
 
       if err == nil {
         break loopCtx
@@ -160,7 +162,6 @@ loopCtx:
     return nil, false, nil
   }
 
-  // TODO закрыть условием о типе заголовка
   props, err := properties(getMsgHandle)
   if err != nil {
     l.Errorf("Ошибка получения свойств сообщения: %s", err)

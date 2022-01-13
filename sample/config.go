@@ -15,13 +15,11 @@ type appConfig struct {
   ApiPort  int    `env:"ENV_API_PORT"`  // Порт api управления
   LogLevel string `env:"ENV_LOG_LEVEL"` // Уровень логирования приложения
 
-  MqLogLevel string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
-  // Deprecated
-  MqConfig string `env:"ENV_MQPRO_CONFIG"` // Файл конфигурации IBMMQ
+  // mq
+  MqLogLevel      string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
+  MqQueOper1Put   string `env:"ENV_MQPRO_QUEUE_OPER1_PUT"`
+  MqQueOper1Get   string `env:"ENV_MQPRO_QUEUE_OPER1_GET"`
 
-  // Данные очередей
-  MqQueOper1Put string `env:"ENV_MQPRO_QUEUE_OPER1_PUT"`
-  MqQueOper1Get string `env:"ENV_MQPRO_QUEUE_OPER1_GET"`
   MqQueOper2Put string `env:"ENV_MQPRO_QUEUE_OPER2_PUT"`
   MqQueOper2Get string `env:"ENV_MQPRO_QUEUE_OPER2_GET"`
 
@@ -50,18 +48,6 @@ func init() {
     fatal = true
   }
 
-  cfgIbmmq, err := mqpro.ParseDefaultEnv()
-  if err != nil {
-    log.Warn("Ошибка получения значений переменных окружения для настройки ibmmq")
-    fatal=true
-  }
-
-  err = ibmmq.Cfg(cfgIbmmq)
-  if err != nil {
-    log.Warn(err)
-    fatal = true
-  }
-
   lev, err := logrus.ParseLevel(cfg.LogLevel)
   if err != nil {
     log.Warn("Не установлен уровень логирования приложения ENV_LOG_LEVEL. <%s>\n", err)
@@ -73,6 +59,19 @@ func init() {
     cfg.logInfo = true
   }
 
+  // mq
+  cfgIbmmq, err := mqpro.ParseDefaultEnv()
+  if err != nil {
+    log.Warn("Ошибка получения значений переменных окружения для настройки ibmmq")
+    fatal = true
+  }
+
+  err = ibmmq.Cfg(cfgIbmmq)
+  if err != nil {
+    log.Warn(err)
+    fatal = true
+  }
+
   lev, err = logrus.ParseLevel(cfg.MqLogLevel)
   if err == nil {
     logIbmmq.Logger.SetLevel(lev)
@@ -82,24 +81,24 @@ func init() {
     lev = logrus.TraceLevel
   }
 
-  err = ibmmqOper1In.CfgQueue(cfg.MqQueOper1Get)
+  err = ibmmqOper1Get.CfgByStr(cfg.MqQueOper1Get)
   if err != nil {
     fatal = true
     log.Warn(err)
   }
 
-  //err = ibmmqOper1Out.CfgQueue(cfg.MqQueOper1Put)
-  //if err != nil {
-  //  fatal = true
-  //  log.Warn(err)
-  //}
+  err = ibmmqOper1Put.CfgByStr(cfg.MqQueOper1Put)
+  if err != nil {
+    fatal = true
+    log.Warn(err)
+  }
 
-  // Вывод конфигурации
-  //ibmmq.PrintCfg()
-  //printCfg()
+  ibmmq.PrintDefaultEnv()
+  ibmmq.PrintSetCli("mgr")
+  ibmmqOper1Get.PrintSetCli("queue/" + ibmmqOper1Get.Alias())
 
   if fatal {
-    panic("")
+    panic("При подготовке конфигурации есть фатальные ошибки. Подробности в логах")
   }
 }
 

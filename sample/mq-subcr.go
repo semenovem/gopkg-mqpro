@@ -34,12 +34,16 @@ func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
 
 func subscr() {
   cfg.SimpleSubscriber = true
-  ibmmqOper1In.RegisterInMsg(handlerInMsg)
+  if !ibmmqOper1Get.IsSubscribed() {
+    ibmmqOper1Get.RegisterInMsg(handlerInMsg)
+  }
 }
 
 func unsubscr() {
   cfg.SimpleSubscriber = false
-  ibmmqOper1In.UnregisterInMsg()
+  if ibmmqOper1Get.IsSubscribed() {
+    ibmmqOper1Get.UnregisterInMsg()
+  }
 }
 
 // Обработчик входящих сообщений

@@ -5,6 +5,7 @@ IMG := "$(DOCKER_IMAGE_NAME):$(VERSION)"
 PROJ_NAME := "gopkg-mqpro-sample"
 NETWORK := "pkg-mqpro-sample"
 
+IMG_CURL := "curl:1"
 
 # -----------------
 # commands
@@ -33,6 +34,16 @@ docker:
 	@docker build \
  		-f ./Dockerfile \
  		-t "$(IMG)" .
+
+
+## build-image-curl
+.PHONY: build-image-curl
+build-image-curl:
+	@docker build \
+ 		-f ./Dockerfile-curl.dockerfile \
+ 		-t "$(IMG_CURL)" .
+
+
 
 
 ## crypto - gen crypto
@@ -82,6 +93,16 @@ curl:
 	@docker run -it --rm --network $(NETWORK) ubuntu:20.04 sh -c \
      "apt update && apt install -y curl && echo '| Для выхода из контейнера ctrl+D' && bash"
 
+## curl2 - контейнер, присоединенный к сети, для выполнения curl запросов
+.PHONY: curl2
+curl2:
+	@docker run -it --rm \
+	-v "${PWD}/dev/shell.sh:/shell.sh:ro" \
+	--network $(NETWORK) \
+	$(IMG_CURL) sh -c \
+     "source /shell.sh && echo '| Для выхода из контейнера ctrl+D' && sh"
+
+	-#v "${RWD}/dev/shell.sh:/shell.sh:ro" \
 
 ## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
 .PHONY: dev
@@ -93,8 +114,7 @@ dev:
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
 		"$(IMG)" bash
-
-#dev/run.sh client.env
+# bash dev/run.sh client.env
 
 
 ## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
@@ -106,7 +126,8 @@ dev2:
 		--network $(NETWORK) \
 		-w /app/sample \
 		-v "${PWD}/..:/app:ro" \
-		"$(IMG)" bash dev/run.sh client.env
+		"$(IMG)" bash
+# bash dev/run.sh client.env
 
 
 ## dev3 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`

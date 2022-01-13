@@ -9,8 +9,6 @@ import (
 
 // Put отправка сообщения в очередь
 func (q *Queue) Put(ctx context.Context, msg *Msg) ([]byte, error) {
-  // TODO использовать контекст
-
   l := q.log.WithField("method", "Put")
 
   if msg.CorrelId != nil {
@@ -18,16 +16,22 @@ func (q *Queue) Put(ctx context.Context, msg *Msg) ([]byte, error) {
   }
 
   d, err := q.put(ctx, msg, l)
-  if err == ErrConnBroken {
-    q.stateError()
-  }
+  q.errorHandler(err)
 
   return d, err
 }
 
 func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, error) {
-  if !q.IsConnected() {
-    return nil, ErrNoConnection
+  if q.IsClosed() {
+    return nil, ErrNotOpen
+  }
+
+  var conn *mqConn
+
+  select {
+  case <-ctx.Done():
+    return nil, ErrInterrupted
+  case conn = <-q.RegisterOpen():
   }
 
   q.mxMsg.Lock()
@@ -83,14 +87,7 @@ func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, err
   default:
     putmqmd.Format = ibmmq.MQFMT_STRING
 
-    var mgr *ibmmq.MQQueueManager
-    select {
-    case <-ctx.Done():
-      return nil, ErrInterrupted
-    case mgr = <-q.manager.RegisterConn():
-    }
-
-    putMsgHandle, err := mgr.CrtMH(cmho)
+    putMsgHandle, err := conn.m.CrtMH(cmho)
     if err != nil {
       l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
 
@@ -117,7 +114,7 @@ func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, err
     pmo.OriginalMsgHandle = putMsgHandle
   }
 
-  err := q.que.Put(putmqmd, pmo, payload)
+  err := conn.q.Put(putmqmd, pmo, payload)
   if err != nil {
     l.Error("Ошибка отправки сообщения: ", err)
 

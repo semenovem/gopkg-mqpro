@@ -6,9 +6,7 @@ import (
 
 func (q *Queue) Browse(ctx context.Context) (<-chan *Msg, error) {
   ch, err := q.browse(ctx)
-  if err == ErrConnBroken {
-    q.stateError()
-  }
+  q.errorHandler(err)
 
   return ch, err
 }
@@ -16,9 +14,13 @@ func (q *Queue) Browse(ctx context.Context) (<-chan *Msg, error) {
 func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
   l := q.log.WithField("method", "BrowseOpen")
 
-  if !q.IsConnected() {
-    q.log.Error(ErrNoConnection)
-    return nil, ErrNoConnection
+  if q.IsClosed() {
+    l.Error(ErrNotOpen)
+    return nil, ErrNotOpen
+  }
+
+  if q.ctlo != nil {
+    return nil, ErrBusySubsc
   }
 
   l.Trace("Start open BROWSE")

@@ -7,34 +7,31 @@ import (
 )
 
 const (
-  defDisconnDelay    = time.Millisecond * 500 // По умолчанию задержка перед разрывом соединения
-  defReconnDelay     = time.Second * 3        // По умолчанию задержка повторных попыток соединения
-  DefRootTagHeader   = "usr"                  // Корневой тэг для заголовков rhf2 формата
-  defReconnectDelay  = time.Second * 3
-  defDelayClose      = time.Millisecond * 50 // Ожидание при закрытии очереди
-  DefHeader          = HeaderBase
+  defDisconnDelay   = time.Millisecond * 500 // По умолчанию задержка перед разрывом соединения
+  defReconnDelay    = time.Second * 3        // По умолчанию задержка повторных попыток соединения
+  DefRootTagHeader  = "usr"                  // Корневой тэг для заголовков rhf2 формата
+  defReconnectDelay = time.Second * 3        // Тамаут повторных попыток
+  defDelayClose     = time.Millisecond * 50  // Ожидание при закрытии очереди
+  DefHeader         = HeaderBase
 )
 
 var (
-  ErrClosed             = errors.New("ibm mq: queue is closed")
-  ErrNoConnection       = errors.New("ibm mq: no connections")
-  ErrInterrupted       = errors.New("ibm mq: operation interrupted")
+  ErrNotOpen            = errors.New("ibm mq: queue is not open")
+  ErrBusySubsc          = errors.New("ibm mq: the queue object is busy subscribing")
+  ErrInterrupted        = errors.New("ibm mq: operation interrupted")
   ErrAlreadyOpen        = errors.New("ibm mq: queue already open")
-  ErrConnBroken         = errors.New("ibm mq conn: connection broken")
+  ErrConnBroken         = errors.New("ibm mq: conn: connection broken")
   ErrPutMsg             = errors.New("ibm mq: failed to put message")
   ErrGetMsg             = errors.New("ibm mq: failed to get message")
-  ErrBrowseMsg          = errors.New("ibm mq: failed to browse message")
-  ErrPropsNoField       = errors.New("ibm mq: property is missing")
-  errMsgNoField         = "ibm mq: property '%s' is missing"
-  errMsgFieldTypeTxt    = "ibm mq: invalid field type '%s'. Got '%T'"
   errHeaderParseType    = errors.New("ibm mq: header type parsing error")
-  ErrFormatRFH2         = errors.New("ibm mq rfh2: error decoding header")
-  ErrParseRfh2          = errors.New("ibm mq rfh2: error parse value")
+  ErrFormatRFH2         = errors.New("ibm mq: rfh2: error decoding header")
+  ErrParseRfh2          = errors.New("ibm mq: rfh2: error parse value")
   ErrRegisterEventInMsg = errors.New("ibm mq: the handler is already assigned")
   ErrXml                = errors.New("ibm mq: error when converting headers to xml. " +
     "Permissible: 'map[string]interface{}'")
-  ErrXmlInconvertible = errors.New("ibm mq: Non-convertible data format")
-  ErrNoConfig         = errors.New("ibm mq: не задана конфигурация")
+  ErrXmlInconvertible     = errors.New("ibm mq: non-convertible data format")
+  ErrNotConfigured        = errors.New("ibm mq: not configured")
+  ErrManagerNotConfigured = errors.New("ibm mq: manager not configured")
 )
 
 type state int32
@@ -47,18 +44,18 @@ const (
   HeaderRfh2
 )
 
-var headerKey = map[string]Header{
-  headerVal[HeaderBase]: HeaderBase,
-  headerVal[HeaderRfh2]: HeaderRfh2,
+var headerMapByVal = map[string]Header{
+  HeaderMapByKey[HeaderBase]: HeaderBase,
+  HeaderMapByKey[HeaderRfh2]: HeaderRfh2,
 }
 
-var headerVal = map[Header]string{
+var HeaderMapByKey = map[Header]string{
   HeaderBase: "prop",
   HeaderRfh2: "rfh2",
 }
 
 func ParseHeader(n string) (Header, error) {
-  h, ok := headerKey[strings.ToLower(n)]
+  h, ok := headerMapByVal[strings.ToLower(n)]
   if ok {
     return h, nil
   }
@@ -66,24 +63,24 @@ func ParseHeader(n string) (Header, error) {
 }
 
 const (
-  stateDisconn state = iota
-  stateConn
+  stateClosed state = iota
+  stateOpen
   stateConnecting
   stateErr
 )
 
-var stateKey = map[state]string{
-  stateDisconn:    "stateDisconn",
-  stateConn:       "stateConn",
+var stateMapByKey = map[state]string{
+  stateClosed:     "stateClosed",
+  stateOpen:       "stateOpen",
   stateConnecting: "stateConnecting",
   stateErr:        "stateConnecting",
 }
 
-var stateVal = map[string]state{
-  stateKey[stateDisconn]:    stateDisconn,
-  stateKey[stateConn]:       stateConn,
-  stateKey[stateConnecting]: stateConnecting,
-  stateKey[stateErr]:        stateErr,
+var stateMapByVal = map[string]state{
+  stateMapByKey[stateClosed]:     stateClosed,
+  stateMapByKey[stateOpen]:       stateOpen,
+  stateMapByKey[stateConnecting]: stateConnecting,
+  stateMapByKey[stateErr]:        stateErr,
 }
 
 const (
@@ -100,14 +97,14 @@ const (
   permPut
 )
 
-var permKey = map[permQueue]string{
+var permMapByKey = map[permQueue]string{
   permGet:    "get",
   permBrowse: "browse",
   permPut:    "put",
 }
 
-var permVal = map[string]permQueue{
-  permKey[permGet]:    permGet,
-  permKey[permBrowse]: permBrowse,
-  permKey[permPut]:    permPut,
+var permMapByVal = map[string]permQueue{
+  permMapByKey[permGet]:    permGet,
+  permMapByKey[permBrowse]: permBrowse,
+  permMapByKey[permPut]:    permPut,
 }

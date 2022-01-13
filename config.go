@@ -4,7 +4,11 @@ import (
   "bytes"
   "fmt"
   "github.com/caarlos0/env/v6"
+  "github.com/semenovem/gopkg_mqpro/v2/manager"
   "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "os"
+  "strings"
+  "unicode/utf8"
 )
 
 type Config struct {
@@ -26,7 +30,9 @@ type Config struct {
 }
 
 func (m *Mqpro) isConfigured() bool {
-  return m.host != "" && m.port > 0 && m.manager != "" && m.channel != ""
+  return m.managerCfg != nil && m.coreSet != nil &&
+    m.managerCfg.Host != "" && m.managerCfg.Port > 0 &&
+    m.managerCfg.Manager != "" && m.managerCfg.Channel != ""
 }
 
 func (m *Mqpro) Cfg(c *Config) error {
@@ -85,16 +91,25 @@ func (m *Mqpro) Cfg(c *Config) error {
     return ErrInvalidConfig
   }
 
-  m.host = c.Host
-  m.port = c.Port
-  m.manager = c.Manager
-  m.channel = c.Channel
-  m.app = c.App
-  m.user = c.User
-  m.pass = c.Pass
-  m.tls = c.Tls
-  m.keyRepository = c.KeyRepository
-  m.maxMsgLen = c.MaxMsgLength
+  m.managerCfg = &manager.Config{
+    Host:          c.Host,
+    Port:          c.Port,
+    Manager:       c.Manager,
+    Channel:       c.Channel,
+    App:           c.App,
+    User:          c.User,
+    Pass:          c.Pass,
+    Tls:           c.Tls,
+    KeyRepository: c.KeyRepository,
+    MaxMsgLength:  c.MaxMsgLength,
+  }
+  
+  for _, man := range m.managers {
+    err := man.Cfg(m.managerCfg)
+    if err != nil {
+      return err
+    }
+  }
 
   m.coreSet = &coreSet
   return nil
@@ -106,39 +121,77 @@ func ParseDefaultEnv() (*Config, error) {
   return c, env.Parse(c)
 }
 
-func (m *Mqpro) GetQueueConfig() *queue.CoreSet {
+func (m *Mqpro) GetCoreSet() *queue.CoreSet {
   return m.coreSet
 }
 
 func (m *Mqpro) SetDevMode(v bool) {
   m.coreSet.DevMode = v
   for _, q := range m.queues {
-    q.Set(m.coreSet)
+    q.UpdateBaseCfg()
   }
 }
 
-// PrintCfg
-// Deprecated
-func (m *Mqpro) PrintCfg() {
-  var buf = bytes.NewBufferString("")
-  f := func(s string, i ...interface{}) {
-    buf.WriteString(fmt.Sprintf(s, i...))
+func (m *Mqpro) PrintSetCli(p string) {
+  queue.PrintSetCli(m.getSet(), p)
+}
+
+func (m *Mqpro) getSet() []map[string]string {
+  return []map[string]string{
+    {"manager/host": m.managerCfg.Host},
+    {"manager/port": fmt.Sprintf("%d", m.managerCfg.Port)},
+    {"manager/manager": m.managerCfg.Manager},
+    {"manager/channel": m.managerCfg.Channel},
+    {"manager/app": m.managerCfg.App},
+    {"manager/user": m.managerCfg.User},
+    {"manager/pass": m.managerCfg.Pass},
+    {"manager/tls": fmt.Sprintf("%t", m.managerCfg.Tls)},
+    {"manager/keyRepository": m.managerCfg.KeyRepository},
+    {"manager/maxMsgLen": fmt.Sprintf("%d", m.managerCfg.MaxMsgLength)},
+
+    {"coreSet/DevMode": fmt.Sprintf("%t", m.coreSet.DevMode)},
+    {"coreSet/Header": fmt.Sprintf("%s", queue.HeaderMapByKey[m.coreSet.Header])},
+    {"coreSet/Rfh2CodedCharSetId": fmt.Sprintf("%d", m.coreSet.Rfh2CodedCharSetId)},
+    {"coreSet/Rfh2RootTag": m.coreSet.Rfh2RootTag},
+  }
+}
+
+func (m *Mqpro) PrintDefaultEnv() {
+  var (
+    buf    = bytes.NewBufferString("Default environment:\n")
+    k, v   string
+    max, l int
+  )
+
+  li := []string{
+    "ENV_MQPRO_DEV_MODE",
+    "ENV_MQPRO_HOST",
+    "ENV_MQPRO_PORT",
+    "ENV_MQPRO_MANAGER",
+    "ENV_MQPRO_CHANNEL",
+    "ENV_MQPRO_APP",
+    "ENV_MQPRO_USER",
+    "ENV_MQPRO_PASS",
+    "ENV_MQPRO_HEADER",
+    "ENV_MQPRO_RFH2_CODE_CHAR_SET_ID",
+    "ENV_MQPRO_RFH2_ROOT_TAG",
+    "ENV_MQPRO_RFH2_OFF_ROOT_TAG",
+    "ENV_MQPRO_TLS",
+    "ENV_MQPRO_KEY_REPOSITORY",
+    "ENV_MQPRO_MESSAGE_LENGTH",
   }
 
-  f("Environment variable values:\n")
-  f("ENV_MQPRO_DEV_MODE:    = %t\n", m.coreSet.DevMode)
-  f("ENV_MQPRO_HOST         = %s\n", m.host)
-  f("ENV_MQPRO_PORT         = %d\n", m.port)
-  f("ENV_MQPRO_MANAGER      = %s\n", m.manager)
-  f("ENV_MQPRO_CHANNEL      = %s\n", m.channel)
-  f("ENV_MQPRO_APP          = %s\n", m.app)
-  f("ENV_MQPRO_USER         = %s\n", m.user)
-  f("ENV_MQPRO_PASS         = %s\n", m.pass)
-  f("ENV_MQPRO_HEADER       = %s\n", m.coreSet.Header)
-  f("ENV_MQPRO_RFH2_ROOT_TAG= %s\n", m.coreSet.Rfh2RootTag)
-  f("ENV_MQPRO_TLS          = %t\n", m.tls)
-  f("ENV_MQPRO_KEY_REPOSITORY = %s\n", m.keyRepository)
-  f("ENV_MQPRO_MAX_MSG_LENGTH = %d\n", m.maxMsgLen)
+  for _, k = range li {
+    l = utf8.RuneCountInString(k)
+    if max < l {
+      max = l
+    }
+  }
+
+  for _, k = range li {
+    v = strings.Repeat(" ", max-utf8.RuneCountInString(k)) + "= " + os.Getenv(k)
+    buf.WriteString(fmt.Sprintf("%s%s\n", k, v))
+  }
 
   fmt.Println(buf.String())
 }

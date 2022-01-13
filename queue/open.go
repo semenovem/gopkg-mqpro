@@ -11,25 +11,28 @@ func (q *Queue) Open() error {
   q.mx.Lock()
   defer q.mx.Unlock()
 
-  q.log.Debug("Запрос на открытие очереди")
+  q.log.Trace("Запрос на открытие очереди")
 
-  if q.IsConn() {
+  if q.IsOpen() {
     q.log.Warn(ErrAlreadyOpen)
     return ErrAlreadyOpen
   }
 
-  if q.queueName == "" || len(q.perm) == 0 {
-    q.log.Error(ErrNoConfig)
-    return ErrNoConfig
+  if !q.IsConfigured() {
+    q.log.Error(ErrNotConfigured)
+    return ErrNotConfigured
   }
 
-  mainCfg := q.manager.GetQueueConfig()
-  q.devMode = mainCfg.DevMode
-  q.h = mainCfg.Header
+  if !q.manager.IsConfigured() {
+    q.log.Error(ErrManagerNotConfigured)
+    return ErrManagerNotConfigured
+  }
+
+  q.UpdateBaseCfg()
 
   q.ctx, q.ctxCanc = context.WithCancel(q.rootCtx)
 
-  q.stateConn()
+  q.stateOpen()
 
   select {
   case <-q.RegisterOpen():
@@ -44,13 +47,13 @@ func (q *Queue) Open() error {
 func (q *Queue) Close() error {
   q.log.Debug("Запрос на закрытие очереди")
 
-  if q.IsDisconn() {
-    q.log.Warn(ErrClosed)
-    return ErrClosed
+  if q.IsClosed() {
+    q.log.Warn(ErrNotOpen)
+    return ErrNotOpen
   }
 
   q.ctxCanc()
-  q.stateDisconn()
+  q.stateClose()
 
   q.mx.Lock()
   defer q.mx.Unlock()
@@ -66,7 +69,8 @@ func (q *Queue) Close() error {
 }
 
 // Открывает очередь
-func (q *Queue) open(m *ibmmq.MQQueueManager) error {
+// Вызов из горутины изменения состояния объекта очереди
+func (q *Queue) open(mgr *ibmmq.MQQueueManager) (*ibmmq.MQObject, error) {
   mqod := ibmmq.NewMQOD()
   mqod.ObjectType = ibmmq.MQOT_Q
   mqod.ObjectName = q.queueName
@@ -83,27 +87,31 @@ func (q *Queue) open(m *ibmmq.MQQueueManager) error {
     }
   }
 
-  que, err := m.Open(mqod, flag)
+  que, err := mgr.Open(mqod, flag)
   if err != nil {
-    return err
+    return nil, err
   }
 
   q.log.WithFields(map[string]interface{}{
     "mod":  "open",
-    "perm": strings.Join(q.permString(), ","),
-  }).Info("Opened")
+    "perm": strings.Join(q.convPermToVal(), ","),
+  }).Debug("Opened")
 
-  q.que = &que
-  return nil
+  return &que, nil
 }
 
+// Вызов из горутины изменения состояния объекта очереди
 func (q *Queue) close() {
-  o := q.que
-  if o != nil {
-    q.que = nil
-    err := o.Close(0)
-    if err != nil {
-      q.log.WithField("mod", "close").Warn(err)
-    }
+  q.unsubscInMsg()
+
+  if q.conn == nil {
+    return
   }
+
+  err := q.conn.q.Close(0)
+  if err != nil {
+    q.log.WithField("mod", "close").Warn(err)
+  }
+
+  q.conn = nil
 }

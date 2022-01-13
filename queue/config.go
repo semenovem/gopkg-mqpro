@@ -1,8 +1,9 @@
 package queue
 
 import (
-  "bytes"
   "fmt"
+  "strings"
+  "time"
 )
 
 // CoreSet Данные подключения
@@ -13,28 +14,30 @@ type CoreSet struct {
   Rfh2RootTag        string // Корневой тег
 }
 
-type CfgQueue struct {
-  Name   string      // Название очереди
-  Access []permQueue // Разрешения на очередь
+func (q *Queue) IsConfigured() bool {
+  return q.queueName != "" && len(q.perm) != 0
 }
 
-func (q *Queue) Set(cfg *CoreSet) {
-  q.mx.Lock()
-  defer q.mx.Unlock()
+func (q *Queue) UpdateBaseCfg() {
+  c := q.base.GetCoreSet()
 
-  q.h = cfg.Header
-  q.devMode = cfg.DevMode
-  q.rfh2RootTag = cfg.Rfh2RootTag
+  q.h = c.Header
+  q.devMode = c.DevMode
+  q.rfh2RootTag = c.Rfh2RootTag
 
   if q.h == HeaderRfh2 {
     q.rfh2 = newRfh2Cfg()
-    if cfg.Rfh2CodedCharSetId != 0 {
-      q.rfh2.CodedCharSetId = cfg.Rfh2CodedCharSetId
+    if c.Rfh2CodedCharSetId != 0 {
+      q.rfh2.CodedCharSetId = c.Rfh2CodedCharSetId
     }
   }
 }
 
-func (q *Queue) CfgQueue(s string) error {
+func (q *Queue) CfgByStr(s string) error {
+  if s == "" {
+    return nil
+  }
+
   var err error
   q.queueName, q.perm, err = parseQueue(s)
   if err != nil {
@@ -48,23 +51,45 @@ func (q *Queue) CfgQueue(s string) error {
   return nil
 }
 
+func (q *Queue) Alias() string {
+  return q.alias
+}
+
 func (q *Queue) SetDevMode(v bool) {
   q.devMode = v
 }
 
-// PrintCfg
-// Deprecated
-func (q *Queue) PrintCfg() {
-  var buf = bytes.NewBufferString("")
-  f := func(s string, i ...interface{}) {
-    buf.WriteString(fmt.Sprintf(s, i...))
+func (q *Queue) PrintSetCli(p string) {
+  PrintSetCli(q.getSet(), p)
+}
+
+func (q *Queue) getSet() []map[string]string {
+  q.UpdateBaseCfg()
+  m := []map[string]string{
+    {"queueName": q.queueName},
+    {"perm": strings.Join(q.convPermToVal(), ",")},
+    {"state": stateMapByKey[q.state]},
+    {"reconnectDelay": fmt.Sprintf("%d sec", q.reconnectDelay/time.Second)},
+    {"delayClose": fmt.Sprintf("%d ms", q.delayClose/time.Millisecond)},
+    {"devMode": fmt.Sprintf("%t", q.devMode)},
+    {"header": HeaderMapByKey[q.h]},
+    {"rfh2RootTag": q.rfh2RootTag},
   }
 
-  f("Environment variable values:\n")
-  f("DevMode:           = %t\n", q.devMode)
-  f("Header             = %s\n", q.h)
-  //f("Rfh2CodedCharSetId = %s\n", cfg.Rfh2CodedCharSetId)
-  f("Rfh2RootTag        = %t\n", q.rfh2RootTag)
+  if q.h == HeaderRfh2 {
+    m1 := []map[string]string{
+      {"StructId": q.rfh2.StructId},
+      {"Version": fmt.Sprintf("%d", q.rfh2.Version)},
+      {"Encoding": fmt.Sprintf("%d", q.rfh2.Encoding)},
+      {"CodedCharSetId": fmt.Sprintf("%d", q.rfh2.CodedCharSetId)},
+      {"Format": q.rfh2.Format},
+      {"Flags": fmt.Sprintf("%d", q.rfh2.Flags)},
+      {"NameValueCCSID": fmt.Sprintf("%d", q.rfh2.NameValueCCSID)},
+      {},
+    }
 
-  fmt.Println(buf.String())
+    m = append(m, m1...)
+  }
+
+  return m
 }

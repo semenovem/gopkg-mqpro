@@ -4,6 +4,7 @@ import (
   "fmt"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "strings"
+  "unicode/utf8"
 )
 
 func IsConnBroken(err error) bool {
@@ -68,7 +69,7 @@ func parseQueue(s string) (nameQue string, perm []permQueue, err error) {
   a := strings.Split(arg[1], ",")
 
   for _, v := range a {
-    vv, ok := permVal[v]
+    vv, ok := permMapByVal[v]
     if !ok {
       err = fmt.Errorf("не валидное значение типа очереди. "+msgErrParseQueue, s)
       return
@@ -81,4 +82,31 @@ func parseQueue(s string) (nameQue string, perm []permQueue, err error) {
   }
 
   return
+}
+
+func PrintSetCli(set []map[string]string, p string) {
+  var (
+    max, l int
+    k, v   string
+    m      map[string]string
+  )
+  for _, m = range set {
+    for k, v = range m {
+      l = utf8.RuneCountInString(k)
+      if max < l {
+        max = l
+      }
+    }
+  }
+  max += 1
+
+  for _, m = range set {
+    for k, v = range m {
+      v = strings.Repeat(" ", max-utf8.RuneCountInString(k)) + "= " + v
+      if p != "" {
+        k = p + "/" + k
+      }
+      fmt.Printf("%s%s\n", k, v)
+    }
+  }
 }

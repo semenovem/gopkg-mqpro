@@ -1,4 +1,4 @@
-package mqpro
+package queue
 
 import (
   "github.com/stretchr/testify/assert"

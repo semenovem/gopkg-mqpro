@@ -3,6 +3,7 @@ package main
 import (
   "context"
   "fmt"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "net/http"
   "time"
 )
@@ -12,10 +13,11 @@ import (
 func getMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Получение сообщения из IBM MQ")
 
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
-  defer cancel()
+  //for i := 0; i < 200; i++ {
+  //  go _getMsg()
+  //}
 
-  msg, ok, err := ibmmqOper1In.Get(ctx)
+  msg, ok, err := _getMsg()
   if err != nil {
     fmt.Println("[ERROR] при получении сообщения: ", err)
     _, _ = fmt.Fprintf(w, "[get] Error: %s\n", err.Error())
@@ -29,4 +31,16 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
   }
 
   _, _ = fmt.Fprintf(w, "[get] Ok. msgId: %x\n", msg.MsgId)
+}
+
+func _getMsg() (*queue.Msg, bool, error) {
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  defer cancel()
+
+  msg, ok, err := ibmmqOper1Get.Get(ctx)
+  if err != nil {
+    fmt.Println(">> ", err)
+  }
+
+  return msg, ok, err
 }

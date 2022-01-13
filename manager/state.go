@@ -1,4 +1,4 @@
-package mqpro
+package manager
 
 import (
   "time"
@@ -13,7 +13,7 @@ func (m *Mqpro) workerState() {
 
 worker:
   for st = range m.chState {
-    l.Debug(stateKey[m.state], " >>> ", stateKey[st])
+    l.Debug(stateMapByKey[m.state], " >>> ", stateMapByKey[st])
 
     if st == m.state {
       continue

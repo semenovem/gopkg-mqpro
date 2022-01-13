@@ -16,9 +16,9 @@ var (
   log                  = logger()
   rootCtx, rootCtxCanc = context.WithCancel(context.Background())
   logIbmmq             = log.WithField("sys", "mq")
-  ibmmq                  = mqpro.New(rootCtx, logIbmmq)
-  ibmmqOper1In           = ibmmq.Queue("payIn")
-  //ibmmqOper1Out          = ibmmq.Queue("payOut")
+  ibmmq                = mqpro.New(rootCtx, logIbmmq)
+  ibmmqOper1Put        = ibmmq.Queue("payPut")
+  ibmmqOper1Get        = ibmmq.Queue("payGet")
 )
 
 func logger() *logrus.Entry {
@@ -51,6 +51,8 @@ func main() {
     }
   }()
 
+  ibmmqOper1Get.RegisterInMsg(hndIncomingMsg)
+
   // api
   if cfg.ApiPort != 0 {
     go func() {
@@ -62,9 +64,9 @@ func main() {
   }
 
   if cfg.SimpleSubscriber || cfg.Mirror {
-    subscr()
+    //subscr()
   }
 
   <-rootCtx.Done()
-  time.Sleep(time.Millisecond * 200)
+  time.Sleep(time.Millisecond * 100)
 }

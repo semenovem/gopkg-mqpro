@@ -3,6 +3,7 @@ package queue
 import (
   "bytes"
   "context"
+  "fmt"
   "github.com/sirupsen/logrus"
   "github.com/stretchr/testify/assert"
   "testing"
@@ -16,12 +17,14 @@ func testLog() *logrus.Entry {
 
 func testRfh2Conn(tag string) *Queue {
   cfg := &CoreSet{
-    Header:      headerVal[HeaderRfh2],
+    Header:      HeaderRfh2,
     Rfh2RootTag: tag,
   }
 
-  c := New(context.Background(), testLog(), nil)
-  c.Set(cfg)
+  fmt.Println(">", cfg)
+
+  c := New(context.Background(), testLog(), nil, nil, "")
+  c.UpdateBaseCfg()
   return c
 }
 
