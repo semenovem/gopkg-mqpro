@@ -39,8 +39,8 @@ func (m *Mqpro) Connect() error {
 
 func (m *Mqpro) openQues() <-chan error {
   var (
-  	ch = make(chan error)
-    wg = sync.WaitGroup{}
+    ch   = make(chan error)
+    wg   = sync.WaitGroup{}
     err1 error
   )
 
@@ -74,9 +74,6 @@ func (m *Mqpro) openQues() <-chan error {
 
   return ch
 }
-
-
-
 
 func (m *Mqpro) Disconnect() error {
   m.log.Trace("Request to disconnect from IBM MQ...")

@@ -16,9 +16,9 @@ type appConfig struct {
   LogLevel string `env:"ENV_LOG_LEVEL"` // Уровень логирования приложения
 
   // mq
-  MqLogLevel      string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
-  MqQueOper1Put   string `env:"ENV_MQPRO_QUEUE_OPER1_PUT"`
-  MqQueOper1Get   string `env:"ENV_MQPRO_QUEUE_OPER1_GET"`
+  MqLogLevel    string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
+  MqQueOper1Put string `env:"ENV_MQPRO_QUEUE_OPER1_PUT"`
+  MqQueOper1Get string `env:"ENV_MQPRO_QUEUE_OPER1_GET"`
 
   MqQueOper2Put string `env:"ENV_MQPRO_QUEUE_OPER2_PUT"`
   MqQueOper2Get string `env:"ENV_MQPRO_QUEUE_OPER2_GET"`

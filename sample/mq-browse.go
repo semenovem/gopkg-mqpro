@@ -12,7 +12,7 @@ import (
 func onBrowse(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Просмотр сообщений в очереди")
 
-  ctx, canc := context.WithTimeout(rootCtx, time.Second * 10)
+  ctx, canc := context.WithTimeout(rootCtx, time.Second*10)
   defer canc()
 
   ch, err := mqOper1Get.Browse(ctx)

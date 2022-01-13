@@ -9,4 +9,3 @@ func hndIncomingMsg(msg *queue.Msg) {
   logMsgIn(msg)
 
 }
-
