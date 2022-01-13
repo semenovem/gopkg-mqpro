@@ -16,22 +16,27 @@ const (
 )
 
 var (
-  ErrNotOpen            = errors.New("ibm mq: queue is not open")
-  ErrBusySubsc          = errors.New("ibm mq: the queue object is busy subscribing")
-  ErrInterrupted        = errors.New("ibm mq: operation interrupted")
-  ErrAlreadyOpen        = errors.New("ibm mq: queue already open")
-  ErrConnBroken         = errors.New("ibm mq: conn: connection broken")
-  ErrPutMsg             = errors.New("ibm mq: failed to put message")
-  ErrGetMsg             = errors.New("ibm mq: failed to get message")
-  errHeaderParseType    = errors.New("ibm mq: header type parsing error")
-  ErrFormatRFH2         = errors.New("ibm mq: rfh2: error decoding header")
-  ErrParseRfh2          = errors.New("ibm mq: rfh2: error parse value")
-  ErrRegisterEventInMsg = errors.New("ibm mq: the handler is already assigned")
-  ErrXml                = errors.New("ibm mq: error when converting headers to xml. " +
+  ErrNotOpen         = errors.New("ibm mq: queue is not open")
+  ErrBusySubsc       = errors.New("ibm mq: the queue object is busy subscribing")
+  ErrInterrupted     = errors.New("ibm mq: operation interrupted")
+  ErrAlreadyOpen     = errors.New("ibm mq: queue already open")
+  ErrConnBroken      = errors.New("ibm mq: conn: connection broken")
+  ErrPutMsg          = errors.New("ibm mq: failed to put message")
+  ErrGetMsg          = errors.New("ibm mq: failed to get message")
+  errHeaderParseType = errors.New("ibm mq: header type parsing error")
+  ErrFormatRFH2      = errors.New("ibm mq: rfh2: error decoding header")
+  ErrParseRfh2       = errors.New("ibm mq: rfh2: error parse value")
+  ErrRegisterInMsg   = errors.New("ibm mq: the handler is already assigned")
+  ErrNotGetOpen      = errors.New("ibm mq: no rights to view messages")
+  ErrXml             = errors.New("ibm mq: error when converting headers to xml. " +
     "Permissible: 'map[string]interface{}'")
   ErrXmlInconvertible     = errors.New("ibm mq: non-convertible data format")
   ErrNotConfigured        = errors.New("ibm mq: not configured")
   ErrManagerNotConfigured = errors.New("ibm mq: manager not configured")
+)
+
+const (
+  msgErrPropCreation = "message property creation error: %s"
 )
 
 type state int32

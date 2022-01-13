@@ -8,8 +8,9 @@ import (
 // RegisterInMsg регистрирует подписку на сообщения
 func (q *Queue) RegisterInMsg(hnd func(*Msg)) {
   if q.hndInMsg != nil {
-    q.log.Panic(ErrRegisterEventInMsg)
+    q.log.Panic(ErrRegisterInMsg)
   }
+
   q.hndInMsg = hnd
 
   go q._subscInMsg()
@@ -48,10 +49,13 @@ func (q *Queue) _subscInMsg() {
   }
 }
 
-// Подписка на входящие сообщения
 func (q *Queue) subscInMsg(conn *mqConn) error {
   if q.hndInMsg == nil {
     return nil
+  }
+
+  if !q.HasPermQueue(permGet) {
+    q.log.Panic(ErrNotGetOpen)
   }
 
   cbd := ibmmq.NewMQCBD()
@@ -67,7 +71,7 @@ func (q *Queue) subscInMsg(conn *mqConn) error {
 
   mh, err := conn.m.CrtMH(cmho)
   if err != nil {
-    q.log.Error("Ошибка создания объекта свойств сообщения", err)
+    q.log.Errorf(msgErrPropCreation, err)
     return err
   }
 

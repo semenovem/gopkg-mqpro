@@ -89,7 +89,7 @@ func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, err
 
     putMsgHandle, err := conn.m.CrtMH(cmho)
     if err != nil {
-      l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
+      l.Errorf(msgErrPropCreation, err)
 
       if IsConnBroken(err) {
         err = ErrConnBroken

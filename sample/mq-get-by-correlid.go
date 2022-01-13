@@ -49,7 +49,7 @@ func getMsgByCorrelId(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  msg, ok, err := ibmmqOper1Get.GetByCorrelId(ctx, b)
+  msg, ok, err := mqOper1Get.GetByCorrelId(ctx, b)
   if err != nil {
     fmt.Println("[ERROR] ошибка при получении сообщения по CorrelID: ", id)
     _, _ = fmt.Fprintf(w, "[correl] Error: %s\n", err.Error())

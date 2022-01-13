@@ -6,8 +6,8 @@ import (
   "time"
 )
 
-// CoreSet Данные подключения
-type CoreSet struct {
+// BaseConfig Конфигурация
+type BaseConfig struct {
   DevMode            bool
   Header             Header // Тип заголовков
   Rfh2CodedCharSetId int32  // Тип кодирования
@@ -19,7 +19,7 @@ func (q *Queue) IsConfigured() bool {
 }
 
 func (q *Queue) UpdateBaseCfg() {
-  c := q.base.GetCoreSet()
+  c := q.base.GetBaseCfg()
 
   q.h = c.Header
   q.devMode = c.DevMode

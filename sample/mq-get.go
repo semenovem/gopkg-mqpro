@@ -37,7 +37,7 @@ func _getMsg() (*queue.Msg, bool, error) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
   defer cancel()
 
-  msg, ok, err := ibmmqOper1Get.Get(ctx)
+  msg, ok, err := mqOper1Get.Get(ctx)
   if err != nil {
     fmt.Println(">> ", err)
   }

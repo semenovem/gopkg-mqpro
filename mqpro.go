@@ -16,15 +16,11 @@ type Mqpro struct {
   mx           sync.Mutex // Подключение / отключение
   log          *logrus.Entry
   disconnDelay time.Duration
-
-  isConnected bool
-
-  // TODO rename to `queueCfg`
-  coreSet    *queue.CoreSet  // Конфиг ibmmq очереди
-  managerCfg *manager.Config // Конфиг ibmmq менеджера
-
-  queues   []*queue.Queue   // Очереди
-  managers []*manager.Mqpro // Очереди
+  isConnected  bool
+  queueCfg     *queue.BaseConfig // Конфиг ibmmq очереди
+  managerCfg   *manager.Config   // Конфиг ibmmq менеджера
+  queues       []*queue.Queue
+  managers     []*manager.Mqpro
 }
 
 func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {

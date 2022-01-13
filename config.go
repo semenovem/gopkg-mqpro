@@ -30,7 +30,7 @@ type Config struct {
 }
 
 func (m *Mqpro) isConfigured() bool {
-  return m.managerCfg != nil && m.coreSet != nil &&
+  return m.managerCfg != nil && m.queueCfg != nil &&
     m.managerCfg.Host != "" && m.managerCfg.Port > 0 &&
     m.managerCfg.Manager != "" && m.managerCfg.Channel != ""
 }
@@ -41,7 +41,7 @@ func (m *Mqpro) Cfg(c *Config) error {
 
   fatal := false
 
-  coreSet := queue.CoreSet{
+  baseCfg := queue.BaseConfig{
     DevMode:            c.DevMode,
     Rfh2CodedCharSetId: c.Rfh2CodedCharSetId,
   }
@@ -49,24 +49,24 @@ func (m *Mqpro) Cfg(c *Config) error {
   if c.Header == "" {
     m.log.Warn("Не передан тип заголовков. "+
       "Используем значение по умолчанию {%s}", queue.DefHeader)
-    coreSet.Header = queue.DefHeader
+    baseCfg.Header = queue.DefHeader
   } else {
     h, err := queue.ParseHeader(c.Header)
     if err != nil {
       m.log.Errorf("не валидное значение Header = %s", c.Header)
       fatal = true
     }
-    coreSet.Header = h
+    baseCfg.Header = h
   }
 
   if c.Rfh2OffRootTag {
-    coreSet.Rfh2RootTag = ""
+    baseCfg.Rfh2RootTag = ""
   } else {
     if c.Rfh2RootTag == "" {
       m.log.Warnf("Не установлено значение корневого тега. "+
         "Значение по умолчанию = {%s}", queue.DefRootTagHeader)
     } else {
-      coreSet.Rfh2RootTag = c.Rfh2RootTag
+      baseCfg.Rfh2RootTag = c.Rfh2RootTag
     }
   }
 
@@ -103,7 +103,7 @@ func (m *Mqpro) Cfg(c *Config) error {
     KeyRepository: c.KeyRepository,
     MaxMsgLength:  c.MaxMsgLength,
   }
-  
+
   for _, man := range m.managers {
     err := man.Cfg(m.managerCfg)
     if err != nil {
@@ -111,7 +111,7 @@ func (m *Mqpro) Cfg(c *Config) error {
     }
   }
 
-  m.coreSet = &coreSet
+  m.queueCfg = &baseCfg
   return nil
 }
 
@@ -121,12 +121,12 @@ func ParseDefaultEnv() (*Config, error) {
   return c, env.Parse(c)
 }
 
-func (m *Mqpro) GetCoreSet() *queue.CoreSet {
-  return m.coreSet
+func (m *Mqpro) GetBaseCfg() *queue.BaseConfig {
+  return m.queueCfg
 }
 
 func (m *Mqpro) SetDevMode(v bool) {
-  m.coreSet.DevMode = v
+  m.queueCfg.DevMode = v
   for _, q := range m.queues {
     q.UpdateBaseCfg()
   }
@@ -149,10 +149,10 @@ func (m *Mqpro) getSet() []map[string]string {
     {"manager/keyRepository": m.managerCfg.KeyRepository},
     {"manager/maxMsgLen": fmt.Sprintf("%d", m.managerCfg.MaxMsgLength)},
 
-    {"coreSet/DevMode": fmt.Sprintf("%t", m.coreSet.DevMode)},
-    {"coreSet/Header": fmt.Sprintf("%s", queue.HeaderMapByKey[m.coreSet.Header])},
-    {"coreSet/Rfh2CodedCharSetId": fmt.Sprintf("%d", m.coreSet.Rfh2CodedCharSetId)},
-    {"coreSet/Rfh2RootTag": m.coreSet.Rfh2RootTag},
+    {"queueCfg/DevMode": fmt.Sprintf("%t", m.queueCfg.DevMode)},
+    {"queueCfg/Header": fmt.Sprintf("%s", queue.HeaderMapByKey[m.queueCfg.Header])},
+    {"queueCfg/Rfh2CodedCharSetId": fmt.Sprintf("%d", m.queueCfg.Rfh2CodedCharSetId)},
+    {"queueCfg/Rfh2RootTag": m.queueCfg.Rfh2RootTag},
   }
 }
 

@@ -34,15 +34,15 @@ func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
 
 func subscr() {
   cfg.SimpleSubscriber = true
-  if !ibmmqOper1Get.IsSubscribed() {
-    ibmmqOper1Get.RegisterInMsg(handlerInMsg)
+  if !mqOper1Get.IsSubscribed() {
+    mqOper1Get.RegisterInMsg(handlerInMsg)
   }
 }
 
 func unsubscr() {
   cfg.SimpleSubscriber = false
-  if ibmmqOper1Get.IsSubscribed() {
-    ibmmqOper1Get.UnregisterInMsg()
+  if mqOper1Get.IsSubscribed() {
+    mqOper1Get.UnregisterInMsg()
   }
 }
 

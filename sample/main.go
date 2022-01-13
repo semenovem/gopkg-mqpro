@@ -16,9 +16,9 @@ var (
   log                  = logger()
   rootCtx, rootCtxCanc = context.WithCancel(context.Background())
   logIbmmq             = log.WithField("sys", "mq")
-  ibmmq                = mqpro.New(rootCtx, logIbmmq)
-  ibmmqOper1Put        = ibmmq.Queue("payPut")
-  ibmmqOper1Get        = ibmmq.Queue("payGet")
+  mq                   = mqpro.New(rootCtx, logIbmmq)
+  mqOper1Put           = mq.Queue("payPut")
+  mqOper1Get           = mq.Queue("payGet")
 )
 
 func logger() *logrus.Entry {
@@ -42,7 +42,7 @@ func main() {
   defer log.Info("Остановка приложения")
 
   go func() {
-    err := ibmmq.Connect()
+    err := mq.Connect()
     if err == nil {
       log.Info(">>>>> Подключение к IBMMQ успешно")
     } else {
@@ -51,14 +51,14 @@ func main() {
     }
   }()
 
-  ibmmqOper1Get.RegisterInMsg(hndIncomingMsg)
+  mqOper1Get.RegisterInMsg(hndIncomingMsg)
 
   // api
   if cfg.ApiPort != 0 {
     go func() {
       err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.ApiPort), nil)
       if err != nil {
-        log.Error("ERR: ListenAndServe: ", err)
+        log.Error("ListenAndServe: ", err)
       }
     }()
   }

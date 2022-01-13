@@ -82,7 +82,7 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
 
   getMsgHandle, err := conn.m.CrtMH(cmho)
   if err != nil {
-    l.Errorf("Ошибка создания объекта свойств сообщения: %s", err)
+    l.Errorf(msgErrPropCreation, err)
 
     if IsConnBroken(err) {
       err = ErrConnBroken

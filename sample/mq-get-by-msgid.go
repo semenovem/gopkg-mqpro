@@ -49,7 +49,7 @@ func getMsgByMsgId(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  msg, ok, err := ibmmqOper1Get.GetByMsgId(ctx, b)
+  msg, ok, err := mqOper1Get.GetByMsgId(ctx, b)
   if err != nil {
     fmt.Println("[ERROR] ошибка при получении сообщения по MsgID: ", id)
     _, _ = fmt.Fprintf(w, "[msgid] Error: %s\n", err.Error())

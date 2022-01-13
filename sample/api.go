@@ -47,7 +47,7 @@ func api404(w http.ResponseWriter, _ *http.Request) {
 
 func apiConn(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "start ibmmq connect:\n")
-  err := ibmmq.Connect()
+  err := mq.Connect()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }
@@ -56,7 +56,7 @@ func apiConn(w http.ResponseWriter, _ *http.Request) {
 
 func apiDisconn(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "start ibmmq disconnect:\n")
-  err := ibmmq.Disconnect()
+  err := mq.Disconnect()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }
@@ -65,7 +65,7 @@ func apiDisconn(w http.ResponseWriter, _ *http.Request) {
 
 func apiOpen(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "opening ibmmq queue:\n")
-  err := ibmmqOper1Get.Open()
+  err := mqOper1Get.Open()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }
@@ -74,7 +74,7 @@ func apiOpen(w http.ResponseWriter, _ *http.Request) {
 
 func apiClose(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "closing ibmmq queue:\n")
-  err := ibmmqOper1Get.Close()
+  err := mqOper1Get.Close()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }
@@ -85,7 +85,7 @@ func apiClose(w http.ResponseWriter, _ *http.Request) {
 // curl host:port/on-dev-mode
 func onDevMode(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Включает режим DevMode для библиотеки mqpro")
-  ibmmq.SetDevMode(true)
+  mq.SetDevMode(true)
   printCfg()
   _, _ = fmt.Fprint(w, "[on-dev-mode] Ok\n")
 }
@@ -94,7 +94,7 @@ func onDevMode(w http.ResponseWriter, _ *http.Request) {
 // curl host:port/off-dev-mode
 func offDevMode(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Выключает режим DevMode для библиотеки mqpro")
-  ibmmq.SetDevMode(false)
+  mq.SetDevMode(false)
   printCfg()
   _, _ = fmt.Fprint(w, "[off-dev-mode] Ok\n")
 }

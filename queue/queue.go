@@ -13,7 +13,7 @@ type Queue struct {
   ctx            context.Context
   ctxCanc        context.CancelFunc
   log            *logrus.Entry
-  base           base
+  base           provider
   manager        manager
   queueName      string
   perm           []permQueue   // Разрешения очереди
@@ -32,7 +32,7 @@ type Queue struct {
   mxMsg   sync.Mutex
   mxSubsc sync.Mutex
 
-  hndInMsg       func(*Msg)        // Обработчик события подписки
+  hndInMsg       func(*Msg)        // Обработчик сообщений
   chRegisterOpen chan chan *mqConn // Канал с подписками на открытие очереди
   alias          string
 }
@@ -47,11 +47,11 @@ func New(
   ctx context.Context,
   l *logrus.Entry,
   m manager,
-  base base,
+  base provider,
   alias string) *Queue {
   q := &Queue{
     alias:          alias,
-    log:            l.WithField("a", alias),
+    log:            l.WithField("alias", alias),
     rootCtx:        ctx,
     base:           base,
     manager:        m,
@@ -68,8 +68,7 @@ func New(
 
   go func() {
     <-ctx.Done()
-    close(q.chState)
-    //  TODO освободить ресурсы
+    q.close()
   }()
 
   return q
@@ -81,6 +80,15 @@ func (q *Queue) convPermToVal() []string {
     a[i] = permMapByKey[v]
   }
   return a
+}
+
+func (q *Queue) HasPermQueue(p permQueue) bool {
+  for _, v := range q.perm {
+    if v == p {
+      return true
+    }
+  }
+  return false
 }
 
 func (q *Queue) isWarnConn(err error) {

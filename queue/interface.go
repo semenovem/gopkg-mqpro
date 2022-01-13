@@ -10,6 +10,6 @@ type manager interface {
   Reconnect()
 }
 
-type base interface {
-  GetCoreSet() *CoreSet
+type provider interface {
+  GetBaseCfg() *BaseConfig
 }

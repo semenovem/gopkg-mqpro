@@ -66,7 +66,7 @@ func init() {
     fatal = true
   }
 
-  err = ibmmq.Cfg(cfgIbmmq)
+  err = mq.Cfg(cfgIbmmq)
   if err != nil {
     log.Warn(err)
     fatal = true
@@ -81,21 +81,21 @@ func init() {
     lev = logrus.TraceLevel
   }
 
-  err = ibmmqOper1Get.CfgByStr(cfg.MqQueOper1Get)
+  err = mqOper1Get.CfgByStr(cfg.MqQueOper1Get)
   if err != nil {
     fatal = true
     log.Warn(err)
   }
 
-  err = ibmmqOper1Put.CfgByStr(cfg.MqQueOper1Put)
+  err = mqOper1Put.CfgByStr(cfg.MqQueOper1Put)
   if err != nil {
     fatal = true
     log.Warn(err)
   }
 
-  ibmmq.PrintDefaultEnv()
-  ibmmq.PrintSetCli("mgr")
-  ibmmqOper1Get.PrintSetCli("queue/" + ibmmqOper1Get.Alias())
+  mq.PrintDefaultEnv()
+  mq.PrintSetCli("mgr")
+  mqOper1Get.PrintSetCli("queue/" + mqOper1Get.Alias())
 
   if fatal {
     panic("При подготовке конфигурации есть фатальные ошибки. Подробности в логах")

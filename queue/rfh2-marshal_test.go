@@ -16,7 +16,7 @@ func testLog() *logrus.Entry {
 }
 
 func testRfh2Conn(tag string) *Queue {
-  cfg := &CoreSet{
+  cfg := &BaseConfig{
     Header:      HeaderRfh2,
     Rfh2RootTag: tag,
   }
