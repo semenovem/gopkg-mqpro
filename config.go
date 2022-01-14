@@ -4,29 +4,40 @@ import (
   "bytes"
   "fmt"
   "github.com/caarlos0/env/v6"
+  "github.com/pkg/errors"
   "github.com/semenovem/gopkg_mqpro/v2/manager"
   "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "github.com/sirupsen/logrus"
+  "gopkg.in/yaml.v3"
+  "io/ioutil"
   "os"
   "strings"
   "unicode/utf8"
 )
 
 type Config struct {
-  DevMode            bool   `env:"ENV_MQPRO_DEV_MODE"`
-  Host               string `env:"ENV_MQPRO_HOST"`
-  Port               int32  `env:"ENV_MQPRO_PORT"`
-  Manager            string `env:"ENV_MQPRO_MANAGER"`
-  Channel            string `env:"ENV_MQPRO_CHANNEL"`
-  App                string `env:"ENV_MQPRO_APP"`
-  User               string `env:"ENV_MQPRO_USER"`
-  Pass               string `env:"ENV_MQPRO_PASS"`
-  Header             string `env:"ENV_MQPRO_HEADER"`
-  Rfh2CodedCharSetId int32  `env:"ENV_MQPRO_RFH2_CODE_CHAR_SET_ID"`
-  Rfh2RootTag        string `env:"ENV_MQPRO_RFH2_ROOT_TAG"`
-  Rfh2OffRootTag     bool   `env:"ENV_MQPRO_RFH2_OFF_ROOT_TAG"`
-  Tls                bool   `env:"ENV_MQPRO_TLS"`
-  KeyRepository      string `env:"ENV_MQPRO_KEY_REPOSITORY"`
-  MaxMsgLength       int32  `env:"ENV_MQPRO_MESSAGE_LENGTH"`
+  DevMode            bool   `env:"ENV_MQPRO_DEV_MODE" yaml:"devMode"`
+  LogLev             string `env:"ENV_MQPRO_LOG_LEVEL" yaml:"logLev"`
+  Host               string `env:"ENV_MQPRO_HOST" yaml:"host"`
+  Port               int32  `env:"ENV_MQPRO_PORT" yaml:"port"`
+  Manager            string `env:"ENV_MQPRO_MANAGER" yaml:"manager"`
+  Channel            string `env:"ENV_MQPRO_CHANNEL" yaml:"channel"`
+  App                string `env:"ENV_MQPRO_APP" yaml:"app"`
+  User               string `env:"ENV_MQPRO_USER" yaml:"user"`
+  Pass               string `env:"ENV_MQPRO_PASS" yaml:"pass"`
+  Header             string `env:"ENV_MQPRO_HEADER" yaml:"header"`
+  Rfh2CodedCharSetId int32  `env:"ENV_MQPRO_RFH2_CODE_CHAR_SET_ID" yaml:"rfh2CodedCharSetId"`
+  Rfh2RootTag        string `env:"ENV_MQPRO_RFH2_ROOT_TAG" yaml:"rfh2RootTag"`
+  Rfh2OffRootTag     bool   `env:"ENV_MQPRO_RFH2_OFF_ROOT_TAG" yaml:"rfh2OffRootTag"`
+  Tls                bool   `env:"ENV_MQPRO_TLS" yaml:"tls"`
+  KeyRepository      string `env:"ENV_MQPRO_KEY_REPOSITORY" yaml:"keyRepository"`
+  MaxMsgLength       int32  `env:"ENV_MQPRO_MESSAGE_LENGTH" yaml:"maxMsgLength"`
+  Queues             []*Queues
+}
+
+type Queues struct {
+  Alias string `yaml:"alias"`
+  Name  string `yaml:"name"`
 }
 
 func (m *Mqpro) isConfigured() bool {
@@ -47,8 +58,8 @@ func (m *Mqpro) Cfg(c *Config) error {
   }
 
   if c.Header == "" {
-    m.log.Warn("Не передан тип заголовков. "+
-      "Используем значение по умолчанию {%s}", queue.DefHeader)
+    m.log.Warnf("Не передан тип заголовков. "+
+      "Значение по умолчанию: Header={%s}", queue.HeaderMapByKey[queue.DefHeader])
     baseCfg.Header = queue.DefHeader
   } else {
     h, err := queue.ParseHeader(c.Header)
@@ -64,7 +75,7 @@ func (m *Mqpro) Cfg(c *Config) error {
   } else {
     if c.Rfh2RootTag == "" {
       m.log.Warnf("Не установлено значение корневого тега. "+
-        "Значение по умолчанию = {%s}", queue.DefRootTagHeader)
+        "Значение по умолчанию: Rfh2OffRootTag={%s}", queue.DefRootTagHeader)
     } else {
       baseCfg.Rfh2RootTag = c.Rfh2RootTag
     }
@@ -85,6 +96,15 @@ func (m *Mqpro) Cfg(c *Config) error {
   if c.Channel == "" {
     m.log.Error("пустое значение Channel")
     fatal = true
+  }
+
+  if c.LogLev != "" {
+    lev, err := logrus.ParseLevel(c.LogLev)
+    if err != nil {
+      m.log.Errorf("значение уровня логгирования LogLev={%s} не валидно", c.LogLev)
+      return err
+    }
+    m.log.Logger.SetLevel(lev)
   }
 
   if fatal {
@@ -115,10 +135,61 @@ func (m *Mqpro) Cfg(c *Config) error {
   return nil
 }
 
+// CfgYaml конфигурирование файлом
+func (m *Mqpro) CfgYaml(file string) error {
+  c, err := ParseCfgYaml(file)
+  if err != nil {
+    return err
+  }
+  if err = m.Cfg(c); err != nil {
+    return err
+  }
+  if c.Queues == nil {
+    return nil
+  }
+  for _, qc := range c.Queues {
+    q := m.GetQueueByAlias(qc.Alias)
+    if q == nil {
+      m.log.Warnf("Очередь с алиасом {%s} не существует", qc.Alias)
+      continue
+    }
+    err = q.CfgByStr(qc.Name)
+    if err != nil {
+      return err
+    }
+  }
+  return nil
+}
+
+// CfgEnv конфигурирование переменными окружения
+func (m *Mqpro) CfgEnv() error {
+  c, err := ParseDefaultEnv()
+  if err != nil {
+    return err
+  }
+  return m.Cfg(c)
+}
+
 // ParseDefaultEnv использует значения переменных окружения по умолчанию
 func ParseDefaultEnv() (*Config, error) {
   c := new(Config)
   return c, env.Parse(c)
+}
+
+func ParseCfgYaml(f string) (*Config, error) {
+  if f == "" {
+    return nil, ErrConfigPathEmpty
+  }
+  byt, err := ioutil.ReadFile(f)
+  if err != nil {
+    return nil, errors.Wrap(err, "Error reading configuration file")
+  }
+  c := new(Config)
+  err = yaml.Unmarshal(byt, c)
+  if err != nil {
+    return nil, errors.Wrapf(err, "Configuration file parsing error '%s'", f)
+  }
+  return c, nil
 }
 
 func (m *Mqpro) GetBaseCfg() *queue.BaseConfig {
@@ -158,7 +229,7 @@ func (m *Mqpro) getSet() []map[string]string {
 
 func (m *Mqpro) PrintDefaultEnv() {
   var (
-    buf    = bytes.NewBufferString("Default environment:\n")
+    buf    = bytes.NewBufferString("Standard environment variables:\n")
     k, v   string
     max, l int
   )

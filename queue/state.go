@@ -1,7 +1,6 @@
 package queue
 
 import (
-  "fmt"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "time"
 )
@@ -105,21 +104,21 @@ func (q *Queue) errorHandler(err error) {
   switch p := err.(type) {
   case *ibmmq.MQReturn:
     switch p.MQRC {
-    case ibmmq.MQRC_CONNECTION_BROKEN:
-    case ibmmq.MQRC_CALL_IN_PROGRESS, ibmmq.MQRC_NOT_OPEN_FOR_INPUT:
+    case ibmmq.MQRC_CALL_IN_PROGRESS,
+      ibmmq.MQRC_NOT_OPEN_FOR_INPUT,
+      ibmmq.MQRC_NOT_OPEN_FOR_OUTPUT,
+      ibmmq.MQRC_NOT_OPEN_FOR_BROWSE:
       isNeedRestart = false
     }
   case error:
     switch p {
-    case ErrConnBroken:
     case ErrBusySubsc:
       isNeedRestart = false
     }
   }
 
-  fmt.Println(">>>>>>>>>>>>>> debug errorHandler:: ", err)
-
   if isNeedRestart && q.state == stateOpen {
+    q.log.Debugf("errorHandler: %s", err.Error())
     q.stateError()
   }
 }

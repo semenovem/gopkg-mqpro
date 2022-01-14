@@ -109,7 +109,7 @@ func (q *Queue) close() {
   }
 
   err := q.conn.q.Close(0)
-  if err != nil {
+  if q.isConnErr(err) {
     q.log.WithField("mod", "close").Warn(err)
   }
 

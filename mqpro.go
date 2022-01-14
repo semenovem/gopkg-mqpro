@@ -29,12 +29,11 @@ func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
     log:          l,
     disconnDelay: defDisconnDelay,
   }
-
   return o
 }
 
-// Queue Объект очереди
-func (m *Mqpro) Queue(a string) *queue.Queue {
+// NewQueue Объект очереди
+func (m *Mqpro) NewQueue(a string) *queue.Queue {
   l := m.log.WithField("_t", "queue")
   logMag := m.log.WithField("_t", "manager")
 
@@ -45,4 +44,13 @@ func (m *Mqpro) Queue(a string) *queue.Queue {
   m.managers = append(m.managers, man)
 
   return q
+}
+
+func (m *Mqpro) GetQueueByAlias(a string) *queue.Queue {
+  for _, q := range m.queues {
+    if q.Alias() == a {
+      return q
+    }
+  }
+  return nil
 }

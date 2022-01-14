@@ -14,4 +14,5 @@ var (
   ErrInvalidConfig           = errors.New("ibm mq: не валидная конфигурация")
   ErrNoConfig                = errors.New("ibm mq: no configuration")
   ErrAlreadyConnected        = errors.New("ibm mq: connection already established")
+  ErrConfigPathEmpty         = errors.New("ibm mq: configuration file path not specified")
 )

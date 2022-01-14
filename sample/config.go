@@ -4,7 +4,6 @@ import (
   "bytes"
   "fmt"
   "github.com/caarlos0/env/v6"
-  mqpro "github.com/semenovem/gopkg_mqpro/v2"
   "github.com/sirupsen/logrus"
   "strings"
 )
@@ -22,6 +21,8 @@ type appConfig struct {
 
   MqQueOper2Put string `env:"ENV_MQPRO_QUEUE_OPER2_PUT"`
   MqQueOper2Get string `env:"ENV_MQPRO_QUEUE_OPER2_GET"`
+
+  MqYamlCfgFile string `env:"ENV_MQPRO_YAML_CFG_FILE"`
 
   // При старте подписаться на входящие сообщения
   SimpleSubscriber bool `env:"ENV_SIMPLE_SUBSCRIBER"`
@@ -60,42 +61,36 @@ func init() {
   }
 
   // mq
-  cfgIbmmq, err := mqpro.ParseDefaultEnv()
-  if err != nil {
-    log.Warn("Ошибка получения значений переменных окружения для настройки ibmmq")
-    fatal = true
-  }
-
-  err = mq.Cfg(cfgIbmmq)
-  if err != nil {
-    log.Warn(err)
-    fatal = true
-  }
-
-  lev, err = logrus.ParseLevel(cfg.MqLogLevel)
-  if err == nil {
-    logIbmmq.Logger.SetLevel(lev)
+  if cfg.MqYamlCfgFile != "" {
+    err = mq.CfgYaml(cfg.MqYamlCfgFile)
+    if err != nil {
+      log.Warn("Ошибка конфигурации из файла YAML", err)
+      fatal = true
+    }
   } else {
-    log.Warn("Не установлен уровень логирования ibmmq ENV_MQ_LOG_LEVEL. <%s>\n", err)
-    fatal = true
-    lev = logrus.TraceLevel
-  }
+    err = mq.CfgEnv()
+    if err != nil {
+      log.Warn("Ошибка конфигурации из переменных окружения с дефолтными значениями", err)
+      fatal = true
+    }
 
-  err = mqOper1Get.CfgByStr(cfg.MqQueOper1Get)
-  if err != nil {
-    fatal = true
-    log.Warn(err)
-  }
+    // Настройка очередей значениями
+    err = mqOper1Get.CfgByStr(cfg.MqQueOper1Get)
+    if err != nil {
+      fatal = true
+      log.Warn(err)
+    }
 
-  err = mqOper1Put.CfgByStr(cfg.MqQueOper1Put)
-  if err != nil {
-    fatal = true
-    log.Warn(err)
+    err = mqOper1Put.CfgByStr(cfg.MqQueOper1Put)
+    if err != nil {
+      fatal = true
+      log.Warn(err)
+    }
   }
 
   mq.PrintDefaultEnv()
-  mq.PrintSetCli("mgr")
-  mqOper1Get.PrintSetCli("queue/" + mqOper1Get.Alias())
+  //mq.PrintSetCli("mgr")
+  //mqOper1Get.PrintSetCli("queue/" + mqOper1Get.Alias())
 
   if fatal {
     panic("При подготовке конфигурации есть фатальные ошибки. Подробности в логах")

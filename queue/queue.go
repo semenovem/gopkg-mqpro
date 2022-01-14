@@ -91,13 +91,12 @@ func (q *Queue) HasPermQueue(p permQueue) bool {
   return false
 }
 
-func (q *Queue) isWarnConn(err error) {
-  if err != nil {
-    mqret := err.(*ibmmq.MQReturn)
-    if mqret == nil || mqret.MQRC != ibmmq.MQRC_CONNECTION_BROKEN {
-      q.log.Warn(err)
-    }
+func (q *Queue) isConnErr(err error) bool {
+  if err == nil {
+    return false
   }
+  mqret := err.(*ibmmq.MQReturn)
+  return mqret != nil && mqret.MQRC != ibmmq.MQRC_CONNECTION_BROKEN
 }
 
 func (q *Queue) isWarn(err error) {

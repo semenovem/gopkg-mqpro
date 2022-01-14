@@ -17,8 +17,8 @@ var (
   rootCtx, rootCtxCanc = context.WithCancel(context.Background())
   logIbmmq             = log.WithField("sys", "mq")
   mq                   = mqpro.New(rootCtx, logIbmmq)
-  mqOper1Put           = mq.Queue("payPut")
-  mqOper1Get           = mq.Queue("payGet")
+  mqOper1Put           = mq.NewQueue("aliasQueueFooPut")
+  mqOper1Get           = mq.NewQueue("aliasQueueFooGet")
 )
 
 func logger() *logrus.Entry {

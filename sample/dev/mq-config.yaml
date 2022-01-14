@@ -1,0 +1,34 @@
+devMode: false
+logLev: DEBUG
+
+host: mq0
+port: 1414
+manager: QM1
+channel: DEV.APP.SVRCONN
+user: app
+pass: 11
+app:
+
+tls: true
+keyRepository: crypto/client/keys
+maxMsgLength: 5000
+
+header: prop # [prop|rfh2] значение по умолчанию - prop
+
+rfh2OffRootTag: false
+rfh2RootTag: usr
+
+queues:
+  # Первая пара очередей отправить | получить
+  - alias: aliasQueueFooGet # такой же, при
+    name: DEV.QUEUE.2:get,browse
+
+  - alias: aliasQueueFooPut
+    name: DEV.QUEUE.1:put
+
+  # Вторая пара отправить | получить
+#  - alias: aliasQueueBarGet
+#    name: DEV.QUEUE.3:get,browse
+#
+#  - alias: aliasQueueBarPut
+#    name: DEV.QUEUE.4:put
