@@ -2,6 +2,8 @@ DOCKER_IMAGE_NAME := "pkg-mqpro-sample"
 VERSION := "1.0"
 
 IMG := "$(DOCKER_IMAGE_NAME):$(VERSION)"
+IMG_DEV := "$(IMG)-dev"
+
 PROJ_NAME := "gopkg-mqpro-sample"
 NETWORK := "pkg-mqpro-sample"
 
@@ -56,7 +58,7 @@ crypto:
 .PHONY: ibmmq
 ibmmq:
 	@docker run -it --rm \
-		--name pkg-mqpro-sample-ibmmq \
+		--name mqpro-sample-ibmmq \
 		--network $(NETWORK) \
 		--hostname mq0 \
 		--env LICENSE=accept \
@@ -66,6 +68,8 @@ ibmmq:
 		--env MQ_ENABLE_METRICS=true \
 		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
 		--publish 9443:9443 \
+		-v "${PWD}/cfg/ibmmq/30-config.mqsc:/etc/mqm/30-config.mqsc:ro" \
+		-v "${PWD}/cfg/ibmmq/script.sh:/app/script.sh:ro" \
     ibmcom/mq:9.2.2.0-r1
 
 
@@ -73,7 +77,7 @@ ibmmq:
 .PHONY: ibmmqtls
 ibmmqtls:
 	@docker run -it --rm \
-		--name pkg-mqpro-sample-ibmmq \
+		--name mqpro-sample-ibmmq \
 		--network $(NETWORK) \
 		--hostname mq0 \
 		--env LICENSE=accept \
@@ -83,8 +87,31 @@ ibmmqtls:
 		--env MQ_ENABLE_METRICS=true \
 		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
 		--publish 9443:9443 \
-		-v "${PWD}/crypto/server:/etc/mqm/pki/keys/mykey:ro" \
+		-v "${PWD}/crypto/server:/etc_/mqm/pki/keys/mykey:ro" \
+		-v "${PWD}/cfg/ibmmq/30-config.mqsc:/etc/mqm/30-config.mqsc:ro" \
+		-v "${PWD}/cfg/ibmmq/script.sh:/app/script.sh:ro" \
     ibmcom/mq:9.2.2.0-r1
+
+
+## ibmmqtls2
+.PHONY: ibmmqtls2
+ibmmqtls2:
+	@docker run -it --rm \
+		--name mqpro-sample-ibmmq2 \
+		--network $(NETWORK) \
+		--hostname mq2 \
+		--env LICENSE=accept \
+		--env MQ_QMGR_NAME=QM2 \
+		--env MQ_ADMIN_PASSWORD=22 \
+		--env MQ_APP_PASSWORD=11 \
+		--env MQ_ENABLE_METRICS=true \
+		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
+		--publish 9444:9443 \
+		-v "${PWD}/cfg/ibmmq/30-config.mqsc:/etc_/mqm/30-config.mqsc:ro" \
+		-v "${PWD}/cfg/ibmmq/script.sh:/app/script.sh:ro" \
+    ibmcom/mq:9.2.2.0-r1
+
+
 
 
 ## curl - контейнер, присоединенный к сети, для выполнения curl запросов
@@ -100,7 +127,7 @@ curl2:
 	-v "${PWD}/dev/shell.sh:/shell.sh:ro" \
 	--network $(NETWORK) \
 	$(IMG_CURL) sh -c \
-     "source /shell.sh && echo '| Для выхода из контейнера ctrl+D' && sh"
+     "source /shell.sh && echo 'source /shell.sh' && echo '| Для выхода из контейнера ctrl+D' && sh"
 
 	-#v "${RWD}/dev/shell.sh:/shell.sh:ro" \
 
@@ -113,7 +140,7 @@ dev:
 		--network $(NETWORK) \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash
+		"$(IMG_DEV)" sh -c 'bash dev/run.sh client.env && bash'
 # bash dev/run.sh client.env
 
 
@@ -161,3 +188,14 @@ test:
 		-w /app \
 		-v "${PWD}/..:/app:rw" \
 		"$(IMG)" bash
+
+
+## up: launch stack of apps
+.PHONY: up
+up:
+	@docker stack deploy -c docker-stack.yaml mqpro
+
+## down: launch stack of apps
+.PHONY: down
+down:
+	@docker stack rm mqpro

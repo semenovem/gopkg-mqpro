@@ -1,5 +1,5 @@
 FROM alpine:3.15.0
 
-RUN apk update && apk add curl
+RUN apk add curl
 
-ARG FILE=/etc/profile
+#ARG FILE=/etc/profile

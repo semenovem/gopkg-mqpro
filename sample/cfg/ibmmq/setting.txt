@@ -1,0 +1,41 @@
+-----------------------
+Настройки AMS Policy PROM AFSC
+*\BMVTB.QM on 'mqbmprod001lv(1422)'
+SET POLICY('AVIA.MBANK.REQUEST.Q') SIGNALG(SHA1) ENCALG(NONE) SIGNER('CN=afsc.inet.vtb') ENFORCE ACTION(REPLACE) SET POLICY('MBANK.AVIA.REPLY.RQ') SIGNALG(SHA1) ENCALG(NONE) SIGNER('CN=mdb001lv.oso.mmbank.ru') ENFORCE ACTION(REPLACE)
+*\HLDGAVIA.QM on 'afscapp104lv(1414)'
+SET POLICY('AVIA.MBANK.REQUEST.RQ') SIGNALG(SHA1) ENCALG(NONE) SIGNER('CN=afsc.inet.vtb') ENFORCE ACTION(REPLACE) SET POLICY('MBANK.AVIA.REPLY.Q') SIGNALG(SHA1) ENCALG(NONE) SIGNER('CN=mdb001lv.oso.mmbank.ru') ENFORCE ACTION(REPLACE)
+* AVIA.MBANK.REQUEST.Q -          из которой читает МБАНК наши сообщения
+* afsc.inet.vtb   - CN нашего сертификата
+* MBANK.AVIA.REPLY.RQ - куда мбанк кладет сообщения 
+
+
+
+
+
+---------------
+Настройки AMS Policy TEST (hldgap201lv) IATA
+*\VTB24.FOIV.QM.TEST on 'mq24-test.vtb24.ru(1414)'
+SET POLICY('IATA.WAY4.REQ.Q') SIGNALG(SHA2) ENCALG(NONE) SIGNER('CN=mskmqis02v.inet.vtb.ru') ENFORCE ACTION(REPLACE) SET POLICY('WAY4.IATA.RES.RQ') SIGNALG(SHA2) ENCALG(NONE) SIGNER('CN=k5-w4-ow.vtb24.ru') ENFORCE ACTION(REPLACE)
+*\IATA.QM.TEST on 'mskmqis02v.inet.vtb.ru(1425)'
+SET POLICY('IATA.WAY4.REQ.RQ') SIGNALG(SHA2) ENCALG(NONE) SIGNER('CN=mskmqis02v.inet.vtb.ru') ENFORCE ACTION(REPLACE) SET POLICY('WAY4.IATA.RES.Q') SIGNALG(SHA2) ENCALG(NONE) SIGNER('CN=k5-w4-ow.vtb24.ru') ENFORCE ACTION(REPLACE)
+
+
+
+
+Вариант от Иванова Максима (поддержка ibmmq)
+
+setmqspl -m IATA.QM.TEST -p IATA.WAY4.REQ.RQ -s SHA512 -a "CN=mskmqis02v.inet.vtb.ru" -e NONE
+setmqspl -m IATA.QM.TEST -p WAY4.IATA.RES.Q -s SHA512 -a "CN=k5-w4-ow.vtb24.ru" -e NONE
+
+
+Для менеджера VTB24.FOIV.QM.TEST on 'mq24-test.vtb24.ru(1414)' политики настраивают коллеги из сопровождения КПМВ
+Исправил и их политики:
+
+
+setmqspl -m VTB24.FOIV.QM.TEST -p WAY4.IATA.RES.RQ -s SHA512 -a "CN=k5-w4-ow.vtb24.ru" -e NONE
+setmqspl -m VTB24.FOIV.QM.TEST -p IATA.WAY4.REQ.Q -s SHA512 -a "CN=mskmqis02v.inet.vtb.ru" -e NONE
+
+
+Коллеги из сопровождения КПМВ просьба применить политики указанные выше на менеджере очередей VTB24.FOIV.QM.TEST on 'mq24-test.vtb24.ru(1414)'
+
+

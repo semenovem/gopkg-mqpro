@@ -48,5 +48,5 @@ func _putMsg() ([]byte, error) {
     Props:   props,
   }
 
-  return mqOper1Put.Put(ctx, msg)
+  return mqQueFooPut.Put(ctx, msg)
 }

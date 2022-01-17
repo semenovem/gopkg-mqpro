@@ -65,7 +65,7 @@ func apiDisconn(w http.ResponseWriter, _ *http.Request) {
 
 func apiOpen(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "opening ibmmq queue:\n")
-  err := mqOper1Get.Open()
+  err := mqQueFooGet.Open()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }
@@ -74,7 +74,7 @@ func apiOpen(w http.ResponseWriter, _ *http.Request) {
 
 func apiClose(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprint(w, "closing ibmmq queue:\n")
-  err := mqOper1Get.Close()
+  err := mqQueFooGet.Close()
   if err != nil {
     fmt.Fprintf(w, "ERROR: %s\n", err.Error())
   }

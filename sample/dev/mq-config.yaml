@@ -1,15 +1,15 @@
 devMode: false
 logLev: DEBUG
 
-host: mq0
+host: mq1
 port: 1414
-manager: QM1
+manager: QMAPP1
 channel: DEV.APP.SVRCONN
 user: app
 pass: 11
 app:
 
-tls: true
+tls: false
 keyRepository: crypto/client/keys
 maxMsgLength: 5000
 
@@ -20,15 +20,14 @@ rfh2RootTag: usr
 
 queues:
   # Первая пара очередей отправить | получить
-  - alias: aliasQueueFooGet # такой же, при
-    name: DEV.QUEUE.2:get,browse
-
   - alias: aliasQueueFooPut
-    name: DEV.QUEUE.1:put
+    name: APP1.APP2.FOO.IN:put
+#    name: SYS1.SYS2.FOO.IN:put
+  - alias: aliasQueueFooGet
+    name: APP2.APP1.FOO.OUT:get,browse
 
   # Вторая пара отправить | получить
-#  - alias: aliasQueueBarGet
-#    name: DEV.QUEUE.3:get,browse
-#
-#  - alias: aliasQueueBarPut
-#    name: DEV.QUEUE.4:put
+  - alias: aliasQueueBarPut
+    name: SYS1.SYS2.BAR.IN:put
+  - alias: aliasQueueBarGet
+    name: SYS2.SYS1.BAR.OUT:get,browse

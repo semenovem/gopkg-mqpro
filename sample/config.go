@@ -75,13 +75,13 @@ func init() {
     }
 
     // Настройка очередей значениями
-    err = mqOper1Get.CfgByStr(cfg.MqQueOper1Get)
+    err = mqQueFooGet.CfgByStr(cfg.MqQueOper1Get)
     if err != nil {
       fatal = true
       log.Warn(err)
     }
 
-    err = mqOper1Put.CfgByStr(cfg.MqQueOper1Put)
+    err = mqQueFooPut.CfgByStr(cfg.MqQueOper1Put)
     if err != nil {
       fatal = true
       log.Warn(err)
@@ -90,7 +90,7 @@ func init() {
 
   mq.PrintDefaultEnv()
   //mq.PrintSetCli("mgr")
-  //mqOper1Get.PrintSetCli("queue/" + mqOper1Get.Alias())
+  //mqQueFooGet.PrintSetCli("queue/" + mqQueFooGet.Alias())
 
   if fatal {
     panic("При подготовке конфигурации есть фатальные ошибки. Подробности в логах")

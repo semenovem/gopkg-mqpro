@@ -1,0 +1,45 @@
+## runmqsc
+
+SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*') ACTION(REMOVE)
+
+
+
+
+
+# НА исходном менеджере
+
+# определение удаленной очереди
+# https://www.ibm.com/docs/en/ibm-mq/9.0?topic=objects-creating-local-definition-remote-queue
+
+define qlocal (QM_APPLE) usage (xmitq)
+define qremote (Q1) rname (Q1) rqmname(QM_APPLE) xmitq (QM_APPLE)
+
+# >>>>>>>>>>>>> TODO
+define qlocal (SYS1.SYS2.FOO.IN.TRANSIT) usage (xmitq)
+define qremote (SYS1.SYS2.FOO.IN.REMOTE) rname (DEV.QUEUE.1) rqmname(QMAPP2) xmitq (SYS1.SYS2.FOO.IN.TRANSIT)
+
+
+DEFINE QLOCAL ('target.queue.manager') +
+DESCR ('Default transmission queue for target qm') +
+USAGE (XMITQ)
+
+# -------------
+# https://www.ibm.com/docs/en/ibm-mq/9.0?topic=commands-define-channel
+# Создание канала сообщений
+
+define channel(QM.FOO.CHANNEL) chltype(SDR) conname('mq2(1414)') xmitq(SYS1.SYS2.FOO.IN.TRANSIT) trptype(tcp)
+start channel (QM.FOO.CHANNEL)
+
+###################################################################
+###################################################################
+###################################################################
+### НА целевом менеджере
+
+
+# Создание канала сообщений
+define channel (QM.FOO.CHANNEL) chltype (RCVR) trptype (TCP)
+start channel (QM.FOO.CHANNEL)
+
+
+
+

@@ -1,0 +1,73 @@
+version: '3.8'
+
+networks:
+  pkg-mqpro-sample:
+    external: true
+
+
+configs:
+  mq-app1-mqsc:
+    file: ./cfg/ibmmq/mq-app1.mqsc
+  mq-app2-mqsc:
+    file: ./cfg/ibmmq/mq-app2.mqsc
+
+
+x-deploy: &deploy-base
+  replicas: 1
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+
+
+x-logging: &logging-base
+  driver: json-file
+  options:
+    max-size: 1m
+    max-file: 3
+
+
+x-base: &base
+  deploy: *deploy-base
+  networks:
+      - pkg-mqpro-sample
+
+
+x-base: &base-ibmmq
+  <<: *base
+  image: ibmcom/mq:9.2.2.0-r1
+
+
+services:
+  mq1:
+    <<: *base-ibmmq
+    hostname: ibmmq-app1
+    ports:
+      - "9443:9443"
+    configs:
+      - source: mq-app1-mqsc
+        target: /etc/mqm/30-config.mqsc
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QMAPP1
+      - MQ_ADMIN_PASSWORD=22
+      - MQ_APP_PASSWORD=11
+      - MQ_ENABLE_METRICS=true
+      - MQ_ENABLE_EMBEDDED_WEB_SERVER=true
+
+#  -v "${PWD}/crypto/server:/etc_/mqm/pki/keys/mykey:ro" \
+
+  mq2:
+    <<: *base-ibmmq
+    hostname: ibmmq-app2
+    ports:
+      - "9444:9443"
+    configs:
+      - source: mq-app2-mqsc
+        target: /etc/mqm/30-config.mqsc
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QMAPP2
+      - MQ_ADMIN_PASSWORD=22
+      - MQ_APP_PASSWORD=11
+      - MQ_ENABLE_METRICS=true
+      - MQ_ENABLE_EMBEDDED_WEB_SERVER=true

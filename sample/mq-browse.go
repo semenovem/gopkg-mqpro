@@ -15,7 +15,7 @@ func onBrowse(w http.ResponseWriter, _ *http.Request) {
   ctx, canc := context.WithTimeout(rootCtx, time.Second*10)
   defer canc()
 
-  ch, err := mqOper1Get.Browse(ctx)
+  ch, err := mqQueFooGet.Browse(ctx)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return

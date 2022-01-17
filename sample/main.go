@@ -16,9 +16,12 @@ var (
   log                  = logger()
   rootCtx, rootCtxCanc = context.WithCancel(context.Background())
   logIbmmq             = log.WithField("sys", "mq")
-  mq                   = mqpro.New(rootCtx, logIbmmq)
-  mqOper1Put           = mq.NewQueue("aliasQueueFooPut")
-  mqOper1Get           = mq.NewQueue("aliasQueueFooGet")
+  mq          = mqpro.New(rootCtx, logIbmmq)
+  mqQueFooPut = mq.NewQueue("aliasQueueFooPut")
+  mqQueFooGet = mq.NewQueue("aliasQueueFooGet")
+
+  //mqQueBarPut = mq.NewQueue("aliasQueueBarPut")
+  //mqQueBarGet = mq.NewQueue("aliasQueueBarGet")
 )
 
 func logger() *logrus.Entry {
@@ -51,7 +54,7 @@ func main() {
     }
   }()
 
-  //mqOper1Get.RegisterInMsg(hndIncomingMsg)
+  //mqQueFooGet.RegisterInMsg(hndIncomingMsg)
 
   // api
   if cfg.ApiPort != 0 {

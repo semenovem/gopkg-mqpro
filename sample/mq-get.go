@@ -37,5 +37,5 @@ func _getMsg() (*queue.Msg, bool, error) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
   defer cancel()
 
-  return mqOper1Get.Get(ctx)
+  return mqQueFooGet.Get(ctx)
 }
