@@ -1,28 +1,30 @@
 
 * Конфиг для локальной очеереди
-
-DEFINE QLOCAL(SYS1.SYS2.FOO.IN) REPLACE
-DEFINE QLOCAL(SYS1.SYS2.FOO.OUT) REPLACE
-
-DEFINE QLOCAL(SYS2.SYS1.FOO.IN) REPLACE
-DEFINE QLOCAL(SYS2.SYS1.FOO.OUT) REPLACE
-
-
 * Developer authority records
 SET AUTHREC PRINCIPAL('app') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
-SET AUTHREC PROFILE('SYS1.**') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-SET AUTHREC PROFILE('SYS1.**') PRINCIPAL('app') OBJTYPE(TOPIC) AUTHADD(PUB,SUB)
 
-SET AUTHREC PROFILE('SYS2.**') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-SET AUTHREC PROFILE('SYS2.**') PRINCIPAL('app') OBJTYPE(TOPIC) AUTHADD(PUB,SUB)
 
 * -----------------------------
-
-DEFINE QLOCAL(APP2.APP1.FOO.IN) REPLACE
-DEFINE QLOCAL(APP1.APP2.FOO.OUT) REPLACE
-
+* -- это нужно переработать и дать разрешение только для указанных адресов и каналов
+SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*') ACTION(REMOVE)
 SET AUTHREC PROFILE('APP1.**') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
 SET AUTHREC PROFILE('APP2.**') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
 
+
+* локальная очередь, входящие сообщения
+DEFINE QLOCAL(APP1.APP2.FOO.Q) REPLACE
+
+
+* удаленная очередь, отправка на первый менеджер
+define qlocal (FOO.IN.TRANSMISSION) usage (xmitq)
+define qremote (APP2.APP1.FOO.RQ) rname (APP2.APP1.FOO.Q) rqmname(QMAPP1) xmitq (FOO.IN.TRANSMISSION)
+
+
+* канал приема сообщений
 define channel (QM.FOO.CHANNEL) chltype (RCVR) trptype (TCP)
-SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*') ACTION(REMOVE)
+
+
+* канал отправки сообщений на второй менеджер
+define channel(QM.FOO.CHANNEL2) chltype(SDR) conname('mq1(1414)') xmitq(FOO.IN.TRANSMISSION) trptype(tcp)
+start channel (QM.FOO.CHANNEL2)
+
