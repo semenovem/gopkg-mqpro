@@ -2,15 +2,9 @@ package queue
 
 import (
   "fmt"
-  "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "strings"
   "unicode/utf8"
 )
-
-func IsConnBroken(err error) bool {
-  mqrc := err.(*ibmmq.MQReturn).MQRC
-  return mqrc == ibmmq.MQRC_CONNECTION_BROKEN || mqrc == ibmmq.MQRC_CONNECTION_QUIESCING
-}
 
 func unionProps(dst map[string]interface{}, src map[string]interface{}) {
   for n, v := range src {

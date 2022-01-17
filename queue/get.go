@@ -84,7 +84,7 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
   if err != nil {
     l.Errorf(msgErrPropCreation, err)
 
-    if IsConnBroken(err) {
+    if q.isConnErr(err) {
       err = ErrConnBroken
     } else {
       err = ErrGetMsg

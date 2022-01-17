@@ -96,7 +96,13 @@ func (q *Queue) isConnErr(err error) bool {
     return false
   }
   mqret := err.(*ibmmq.MQReturn)
-  return mqret != nil && mqret.MQRC != ibmmq.MQRC_CONNECTION_BROKEN
+
+  switch mqret.MQRC {
+  case ibmmq.MQRC_CONNECTION_QUIESCING, ibmmq.MQRC_CONNECTION_BROKEN:
+    return true
+  }
+
+  return false
 }
 
 func (q *Queue) isWarn(err error) {

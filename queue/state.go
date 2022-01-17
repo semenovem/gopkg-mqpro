@@ -52,7 +52,9 @@ worker:
         l.WithField("oper", "open").Warn(err)
 
         q.close()
-        q.errorHandler(err)
+        if q.isConnErr(err) {
+          q.manager.Reconnect()
+        }
 
         select {
         case <-q.ctx.Done():
