@@ -5,45 +5,52 @@ import (
   "fmt"
 )
 
-const devModeMaxBufferSize = 200
-
-func devMode(m *Msg, b []byte, n string) func(...[]*Msg) {
-  var (
-    byt []byte
-  )
-  l := len(b)
-
-  if len(b) < devModeMaxBufferSize {
-    byt = append(byt, b...)
-  } else {
-    byt = append(byt, b[:devModeMaxBufferSize]...)
-  }
-
-  return func(mm ...[]*Msg) {
-    logMsg(m, byt, l, n)
-  }
-}
+const devModeMaxBufferSize = 100
+const devModeMaxStrSize = 300
 
 // Вывод информации о ibmmq сообщении
-func logMsg(m *Msg, b []byte, l int, n string) {
-  var buf = bytes.NewBufferString("")
-  f := func(s string, i ...interface{}) {
-    buf.WriteString(fmt.Sprintf(s, i...))
-  }
+func logMsg(m *Msg, origBuf []byte, n string) {
+  var (
+    buf    = bytes.NewBufferString("")
+    extend = false
+    f      = func(s string, i ...interface{}) { buf.WriteString(fmt.Sprintf(s, i...)) }
+    f2     = func(b []byte, l int) []byte {
+      if len(b) > l {
+        return b[:l]
+      }
+      return b
+    }
+  )
 
   f("\n--------------------------------\n")
   f("[MQPRO-DevMode] Сообщение: %s\n", n)
-  f("[MQPRO-DevMode] original len    = %d\n", l)
-  f("[MQPRO-DevMode] original byte   = %+v\n", b)
-  f("[MQPRO-DevMode] original string = %s\n", b)
-  f("[MQPRO-DevMode] Payload str = %s\n", m.Payload)
-  f("[MQPRO-DevMode] Props       = %+v\n", m.Props)
-  f("[MQPRO-DevMode] CorrelId    = %x\n", m.CorrelId)
-  f("[MQPRO-DevMode] MsgId       = %x\n", m.MsgId)
-  f("[MQPRO-DevMode] Time        = %s\n", m.Time)
+
+  if origBuf != nil {
+    f("[MQPRO-DevMode] origin(len)  = %d\n", len(origBuf))
+    f("[MQPRO-DevMode] origin(str)  = %s\n", f2(origBuf, devModeMaxStrSize))
+    if extend {
+      f("[MQPRO-DevMode] origin(byt)  = %+v\n", f2(origBuf, devModeMaxBufferSize))
+    }
+  }
+
+  f("[MQPRO-DevMode] Payload(len) = %d\n", len(m.Payload))
+  f("[MQPRO-DevMode] Payload(str) = %s\n", f2(m.Payload, devModeMaxStrSize))
+  if extend {
+    f("[MQPRO-DevMode] Payload(byt) = %v\n", f2(m.Payload, devModeMaxBufferSize))
+  }
+
+  f("[MQPRO-DevMode] Props        = %+v\n", m.Props)
+  f("[MQPRO-DevMode] CorrelId     = %s\n", logMsgCorr(m.CorrelId))
+  f("[MQPRO-DevMode] MsgId        = %x\n", m.MsgId)
+
+  tt := ""
+  if m.Time.Year() != 1 {
+    tt = m.Time.String()
+  }
+  f("[MQPRO-DevMode] Time         = %s\n", tt)
 
   if len(m.MQRFH2) == 0 {
-    f("[MQPRO-DevMode] MQRFH2      = %x\n", m.MQRFH2)
+    f("[MQPRO-DevMode] MQRFH2  = %x\n", m.MQRFH2)
   } else {
     for i, h := range m.MQRFH2 {
       f("[MQPRO-DevMode] MQRFH2[%d].StructId       = %s\n", i, h.StructId)
@@ -57,11 +64,22 @@ func logMsg(m *Msg, b []byte, l int, n string) {
       f("[MQPRO-DevMode] MQRFH2[%d].NameValues     = %+v\n", i, h.NameValues)
 
       for ii, raw := range h.RawXml {
-        f("[MQPRO-DevMode] MQRFH2[%d].RawXml[%d] byt = %+v\n", i, ii, raw)
-        f("[MQPRO-DevMode] MQRFH2[%d].RawXml[%d] str = %s\n", i, ii, raw)
+        f("[MQPRO-DevMode] MQRFH2[%d].RawXml[%d](str) = %s\n", i, ii, f2(raw, devModeMaxStrSize))
+        if extend {
+          f("[MQPRO-DevMode] MQRFH2[%d].RawXml[%d] byt = %+v\n", i, ii, f2(raw, devModeMaxBufferSize))
+        }
       }
     }
   }
-
   fmt.Println(buf.String())
+}
+
+func logMsgCorr(b []byte) string {
+  var v byte
+  for _, v = range b {
+    if v != 0 {
+      return fmt.Sprintf("%x", b)
+    }
+  }
+  return ""
 }

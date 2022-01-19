@@ -29,9 +29,7 @@ func (q *Queue) Open() error {
   }
 
   q.UpdateBaseCfg()
-
   q.ctx, q.ctxCanc = context.WithCancel(q.rootCtx)
-
   q.stateOpen()
 
   select {

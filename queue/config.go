@@ -44,7 +44,7 @@ func (q *Queue) CfgByStr(s string) error {
     return err
   }
   m := map[string]interface{}{
-    "n": q.queueName,
+    "name": q.queueName,
   }
   q.log = q.log.WithFields(m)
 
@@ -64,7 +64,9 @@ func (q *Queue) PrintSetCli(p string) {
 }
 
 func (q *Queue) getSet() []map[string]string {
-  q.UpdateBaseCfg()
+  if q.IsClosed() {
+    q.UpdateBaseCfg()
+  }
   m := []map[string]string{
     {"queueName": q.queueName},
     {"perm": strings.Join(q.convPermToVal(), ",")},

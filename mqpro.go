@@ -54,3 +54,7 @@ func (m *Mqpro) GetQueueByAlias(a string) *queue.Queue {
   }
   return nil
 }
+
+func (m *Mqpro) GetBaseCfg() *queue.BaseConfig {
+  return m.queueCfg
+}

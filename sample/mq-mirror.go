@@ -43,11 +43,10 @@ func mirror(msg *queue.Msg) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
   defer cancel()
 
-  id, err := mqQueFooGet.Put(ctx, reply)
+  err := mqQueFooGet.Put(ctx, reply)
   if err != nil {
     fmt.Println(">>>>> [ERROR]: Ошибка при отправке ответа")
   } else {
-    reply.MsgId = id
     logMsgOut(msg)
   }
 }

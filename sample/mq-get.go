@@ -17,14 +17,14 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
   //  go _getMsg()
   //}
 
-  msg, ok, err := _getMsg()
+  msg, err := _getMsg()
   if err != nil {
     fmt.Println("[ERROR] при получении сообщения: ", err)
     _, _ = fmt.Fprintf(w, "[get] Error: %s\n", err.Error())
     return
   }
 
-  if !ok {
+  if msg == nil {
     fmt.Println("[WARN] нет сообщений")
     _, _ = fmt.Fprintf(w, "[get]. Message queue is empty\n")
     return
@@ -33,7 +33,7 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
   _, _ = fmt.Fprintf(w, "[get] Ok. msgId: %x\n", msg.MsgId)
 }
 
-func _getMsg() (*queue.Msg, bool, error) {
+func _getMsg() (*queue.Msg, error) {
   ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
   defer cancel()
 

@@ -4,72 +4,107 @@ import (
   "context"
   "fmt"
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
+  "github.com/pkg/errors"
   "github.com/sirupsen/logrus"
 )
 
-func (q *Queue) Get(ctx context.Context) (*Msg, bool, error) {
+func (q *Queue) Get(ctx context.Context) (*Msg, error) {
   l := q.log.WithField("method", "Get")
-
-  msg, ok, err := q.get(ctx, operGet, nil, l)
-  q.errorHandler(err)
-
-  return msg, ok, err
+  return q.get(ctx, operGet, nil, l)
 }
 
 // GetByCorrelId Извлекает сообщение из очереди по его CorrelId
-func (q *Queue) GetByCorrelId(ctx context.Context, correlId []byte) (*Msg, bool, error) {
+func (q *Queue) GetByCorrelId(ctx context.Context, correlId []byte) (*Msg, error) {
   l := q.log.WithFields(map[string]interface{}{
     "correlId": fmt.Sprintf("%x", correlId),
     "method":   "GetByCorrelId",
   })
-
-  msg, ok, err := q.get(ctx, operGetByCorrelId, correlId, l)
-  q.errorHandler(err)
-
-  return msg, ok, err
+  return q.get(ctx, operGetByCorrelId, correlId, l)
 }
 
 // GetByMsgId Извлекает сообщение из очереди по его MsgId
-func (q *Queue) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, bool, error) {
+func (q *Queue) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, error) {
   l := q.log.WithFields(map[string]interface{}{
     "msgId":  fmt.Sprintf("%x", msgId),
     "method": "GetByMsgId",
   })
-
-  msg, ok, err := q.get(ctx, operGetByMsgId, msgId, l)
-  q.errorHandler(err)
-
-  return msg, ok, err
+  return q.get(ctx, operGetByMsgId, msgId, l)
 }
 
-// Получение сообщения
 func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.Entry) (
-  *Msg, bool, error) {
+  *Msg, error) {
 
   if q.IsClosed() {
     l.Error(ErrNotOpen)
-    return nil, false, ErrNotOpen
+    return nil, ErrNotOpen
   }
 
   if q.ctlo != nil {
-    return nil, false, ErrBusySubsc
+    l.Error(ErrBusySubsc)
+    return nil, ErrBusySubsc
   }
-
-  var conn *mqConn
-
-  select {
-  case <-ctx.Done():
-    return nil, false, ErrInterrupted
-  case conn = <-q.RegisterOpen():
-  }
-
-  l.Trace("Start")
 
   var (
-    datalen int
-    err     error
-    mqrc    *ibmmq.MQReturn
-    buffer  = make([]byte, 0, 1024)
+    conn *mqConn
+    err  error
+    msg  *Msg
+  )
+
+  if q.devMode {
+    defer func() {
+      //if hd != nil {
+      //  msg.MQRFH2, err = q.Rfh2Unmarshal(hd)
+      //  if err != nil {
+      //    l.Warn("DevMode: ", err)
+      //  }
+      //}
+
+      if msg == nil {
+        return
+      }
+
+      logMsg(msg, nil, "get | get by correl id | get msg id")
+    }()
+  }
+
+  q.mxMsg.Lock()
+  defer q.mxMsg.Unlock()
+
+  for {
+    select {
+    case <-ctx.Done():
+      l.Error(ErrInterrupted)
+      return nil, ErrInterrupted
+    case conn = <-q.RegisterOpen():
+    }
+
+    msg, err = q._get(oper, id, conn)
+    if err == nil {
+      return msg, nil
+    }
+
+    if q.errorHandler(errors.Cause(err)) {
+      l.Warn(err)
+      continue
+    }
+
+    l.Error(ErrGetMsg)
+    return nil, ErrGetMsg
+  }
+}
+
+// Получение сообщения
+func (q *Queue) _get(oper queueOper, id []byte, conn *mqConn) (
+  *Msg, error) {
+
+  var (
+    datalen      int
+    err          error
+    mqrc         *ibmmq.MQReturn
+    buffer       = make([]byte, 0, 1024)
+    getMsgHandle ibmmq.MQMessageHandle
+    props        map[string]interface{}
+    msg          *Msg
   )
 
   getmqmd := ibmmq.NewMQMD()
@@ -77,35 +112,19 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
   cmho := ibmmq.NewMQCMHO()
   gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
 
-  q.mxMsg.Lock()
-  defer q.mxMsg.Unlock()
-
-  getMsgHandle, err := conn.m.CrtMH(cmho)
+  getMsgHandle, err = conn.m.CrtMH(cmho)
   if err != nil {
-    l.Errorf(msgErrPropCreation, err)
-
-    if q.isConnErr(err) {
-      err = ErrConnBroken
-    } else {
-      err = ErrGetMsg
-    }
-    return nil, false, err
+    return nil, errors.Wrap(err, msgErrPropCreation)
   }
+
   defer func() {
-    err := dltMh(getMsgHandle)
+    err = dltMh(getMsgHandle)
     if err != nil {
-      l.Warnf(msgErrPropDeletion, err)
+      q.log.WithField("id", fmt.Sprintf("%x", id)).Warnf(msgErrPropDeletion, err)
     }
   }()
 
   gmo.MsgHandle = getMsgHandle
-
-  switch q.h {
-  case HeaderRfh2:
-    getmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
-  default:
-    getmqmd.Format = ibmmq.MQFMT_STRING
-  }
 
   switch oper {
   case operGet:
@@ -119,50 +138,36 @@ func (q *Queue) get(ctx context.Context, oper queueOper, id []byte, l *logrus.En
     gmo.Options |= ibmmq.MQGMO_BROWSE_FIRST
   case operBrowseNext:
     gmo.Options |= ibmmq.MQGMO_BROWSE_NEXT
-
   default:
-    l.Panicf("Unknown operation. queueOper = %v", oper)
+    q.log.WithField("id", fmt.Sprintf("%x", id)).
+      Panicf("Unknown operation. queueOper = %v", oper)
   }
 
-loopCtx:
-  for {
-  loopGet:
-    for i := 0; i < 2; i++ {
-      buffer, datalen, err = conn.q.GetSlice(getmqmd, gmo, buffer)
-      if err == nil {
-        break loopCtx
-      }
-
-      mqrc = err.(*ibmmq.MQReturn)
-
-      switch mqrc.MQRC {
-      case ibmmq.MQRC_TRUNCATED_MSG_FAILED:
-        buffer = make([]byte, 0, datalen)
-        continue
-      case ibmmq.MQRC_NO_MSG_AVAILABLE:
-        err = nil
-        break loopGet
-      }
-
-      l.Error(err)
-
-      return nil, false, err
+  for i := 0; i < 2; i++ {
+    buffer, datalen, err = conn.q.GetSlice(getmqmd, gmo, buffer)
+    if err == nil {
+      break
     }
 
-    l.Trace("No message")
+    mqrc = err.(*ibmmq.MQReturn)
+    switch mqrc.MQRC {
+    case ibmmq.MQRC_TRUNCATED_MSG_FAILED:
+      buffer = make([]byte, 0, datalen)
+      continue
+    case ibmmq.MQRC_NO_MSG_AVAILABLE:
+      err = nil
+      return nil, nil
+    }
 
-    return nil, false, nil
+    return nil, err
   }
 
-  props, err := properties(getMsgHandle)
+  props, err = properties(getMsgHandle)
   if err != nil {
-    l.Errorf(msgErrPropGetting, err)
-    return nil, false, err
+    return nil, errors.Wrap(err, msgErrPropGetting)
   }
 
-  l.Debug("Success")
-
-  msg := &Msg{
+  msg = &Msg{
     Payload:  buffer,
     Props:    props,
     CorrelId: getmqmd.CorrelId,
@@ -171,36 +176,5 @@ loopCtx:
     MQRFH2:   make([]*MQRFH2, 0),
   }
 
-  var devMsg Msg
-  if q.devMode {
-    devMsg = *msg
-    f := devMode(&devMsg, buffer, "get")
-    defer func() {
-      f()
-    }()
-  }
-
-  if q.h == HeaderRfh2 {
-    headers, err := q.Rfh2Unmarshal(buffer)
-    if err != nil {
-      q.log.Error(err)
-      return nil, false, err
-    }
-    msg.MQRFH2 = headers
-
-    var ofs int32
-    for _, h := range headers {
-      unionPropsDeep(msg.Props, h.NameValues)
-      ofs += h.StructLength
-    }
-    msg.Payload = buffer[ofs:]
-
-    if q.devMode {
-      devMsg.Payload = buffer[ofs:]
-      devMsg.MQRFH2 = headers
-      devMsg.Props = msg.Props
-    }
-  }
-
-  return msg, true, nil
+  return msg, nil
 }

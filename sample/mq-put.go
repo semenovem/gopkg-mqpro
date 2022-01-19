@@ -27,26 +27,21 @@ func putMsg(w http.ResponseWriter, _ *http.Request) {
 }
 
 func _putMsg() ([]byte, error) {
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*7)
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
   defer cancel()
 
   // Свойства сообщения
   props := map[string]interface{}{
-    "firstProp":   "this is first prop",
-    "anotherProp": "... another prop",
+    "foo":   "10101001110110",
+    "BAR": "cb31e8610231",
   }
 
-  size := 8 * 1
-  b := make([]byte, size)
-
-  for i := 0; i < size; i++ {
-    b[i] = byte(i)
-  }
+  b := []byte(`{"HoldJetFuelPaymentMsg":{"id":"f021d4ec-27f5-41be-8af3-946e65686902","result":"OK"}}`)
 
   msg := &queue.Msg{
-    Payload: b,
+    Payload:  b,
     Props:   props,
   }
 
-  return mqQueFooPut.Put(ctx, msg)
+  return msg.MsgId, mqQueFooPut.Put(ctx, msg)
 }

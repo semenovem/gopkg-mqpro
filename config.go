@@ -52,7 +52,7 @@ func (m *Mqpro) Cfg(c *Config) error {
 
   fatal := false
 
-  baseCfg := queue.BaseConfig{
+  queCfg := queue.BaseConfig{
     DevMode:            c.DevMode,
     Rfh2CodedCharSetId: c.Rfh2CodedCharSetId,
   }
@@ -60,24 +60,25 @@ func (m *Mqpro) Cfg(c *Config) error {
   if c.Header == "" {
     m.log.Warnf("Не передан тип заголовков. "+
       "Значение по умолчанию: Header={%s}", queue.HeaderMapByKey[queue.DefHeader])
-    baseCfg.Header = queue.DefHeader
+    queCfg.Header = queue.DefHeader
   } else {
     h, err := queue.ParseHeader(c.Header)
     if err != nil {
       m.log.Errorf("не валидное значение Header = %s", c.Header)
       fatal = true
     }
-    baseCfg.Header = h
+    queCfg.Header = h
   }
 
   if c.Rfh2OffRootTag {
-    baseCfg.Rfh2RootTag = ""
+    queCfg.Rfh2RootTag = ""
   } else {
     if c.Rfh2RootTag == "" {
       m.log.Warnf("Не установлено значение корневого тега. "+
         "Значение по умолчанию: Rfh2OffRootTag={%s}", queue.DefRootTagHeader)
+      queCfg.Rfh2RootTag = queue.DefRootTagHeader
     } else {
-      baseCfg.Rfh2RootTag = c.Rfh2RootTag
+      queCfg.Rfh2RootTag = c.Rfh2RootTag
     }
   }
 
@@ -131,7 +132,7 @@ func (m *Mqpro) Cfg(c *Config) error {
     }
   }
 
-  m.queueCfg = &baseCfg
+  m.queueCfg = &queCfg
   return nil
 }
 
@@ -192,10 +193,6 @@ func ParseCfgYaml(f string) (*Config, error) {
   return c, nil
 }
 
-func (m *Mqpro) GetBaseCfg() *queue.BaseConfig {
-  return m.queueCfg
-}
-
 func (m *Mqpro) SetDevMode(v bool) {
   m.queueCfg.DevMode = v
   for _, q := range m.queues {
@@ -227,6 +224,7 @@ func (m *Mqpro) getSet() []map[string]string {
   }
 }
 
+// PrintDefaultEnv распечатать содержимое переменных окружения
 func (m *Mqpro) PrintDefaultEnv() {
   var (
     buf    = bytes.NewBufferString("Standard environment variables:\n")

@@ -9,6 +9,8 @@ NETWORK := "pkg-mqpro-sample"
 
 IMG_CURL := "curl:1"
 
+SHELL = /bin/bash
+
 # -----------------
 # commands
 # -----------------
@@ -21,7 +23,15 @@ help: Makefile
 ## net
 .PHONY: net
 net:
-	@docker network create --driver overlay --attachable $(NETWORK)
+	@$(call checkCreateDockerNet)
+
+
+define checkCreateDockerNet
+		$(eval TTT=$(shell docker network ls -f name=$(NETWORK) -q))
+		[ -z "$(TTT)" ] \
+		&& docker network create --driver overlay --attachable $(NETWORK) \
+		|| echo "docker network $(NETWORK) is exists"
+endef
 
 
 ## install
@@ -65,12 +75,14 @@ curl:
 ## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client.env`
 .PHONY: dev
 dev:
-	@make CONFIG=client.env NAME_CONTAINER=client2 HOSTNAME=c run_dev_container
+	@make CONFIG=client.env NAME_CONTAINER=client HOSTNAME=c KEYSTORE=$(PWD)/ams/keystore1 \
+		run_dev_container
 
 ## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client2.env`
 .PHONY: dev2
 dev2:
-	@make CONFIG=client2.env NAME_CONTAINER=client2 HOSTNAME=c run_dev_container
+	@make CONFIG=client2.env NAME_CONTAINER=client2 HOSTNAME=c2 KEYSTORE=$(PWD)/ams/keystore2 \
+		run_dev_container
 
 
 .PHONY: run_dev_container
@@ -81,7 +93,9 @@ run_dev_container:
 		--network $(NETWORK) \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash dev/run.sh $(CONFIG)
+		-v "$(KEYSTORE):/mqs:rw" \
+		"$(IMG)" bash
+		#dev/run.sh $(CONFIG)
 
 
 ## test
@@ -95,7 +109,7 @@ test:
 
 ## up: launch stack of apps
 .PHONY: up
-up:
+up: net
 	@docker stack deploy -c docker-stack.yaml mqpro
 
 ## down: launch stack of apps

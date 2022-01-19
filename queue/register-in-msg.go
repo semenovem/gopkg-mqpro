@@ -116,6 +116,11 @@ func (q *Queue) handlerInMsg(
     return
   }
 
+  if err.MQCC != ibmmq.MQCC_OK {
+    q.log.Error(err)
+    return
+  }
+
   props, err1 := properties(gmo.MsgHandle)
   if err1 != nil {
     q.log.Errorf(msgErrPropGetting, err)
@@ -130,38 +135,9 @@ func (q *Queue) handlerInMsg(
     Time:     md.PutDateTime,
   }
 
-  var devMsg Msg
   if q.devMode {
-    devMsg = *msg
-    f1 := devMode(&devMsg, buffer, "subscribe")
-    defer func() {
-      f1()
-    }()
+    logMsg(msg, nil, "subscribe")
   }
-
-  if q.h == HeaderRfh2 {
-    headers, err := q.Rfh2Unmarshal(buffer)
-    if err != nil {
-      q.log.Warn(err)
-      return
-    }
-    msg.MQRFH2 = headers
-
-    var ofs int32
-    for _, h := range headers {
-      unionPropsDeep(msg.Props, h.NameValues)
-      ofs += h.StructLength
-    }
-    msg.Payload = buffer[ofs:]
-
-    if q.devMode {
-      devMsg.Payload = buffer[ofs:]
-      devMsg.MQRFH2 = headers
-      devMsg.Props = msg.Props
-    }
-  }
-
-  q.log.Info("Получено сообщение")
 
   go q.hndInMsg(msg)
 }

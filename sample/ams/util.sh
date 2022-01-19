@@ -10,7 +10,8 @@ export _ALIAS_CERT_="clearing2021"
 export _ALIAS_2_="way4_2021"
 
 # путь к файлу хранилища ключей
-export _STORE_="${_DIR_STORE_}/keystore.kdb"
+#export _STORE_="${_DIR_STORE_}/keystore.kdb"
+export _STORE_="${_DIR_STORE_}/mq-ams.kdb"
 
 # путь к файлу конфига
 export _CONF_="${_DIR_STORE_}/keystore.conf"

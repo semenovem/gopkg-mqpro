@@ -6,6 +6,6 @@ import (
 
 func hndIncomingMsg(msg *queue.Msg) {
 
-  logMsgIn(msg)
+  log.Infof("Получено сообщение: %+v", msg)
 
 }

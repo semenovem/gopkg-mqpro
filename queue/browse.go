@@ -29,7 +29,6 @@ func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
     ch   = make(chan *Msg)
     wait = make(chan struct{})
     err  error
-    ok   bool
   )
 
   go func(w chan struct{}) {
@@ -41,8 +40,8 @@ func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
     oper := operBrowseFirst
 
     for ctx.Err() == nil {
-      msg, ok, err = q.get(cx, oper, nil, ll)
-      if err != nil || !ok {
+      msg, err = q.get(cx, oper, nil, ll)
+      if err != nil || msg == nil {
         break
       }
 

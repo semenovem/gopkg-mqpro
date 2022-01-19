@@ -1,4 +1,4 @@
-devMode: false
+devMode: true
 logLev: DEBUG
 
 host: mq2
@@ -13,10 +13,10 @@ tls: false
 keyRepository: crypto/client/keys
 maxMsgLength: 5000
 
-header: prop # [prop|rfh2] значение по умолчанию - prop
+header: rfh2 # [prop|rfh2] значение по умолчанию - prop
 
 rfh2OffRootTag: false
-rfh2RootTag: usr
+#rfh2RootTag: rtrtrt # по умолчанию <usr>
 
 queues:
   # Первая пара очередей отправить | получить

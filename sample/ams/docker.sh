@@ -10,8 +10,7 @@ if [ -z "$(docker images --filter=reference="$DOCKER_IMG" -q)" ]; then
   echo "# Сборка образа для разработки с ibmmq                    #"
   echo "###########################################################"
 
-  docker build -f Dockerfile -t "$DOCKER_IMG" ./
-  [ $? -ne 0 ] && exit 1
+  docker build -f Dockerfile -t "$DOCKER_IMG" ./ || exit 1
 fi
 
 echo

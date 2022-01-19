@@ -54,7 +54,7 @@ func main() {
     }
   }()
 
-  //mqQueFooGet.RegisterInMsg(hndIncomingMsg)
+  mqQueFooGet.RegisterInMsg(hndIncomingMsg)
 
   // api
   if cfg.ApiPort != 0 {

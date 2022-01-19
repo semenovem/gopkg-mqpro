@@ -37,6 +37,7 @@ var (
 
 const (
   msgErrPropCreation = "creating a message property: %s"
+  msgErrPropSetting  = "setting property: %s"
   msgErrPropDeletion = "deleting message properties: %s"
   msgErrPropGetting  = "getting message property: %s"
 )
@@ -74,20 +75,23 @@ const (
   stateOpen
   stateConnecting
   stateErr
+  stateTransitional // Состояние до перехода в stateErr | stateClosed
 )
 
 var stateMapByKey = map[state]string{
-  stateClosed:     "stateClosed",
-  stateOpen:       "stateOpen",
-  stateConnecting: "stateConnecting",
-  stateErr:        "stateConnecting",
+  stateClosed:       "stateClosed",
+  stateOpen:         "stateOpen",
+  stateConnecting:   "stateConnecting",
+  stateErr:          "stateError",
+  stateTransitional: "stateTransitional",
 }
 
 var stateMapByVal = map[string]state{
-  stateMapByKey[stateClosed]:     stateClosed,
-  stateMapByKey[stateOpen]:       stateOpen,
-  stateMapByKey[stateConnecting]: stateConnecting,
-  stateMapByKey[stateErr]:        stateErr,
+  stateMapByKey[stateClosed]:       stateClosed,
+  stateMapByKey[stateOpen]:         stateOpen,
+  stateMapByKey[stateConnecting]:   stateConnecting,
+  stateMapByKey[stateErr]:          stateErr,
+  stateMapByKey[stateTransitional]: stateTransitional,
 }
 
 const (

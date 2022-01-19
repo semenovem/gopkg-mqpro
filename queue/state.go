@@ -23,6 +23,13 @@ worker:
       continue
     }
 
+    if st == stateErr {
+      st = stateOpen
+
+      q.close()
+      q.manager.Reconnect()
+    }
+
     switch st {
     case stateOpen:
       if q.state == stateOpen || q.state == stateConnecting {
@@ -52,9 +59,7 @@ worker:
         l.WithField("oper", "open").Warn(err)
 
         q.close()
-        if q.isConnErr(err) {
-          q.manager.Reconnect()
-        }
+        q.manager.Reconnect()
 
         select {
         case <-q.ctx.Done():
@@ -66,12 +71,6 @@ worker:
     case stateClosed:
       q.state = stateClosed
       q.close()
-
-    case stateErr:
-      q.state = stateErr
-      q.close()
-      q.manager.Reconnect()
-      go q.stateOpen()
     }
   }
 }
@@ -80,11 +79,8 @@ func (q *Queue) stateOpen() {
   q.chState <- stateOpen
 }
 
-func (q *Queue) stateError() {
-  q.chState <- stateErr
-}
-
 func (q *Queue) stateClose() {
+  q.state = stateTransitional
   q.chState <- stateClosed
 }
 
@@ -96,9 +92,10 @@ func (q *Queue) IsClosed() bool {
   return q.state == stateClosed
 }
 
-func (q *Queue) errorHandler(err error) {
+// bool - планируется ли рестарт из-за представленной проблемы
+func (q *Queue) errorHandler(err error) bool {
   if err == nil {
-    return
+    return false
   }
 
   isNeedRestart := true
@@ -109,7 +106,8 @@ func (q *Queue) errorHandler(err error) {
     case ibmmq.MQRC_CALL_IN_PROGRESS,
       ibmmq.MQRC_NOT_OPEN_FOR_INPUT,
       ibmmq.MQRC_NOT_OPEN_FOR_OUTPUT,
-      ibmmq.MQRC_NOT_OPEN_FOR_BROWSE:
+      ibmmq.MQRC_NOT_OPEN_FOR_BROWSE,
+      ibmmq.MQRC_SECURITY_ERROR:
       isNeedRestart = false
     }
   case error:
@@ -120,7 +118,12 @@ func (q *Queue) errorHandler(err error) {
   }
 
   if isNeedRestart && q.state == stateOpen {
-    q.log.Debugf("errorHandler: %s", err.Error())
-    q.stateError()
+    q.state = stateTransitional
+    //q.log.Debugf("errorHandler: %s", err.Error())
+
+    q.chState <- stateErr
+    return true
   }
+
+  return false
 }

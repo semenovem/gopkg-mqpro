@@ -8,47 +8,88 @@ import (
 )
 
 // Put отправка сообщения в очередь
-func (q *Queue) Put(ctx context.Context, msg *Msg) ([]byte, error) {
+func (q *Queue) Put(ctx context.Context, msg *Msg) error {
   l := q.log.WithField("method", "Put")
-
   if msg.CorrelId != nil {
     l = l.WithField("correlId", fmt.Sprintf("%x", msg.CorrelId))
   }
-
-  d, err := q.put(ctx, msg, l)
-  q.errorHandler(err)
-
-  return d, err
+  return q.put(ctx, msg, l)
 }
 
-func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, error) {
+func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) error {
   if q.IsClosed() {
-    return nil, ErrNotOpen
+    return ErrNotOpen
   }
 
-  var conn *mqConn
+  var (
+    conn    *mqConn
+    err     error
+    hd      []byte
+    payload []byte
+  )
 
-  select {
-  case <-ctx.Done():
-    return nil, ErrInterrupted
-  case conn = <-q.RegisterOpen():
+  if q.devMode {
+    defer func() {
+      if hd != nil {
+        msg.MQRFH2, err = q.Rfh2Unmarshal(hd)
+        if err != nil {
+          l.Warn("DevMode: ", err)
+        }
+      }
+
+      logMsg(msg, payload, "put")
+    }()
+  }
+
+  if q.h == HeaderRfh2 {
+    hd, err = q.Rfh2Marshal(msg.Props)
+    if err != nil {
+      l.Error("Не удалось подготовить сообщение с заголовками rfh2: ", err)
+      return err
+    }
+    if msg.Payload == nil {
+      payload = hd
+    } else {
+      payload = append(hd, msg.Payload...)
+    }
+  } else {
+    if msg.Payload == nil {
+      payload = make([]byte, 0)
+    } else {
+      payload = make([]byte, len(msg.Payload))
+      copy(payload, msg.Payload)
+    }
   }
 
   q.mxMsg.Lock()
   defer q.mxMsg.Unlock()
 
-  l.Trace("Start")
+  for {
+    select {
+    case <-ctx.Done():
+      return ErrInterrupted
+    case conn = <-q.RegisterOpen():
+    }
 
-  var payload []byte
-  if msg.Payload == nil {
-    payload = make([]byte, 0)
-  } else {
-    payload = msg.Payload
+    err = q._put(conn, msg, payload, l)
+    if err == nil {
+      return nil
+    }
+
+    if q.errorHandler(err) {
+      continue
+    }
+    return err
   }
+}
 
-  putmqmd := ibmmq.NewMQMD()
-  pmo := ibmmq.NewMQPMO()
-  cmho := ibmmq.NewMQCMHO()
+func (q *Queue) _put(conn *mqConn, msg *Msg, payload []byte, l *logrus.Entry) error {
+  var (
+    err     error
+    putmqmd = ibmmq.NewMQMD()
+    pmo     = ibmmq.NewMQPMO()
+    cmho    = ibmmq.NewMQCMHO()
+  )
 
   pmo.Options = ibmmq.MQPMO_NO_SYNCPOINT
 
@@ -56,70 +97,40 @@ func (q *Queue) put(ctx context.Context, msg *Msg, l *logrus.Entry) ([]byte, err
     putmqmd.CorrelId = msg.CorrelId
   }
 
-  var devMsg Msg
-
-  if q.devMode {
-    devMsg = *msg
-    f := devMode(&devMsg, payload, "put")
-    defer func() {
-      f()
-    }()
-  }
-
   switch q.h {
   case HeaderRfh2:
     putmqmd.Format = ibmmq.MQFMT_RF_HEADER_2
-    hd, err := q.Rfh2Marshal(msg.Props)
-    if err != nil {
-      l.Error("Не удалось подготовить сообщение с заголовками rfh2: ", err)
-      return nil, err
-    }
-    payload = append(hd, payload...)
-
-    if q.devMode {
-      devMsg.MQRFH2, err = q.Rfh2Unmarshal(hd)
-      if err != nil {
-        return nil, err
-      }
-      devMsg.Payload = payload
-    }
 
   default:
-    putmqmd.Format = ibmmq.MQFMT_STRING
+    var putMsgHandle ibmmq.MQMessageHandle
 
-    putMsgHandle, err := conn.m.CrtMH(cmho)
+    putmqmd.Format = ibmmq.MQFMT_STRING
+    putMsgHandle, err = conn.m.CrtMH(cmho)
     if err != nil {
       l.Errorf(msgErrPropCreation, err)
-      return nil, err
+      return err
     }
-    // TODO - добавлено в последней итерации. Не проверено
+
+    err = setProps(&putMsgHandle, msg.Props, l)
+    if err != nil {
+      l.Errorf(msgErrPropSetting, err)
+      return err
+    }
+    pmo.OriginalMsgHandle = putMsgHandle
+
     defer func() {
-      err := dltMh(putMsgHandle)
+      err = dltMh(putMsgHandle)
       if err != nil {
         l.Warnf(msgErrPropDeletion, err)
       }
     }()
-
-    err = setProps(&putMsgHandle, msg.Props, l)
-    if err != nil {
-      l.Errorf(msgErrPropCreation, err)
-      return nil, err
-    }
-    pmo.OriginalMsgHandle = putMsgHandle
   }
 
-  err := conn.q.Put(putmqmd, pmo, payload)
-  if err != nil {
-    l.Error("Ошибка отправки сообщения: ", err)
-    return nil, err
+  err = conn.q.Put(putmqmd, pmo, payload)
+  if err == nil {
+    msg.MsgId = putmqmd.MsgId
+    msg.Time = putmqmd.PutDateTime
   }
 
-  l.Tracef("Success. MsgId: %x", putmqmd.MsgId)
-
-  if q.devMode {
-    devMsg.Time = putmqmd.PutDateTime
-    devMsg.MsgId = putmqmd.MsgId
-  }
-
-  return putmqmd.MsgId, nil
+  return err
 }

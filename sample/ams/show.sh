@@ -18,8 +18,6 @@ rm -rf $TMP
 
 runmqakm -cert -extract -db "$_STORE_" -pw "$_PASS_" \
   -label "$ALIAS" \
-  -target "$TMP"
-
-[ $? -ne 0 ] && exit 1
+  -target "$TMP" || exit 1
 
 openssl x509 -noout -text -in "$TMP"

@@ -25,13 +25,13 @@ func clearQueue(w http.ResponseWriter, _ *http.Request) {
   for msg := range ch {
     i++
 
-    m, ok, err := mqQueFooGet.GetByMsgId(ctx, msg.MsgId)
+    m, err := mqQueFooGet.GetByMsgId(ctx, msg.MsgId)
     if err != nil {
       fmt.Println("[ERROR] при получении сообщения из очереди: ", err)
       continue
     }
 
-    if ok {
+    if m != nil {
       logMsgDel(m)
     }
   }

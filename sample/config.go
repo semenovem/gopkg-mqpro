@@ -88,8 +88,8 @@ func init() {
     }
   }
 
-  mq.PrintDefaultEnv()
-  //mq.PrintSetCli("mgr")
+  //mq.PrintDefaultEnv()
+  mq.PrintSetCli("mgr")
   //mqQueFooGet.PrintSetCli("queue/" + mqQueFooGet.Alias())
 
   if fatal {
