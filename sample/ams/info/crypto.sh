@@ -37,7 +37,7 @@ echo "#########################################################"
 openssl req -x509 -newkey rsa:4096 -days 3650 -nodes \
   -keyout "$CA_KEY" \
   -out "$CA_CERT" \
-  -subj "/C=RU/ST=MO/L=Moscow/O=VTB/OU=Finance/CN='bhive_inet_hldg_20x'/emailAddress=emsemenov@vtb.ru"
+  -subj "/C=RU/ST=MO/L=Moscow/O=TEST/OU=Finance/CN='bhive_inet_hldg_20x'/emailAddress=emsemenov@test.ru"
 
 echo "#########################################################"
 echo "# MQ 1                                                  #"
@@ -53,7 +53,7 @@ runmqakm -cert -add -db "$MQ1_KDB" -pw "$PSW" \
 runmqakm -certreq -create -db "$MQ1_KDB" -pw "$PSW" \
   -file "$MQ1_CSR" \
   -label "$MQ1_CERT_LABEL" \
-  -dn "C=RU,ST=Moscow,L=Moscow,O=VTB,OU=afsc,CN=hldgappdev201lv.inet.vtb.ru_1" \
+  -dn "C=RU,ST=Moscow,L=Moscow,O=TEST,OU=afsc,CN=hldgappdev201lv.inet.test.ru_1" \
   -sigalg sha1
 
 # подпись удостоверяющим центром
@@ -91,7 +91,7 @@ runmqakm -cert -add -db "$MQ2_KDB" -pw "$PSW" \
 runmqakm -certreq -create -db "$MQ2_KDB" -pw "$PSW" \
   -file "$MQ2_CSR" \
   -label "$MQ2_CERT_LABEL" \
-  -dn "C=RU,ST=Moscow,L=Moscow,O=VTB,OU=afsc,CN=hldgappdev201lv.inet.vtb.ru_2" \
+  -dn "C=RU,ST=Moscow,L=Moscow,O=TEST,OU=afsc,CN=hldgappdev201lv.inet.test.ru_2" \
   -sigalg sha1
 
 # подпись удостоверяющим центром

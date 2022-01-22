@@ -19,13 +19,13 @@ export _CONF_="${_DIR_STORE_}/keystore.conf"
 export _PASS_="F33l66y99d^3%14"
 
 # CN сертификата
-export _DNAME_="CN=hldg201.inet.vtb.ru,OU=afsc,O=VTB,L=Moscow,ST=Moscow,C=RU"
+export _DNAME_="CN=hldg201.inet.test.ru,OU=afsc,O=TEST,L=Moscow,ST=Moscow,C=RU"
 
 # путь к файлу запроса на выпуск сертификата afsc
-export _REQ_CERT_="${_DIR_STORE_}/req-cert-way4.vtb.pem"
+export _REQ_CERT_="${_DIR_STORE_}/req-cert-way4.test.pem"
 
 # путь к файлу запроса на выпуск сертификата afsc
-export _CERT_="${_DIR_STORE_}/cert.vtb.pem"
+export _CERT_="${_DIR_STORE_}/cert.test.pem"
 
 if [ ! -d "$_DIR_STORE_" ]; then
   mkdir "$_DIR_STORE_"

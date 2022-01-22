@@ -11,7 +11,7 @@
 ./extract.sh [alias] [файл, куда сохранить сертификат]
 
 пример:
-./extract.sh vtb_2021 keystore/cert.pem
+./extract.sh test_2021 keystore/cert.pem
 
 3) экспортированный сертификат отправить партнерам
 

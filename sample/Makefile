@@ -2,7 +2,7 @@ DOCKER_IMAGE_NAME := "pkg-mqpro-sample"
 VERSION := "1.0"
 
 IMG := "$(DOCKER_IMAGE_NAME):$(VERSION)"
-IMGrun_dev_container := "$(IMG)-dev"
+IMG_DEV := "$(IMG)-dev"
 
 PROJ_NAME := "gopkg-mqpro-sample"
 NETWORK := "pkg-mqpro-sample"
@@ -52,7 +52,7 @@ docker:
 .PHONY: build-image-curl
 build-image-curl:
 	@docker build \
- 		-f ./Dockerfile-curl.dockerfile \
+ 		-f ../docker/curl.dockerfile \
  		-t "$(IMG_CURL)" .
 
 

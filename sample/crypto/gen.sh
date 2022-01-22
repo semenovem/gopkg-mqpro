@@ -14,7 +14,7 @@ CAKEY="${BIN:?}/server/ca.key"
 CLIENT_DB="${BIN:?}/client/keys.kdb"
 
 openssl req -newkey rsa:2048 -nodes -keyout "$CAKEY" -x509 -days 365 -out "$CACERT" \
-  -subj "/C=RU/ST=MO/L=Moscow/O=VTB/OU=Finance/CN='mqpro-sample'/emailAddress=email@vtb.ru"
+  -subj "/C=RU/ST=MO/L=Moscow/O=TEST/OU=Finance/CN='mqpro-sample'/emailAddress=email@test.ru"
 
 runmqakm -keydb -create -db "$CLIENT_DB" -pw "$PSW" -type pkcs12 -expire 1000 -stash
 

@@ -16,13 +16,13 @@ mkdir "$BIN"/{mq1,mq2}
 PSW='121212'
 
 MQ1_KDB="${BIN}/mq1/mq1-keys.kdb"
-MQ1_DN="cn=hldgappdev201lv.inet.vtb_1,O=VTB,c=RU"
+MQ1_DN="cn=hldgappdev201lv.inet.test_1,O=TEST,c=RU"
 MQ1_LAB="label_mq1"
 MQ1_CONF="${BIN}/mq1/keystore.conf"
 MQ1_CERT="${BIN}/mq1/cert-mq1.pem"
 
 MQ2_KDB="${BIN}/mq2/mq2-keys.kdb"
-MQ2_DN="cn=hldgappdev201lv.inet.vtb_2,O=VTB,c=RU"
+MQ2_DN="cn=hldgappdev201lv.inet.test_2,O=TEST,c=RU"
 MQ2_LAB="label_mq2"
 MQ2_CONF="${BIN}/mq2/keystore.conf"
 MQ2_CERT="${BIN}/mq2/cert-mq2.pem"
