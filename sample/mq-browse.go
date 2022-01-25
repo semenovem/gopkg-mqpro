@@ -1,8 +1,10 @@
 package main
 
 import (
+  "context"
   "fmt"
   "net/http"
+  "time"
 )
 
 // Просмотр сообщений в очереди
@@ -10,7 +12,10 @@ import (
 func onBrowse(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Просмотр сообщений в очереди")
 
-  ch, err := ibmmq.Browse(rootCtx)
+  ctx, canc := context.WithTimeout(rootCtx, time.Second*10)
+  defer canc()
+
+  ch, err := mqQueFooGet.Browse(ctx)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return

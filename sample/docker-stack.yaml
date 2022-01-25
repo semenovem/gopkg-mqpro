@@ -1,0 +1,94 @@
+version: '3.8'
+
+networks:
+  pkg-mqpro-sample:
+    external: true
+
+
+configs:
+  mq-app1-mqsc:
+    file: ./cfg/ibmmq/mq-app1.mqsc
+  mq-app1-cmd:
+    file: ./cfg/ibmmq/cmd.sh
+  mq-app2-mqsc:
+    file: ./cfg/ibmmq/mq-app2.mqsc
+  mq-app2-cmd:
+    file: ./cfg/ibmmq/cmd2.sh
+
+
+secrets:
+  tls-cert:
+    file: ./crypto/server/cacert.crt
+  tls-key:
+    file: ./crypto/server/ca.key
+
+
+x-deploy: &deploy-base
+  replicas: 1
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+
+
+x-logging: &logging-base
+  driver: json-file
+  options:
+    max-size: 1m
+    max-file: 3
+
+
+x-base: &base
+  deploy: *deploy-base
+  networks:
+      - pkg-mqpro-sample
+
+
+x-base: &base-ibmmq
+  <<: *base
+  image: ibmcom/mq:9.2.2.0-r1
+  secrets:
+    - source: tls-cert
+      target: /etc/mqm/pki/keys/mykey/cacert.crt
+    - source: tls-key
+      target: /etc/mqm/pki/keys/mykey/ca.key
+
+services:
+  mq1:
+    <<: *base-ibmmq
+    hostname: ibmmq-app1
+    ports:
+      - "9443:9443"
+    configs:
+      - source: mq-app1-mqsc
+        target: /etc/mqm/30-config.mqsc
+      - source: mq-app1-cmd
+        target: /app/cmd.sh
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QMAPP1
+      - MQ_ADMIN_PASSWORD=22
+      - MQ_APP_PASSWORD=11
+      - MQ_ENABLE_METRICS=true
+      - MQ_ENABLE_EMBEDDED_WEB_SERVER=true
+
+
+  mq2:
+    <<: *base-ibmmq
+    hostname: ibmmq-app2
+    ports:
+      - "9444:9443"
+    configs:
+      - source: mq-app2-mqsc
+        target: /etc/mqm/30-config.mqsc
+      - source: mq-app2-cmd
+        target: /app/cmd.sh
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QMAPP2
+      - MQ_ADMIN_PASSWORD=22
+      - MQ_APP_PASSWORD=11
+      - MQ_ENABLE_METRICS=true
+      - MQ_ENABLE_EMBEDDED_WEB_SERVER=true
+#    volumes:
+#      - ./cfg/ibmmq/cmd2.sh:/app/cmd.sh:ro
+#      - ./crypto/server:/etc/mqm/pki/keys/mykey:ro

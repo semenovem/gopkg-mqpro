@@ -2,60 +2,59 @@ package mqpro
 
 import (
   "context"
+  "github.com/semenovem/gopkg_mqpro/v2/manager"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "github.com/sirupsen/logrus"
   "sync"
   "time"
 )
 
 type Mqpro struct {
-  rootCtx               context.Context
-  ctx                   context.Context
-  ctxCancel             context.CancelFunc
-  conns                 []*Mqconn
-  connGet               []*Mqconn
-  connPut               []*Mqconn
-  connBrowse            []*Mqconn
-  fnEventInMsg          func(*Msg)    // Обработчик входящих сообщений
-  mx                    sync.Mutex    // Подключение / отключение
-  delayBeforeDisconnect time.Duration // Задержка перед разрывом соединения
-  reconnDelay           time.Duration // Задержка при повторных попытках подключения к MQ
-  log                   *logrus.Entry
+  rootCtx      context.Context
+  ctx          context.Context
+  ctxCanc      context.CancelFunc
+  mx           sync.Mutex // Подключение / отключение
+  log          *logrus.Entry
+  disconnDelay time.Duration
+  isConnected  bool
+  queueCfg     *queue.BaseConfig // Конфиг ibmmq очереди
+  managerCfg   *manager.Config   // Конфиг ibmmq менеджера
+  queues       []*queue.Queue
+  managers     []*manager.Mqpro
 }
 
 func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
-  return &Mqpro{
-    rootCtx:               rootCtx,
-    delayBeforeDisconnect: defDisconnDelay,
-    reconnDelay:           defReconnDelay,
-    log:                   l,
+  o := &Mqpro{
+    rootCtx:      rootCtx,
+    log:          l,
+    disconnDelay: defDisconnDelay,
   }
+  return o
 }
 
-func (p *Mqpro) SetConn(connLi ...*Mqconn) {
-  for _, conn := range connLi {
-    switch conn.Type() {
-    case TypeGet:
-      p.connGet = append(p.connGet, conn)
-      if p.fnEventInMsg != nil {
-        conn.RegisterEventInMsg(p.fnEventInMsg)
-      }
-    case TypePut:
-      p.connPut = append(p.connPut, conn)
-    case TypeBrowse:
-      p.connBrowse = append(p.connBrowse, conn)
+// NewQueue Объект очереди
+func (m *Mqpro) NewQueue(a string) *queue.Queue {
+  l := m.log.WithField("_t", "queue")
+  logMag := m.log.WithField("_t", "manager")
 
-    default:
-      p.log.Panic("Unknown connection type")
+  man := manager.New(m.rootCtx, logMag)
+
+  q := queue.New(m.rootCtx, l, man, m, a)
+  m.queues = append(m.queues, q)
+  m.managers = append(m.managers, man)
+
+  return q
+}
+
+func (m *Mqpro) GetQueueByAlias(a string) *queue.Queue {
+  for _, q := range m.queues {
+    if q.Alias() == a {
+      return q
     }
-
-    p.conns = append(p.conns, conn)
   }
+  return nil
 }
 
-func (p *Mqpro) SetLogger(l *logrus.Entry) {
-  p.log = l
-}
-
-func (p *Mqpro) GetConns() []*Mqconn {
-  return p.conns
+func (m *Mqpro) GetBaseCfg() *queue.BaseConfig {
+  return m.queueCfg
 }

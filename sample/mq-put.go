@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "net/http"
   "time"
 )
@@ -13,32 +13,35 @@ import (
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
 
-  ctx, cancel := context.WithTimeout(rootCtx, time.Second*3)
-  defer cancel()
+  //for i := 0; i < 200; i++ {
+  // go _putMsg()
+  //}
 
-  // Свойства сообщения
-  props := map[string]interface{}{
-    "firstProp":   "this is first prop",
-    "anotherProp": "... another prop",
-  }
-
-  size := 8 * 1
-  b := make([]byte, size)
-
-  for i := 0; i < size; i++ {
-    b[i] = byte(i)
-  }
-
-  msg := &mqpro.Msg{
-    Payload: b,
-    Props:   props,
-  }
-
-  msgId, err := ibmmq.Put(ctx, msg)
+  msgId, err := _putMsg()
   if err != nil {
     _, _ = fmt.Fprintf(w, "put Error: %s\n", err.Error())
     return
   }
 
   _, _ = fmt.Fprintf(w, "put Ok. msgId: %x\n", msgId)
+}
+
+func _putMsg() ([]byte, error) {
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+  defer cancel()
+
+  // Свойства сообщения
+  props := map[string]interface{}{
+    "foo":   "10101001110110",
+    "BAR": "cb31e8610231",
+  }
+
+  b := []byte(`{"HoldJetFuelPaymentMsg":{"id":"f021d4ec-27f5-41be-8af3-946e65686902","result":"OK"}}`)
+
+  msg := &queue.Msg{
+    Payload:  b,
+    Props:   props,
+  }
+
+  return msg.MsgId, mqQueFooPut.Put(ctx, msg)
 }

@@ -2,9 +2,14 @@ DOCKER_IMAGE_NAME := "pkg-mqpro-sample"
 VERSION := "1.0"
 
 IMG := "$(DOCKER_IMAGE_NAME):$(VERSION)"
+IMG_DEV := "$(IMG)-dev"
+
 PROJ_NAME := "gopkg-mqpro-sample"
 NETWORK := "pkg-mqpro-sample"
 
+IMG_CURL := "curl:1"
+
+SHELL = /bin/bash
 
 # -----------------
 # commands
@@ -15,10 +20,19 @@ help: Makefile
 	@echo "Choose a command in:"
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 
+
 ## net
 .PHONY: net
 net:
-	@docker network create --driver overlay --attachable $(NETWORK)
+	@$(call checkCreateDockerNet)
+
+
+define checkCreateDockerNet
+		$(eval TTT=$(shell docker network ls -f name=$(NETWORK) -q))
+		[ -z "$(TTT)" ] \
+		&& docker network create --driver overlay --attachable $(NETWORK) \
+		|| echo "docker network $(NETWORK) is exists"
+endef
 
 
 ## install
@@ -27,115 +41,87 @@ install:
 	@docker pull "ibmcom/mq:9.2.2.0-r1"
 
 
+# Deprecated
 ## docker
 .PHONY: docker
 docker:
 	@docker build \
-		--no-cache \
  		-f ./Dockerfile \
  		-t "$(IMG)" .
+
+
+## build-image-curl
+.PHONY: build-image-curl
+build-image-curl:
+	@docker build \
+ 		-f ../docker/curl.dockerfile \
+ 		-t "$(IMG_CURL)" .
 
 
 ## crypto - gen crypto
 .PHONY: crypto
 crypto:
+	@make -C ../crypto build-image
 	@bash crypto/run.sh
 
 
-## ibmmq
-.PHONY: ibmmq
-ibmmq:
-	@docker run -it --rm \
-		--name pkg-mqpro-sample-ibmmq \
-		--network $(NETWORK) \
-		--hostname mq0 \
-		--env LICENSE=accept \
-		--env MQ_QMGR_NAME=QM1 \
-		--env MQ_ADMIN_PASSWORD=22 \
-		--env MQ_APP_PASSWORD=11 \
-		--env MQ_ENABLE_METRICS=true \
-		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
-		--publish 9443:9443 \
-    ibmcom/mq:9.2.2.0-r1
-
-
-## ibmmqtls
-.PHONY: ibmmqtls
-ibmmqtls:
-	@docker run -it --rm \
-		--name pkg-mqpro-sample-ibmmq \
-		--network $(NETWORK) \
-		--hostname mq0 \
-		--env LICENSE=accept \
-		--env MQ_QMGR_NAME=QM1 \
-		--env MQ_ADMIN_PASSWORD=22 \
-		--env MQ_APP_PASSWORD=11 \
-		--env MQ_ENABLE_METRICS=true \
-		--env MQ_ENABLE_EMBEDDED_WEB_SERVER=true \
-		--publish 9443:9443 \
-		-v "${PWD}/crypto/server:/etc/mqm/pki/keys/mykey:ro" \
-    ibmcom/mq:9.2.2.0-r1
-
-
-## curl - контейнер, присоединенный к сети, для выполнения curl запросов
+## curl - launching a container attached to the docker network to execute curl requests
 .PHONY: curl
 curl:
-	@docker run -it --rm --network $(NETWORK) ubuntu:20.04 sh -c \
-     "apt update && apt install -y curl && echo '| Для выхода из контейнера ctrl+D' && bash"
+	@docker run -it --rm \
+	-v "${PWD}/cfg/curl-source.sh:/shell.sh:ro" \
+	--network $(NETWORK) \
+	$(IMG_CURL) sh -c \
+     "source /shell.sh && echo 'source /shell.sh' && echo '| Для выхода из контейнера ctrl+D' && sh"
 
 
-## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client1.env`
 .PHONY: dev
 dev:
-	@docker run --rm -it \
-		--name client \
-		--hostname c \
-		--network $(NETWORK) \
-		-w /app/sample \
-		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash dev/run.sh client.env
+	@make CONFIG=client1.env \
+		NAME_CONTAINER=client1 \
+		HOSTNAME=c \
+		KEYSTORE=$(PWD)/crypto/keystore1 \
+		run_dev_container
 
 
-## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
+## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client2.env`
 .PHONY: dev2
 dev2:
+	@make CONFIG=client2.env \
+		NAME_CONTAINER=client2 \
+		HOSTNAME=c2 \
+		KEYSTORE=$(PWD)/crypto/keystore2 \
+		run_dev_container
+
+
+.PHONY: run_dev_container
+run_dev_container:
 	@docker run --rm -it \
-		--name client2 \
-		--hostname c2 \
+		--name $(NAME_CONTAINER) \
+		--hostname $(HOSTNAME) \
 		--network $(NETWORK) \
 		-w /app/sample \
-		-v "${PWD}/..:/app:ro" \
-		"$(IMG)" bash dev/run.sh client.env
-
-
-## dev3 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh`
-.PHONY: dev3
-dev3:
-	@docker run --rm -it \
-		--name client3 \
-		--hostname c3 \
-		--network $(NETWORK) \
-		-w /app/sample \
-		-v "${PWD}/..:/app:ro" \
-		"$(IMG)" bash dev/run.sh client.env
-
-
-## server - контейнер для разработки
-.PHONY: server
-server:
-	@docker run --rm -it \
-		--name server \
-		--hostname s \
-		--network $(NETWORK) \
-		-w /app/sample \
-		-v "${PWD}/..:/app:ro" \
-		"$(IMG)" bash dev/run.sh server.env
-
-
-## test
-.PHONY: test
-test:
-	@docker run --rm -it \
-		-w /app \
 		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash
+		-v "$(KEYSTORE):/mqs:ro" \
+		"$(IMG)" bash dev/run.sh $(CONFIG)
+
+
+# TODO - добавить проверку и запуск: подготовка тестовых криптоматериалов
+# загрузку образа ibmmq
+## up: launch stack of apps
+.PHONY: up
+up: net
+	@docker stack deploy -c docker-stack.yaml mqpro
+
+
+## down: launch stack of apps
+.PHONY: down
+down:
+	@docker stack rm mqpro
+
+
+## ams - enabled ams
+.PHONY: ams
+ams:
+	@bash dev/ams-run.sh

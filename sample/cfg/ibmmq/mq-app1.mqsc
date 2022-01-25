@@ -1,0 +1,29 @@
+
+* Конфиг для локальной очеереди
+* Developer authority records
+SET AUTHREC PRINCIPAL('app') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
+
+
+* -----------------------------
+* -- это нужно переработать и дать разрешение только для указанных адресов и каналов
+SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*') ACTION(REMOVE)
+SET AUTHREC PROFILE('APP1.**') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+SET AUTHREC PROFILE('APP2.**') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+
+
+* локальная очередь, входящие сообщения
+DEFINE QLOCAL(APP2.APP1.FOO.Q) REPLACE
+
+
+* удаленная очередь, отправка
+define qlocal (FOO.IN.TRANSMISSION) usage (xmitq)
+define qremote (APP1.APP2.FOO.RQ) rname (APP1.APP2.FOO.Q) rqmname(QMAPP2) xmitq (FOO.IN.TRANSMISSION)
+
+
+* канал отправки сообщений на второй менеджер
+define channel(QM.FOO.CHANNEL) chltype(SDR) conname('mq2(1414)') xmitq(FOO.IN.TRANSMISSION) trptype(tcp)
+start channel (QM.FOO.CHANNEL)
+
+
+* канал приема сообщений
+define channel (QM.FOO.CHANNEL2) chltype (RCVR) trptype (TCP)

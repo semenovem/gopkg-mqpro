@@ -49,14 +49,14 @@ func getMsgByCorrelId(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  msg, ok, err := ibmmq.GetByCorrelId(ctx, b)
+  msg, err := mqQueFooGet.GetByCorrelId(ctx, b)
   if err != nil {
     fmt.Println("[ERROR] ошибка при получении сообщения по CorrelID: ", id)
     _, _ = fmt.Fprintf(w, "[correl] Error: %s\n", err.Error())
     return
   }
 
-  if !ok {
+  if msg == nil {
     fmt.Println("[WARN] нет сообщения с CorrelID: ", id)
     _, _ = fmt.Fprintf(w, "[correl] Warn: message not found\n")
     return

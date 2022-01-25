@@ -1,42 +1,54 @@
 ### imbmq provider sample
 
 ## Быстрый старт
+подготовка: 
+
+- развернуть docker swarm
+- сборка контейнеров
+make build-image-curl
+make docker
+
 
 ```
 cd sample
 
-// 1) собрать образ / создать  docker сеть / сгенерировать криптоматериалы
-make docker
-make net
+1. сгенерировать криптоматериалы
 make crypto
+в файлах: sample/crypto/{keystore1,keystore2}/keystore.conf
+исправить строку `cms.keystore = /mq-ams` 
+на `cms.keystore = /mqs/mq-ams`
 
-// 2) в отдельном терминале - менеджер ibmmq
-make ibmmqtls
 
-// 3) в отдельном терминале - приложение примера использования
+  
+2. запустить стек менеджеров ibmmq
+make up
+  
+  
+2.1. 
+Запустить ams на очередях
+make ams
+  
+  
+3. в отдельном терминале - приложение примера использования
 make dev
-
-// 4) в отдельном терминале - контейнер, подключенный к сети приложения для curl запросов
+make dev2
+  
+  
+4) в отдельном терминале - контейнер, подключенный к сети приложения для curl запросов
 make curl
-
-// 5) готово. в контейнере с curl доступны команды: 
-curl sample/put
-curl sample/get
-curl sample/browse
-curl sample/putget
-curl sample/sub
-curl sample/unsub
-curl sample/correl
+в контейнере с curl:
 ```
+# Если запущен `make dev`
 
-#### links
-https://colinpaice.blog/setting-up-tls-for-mq-with-your-own-certificate-authority-using-ikeyman/
+curl client1/put
+curl client1/get
+curl client1/browse
 
-https://developer.ibm.com/components/ibm-mq/tutorials/mq-secure-msgs-tls/
-https://github.com/ibm-messaging/mq-dev-patterns
 
-set up mutual
-https://developer.ibm.com/components/ibm-mq/tutorials/configuring-mutual-tls-authentication-java-messaging-app/
+# Если запущен `make dev2`
 
-rfh2
-https://www.ibm.com/docs/en/ibm-mq/9.0?topic=mqrfh2-namevaluelength-mqlong
+curl client2/put
+curl client2/get
+curl client2/browse
+
+```

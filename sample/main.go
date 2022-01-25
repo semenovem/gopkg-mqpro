@@ -2,64 +2,74 @@ package main
 
 import (
   "context"
-  "encoding/hex"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro"
+  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  "github.com/sirupsen/logrus"
   "net/http"
   "os"
   "os/signal"
-  "strconv"
   "syscall"
   "time"
 )
 
-var rootCtx, rootCtxCancel = context.WithCancel(context.Background())
-var ibmmq = mqpro.New(rootCtx)
-var correlId []byte
-var correlId2 []byte
+var (
+  log                  = logger()
+  rootCtx, rootCtxCanc = context.WithCancel(context.Background())
+  logIbmmq             = log.WithField("sys", "mq")
+  mq          = mqpro.New(rootCtx, logIbmmq)
+  mqQueFooPut = mq.NewQueue("aliasQueueFooPut")
+  mqQueFooGet = mq.NewQueue("aliasQueueFooGet")
+
+  //mqQueBarPut = mq.NewQueue("aliasQueueBarPut")
+  //mqQueBarGet = mq.NewQueue("aliasQueueBarGet")
+)
+
+func logger() *logrus.Entry {
+  l := logrus.NewEntry(logrus.New())
+  l.Logger.SetFormatter(formatter())
+  return l
+}
 
 func init() {
   go func() {
     sig := make(chan os.Signal, 1)
     signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
     <-sig
-    rootCtxCancel()
+    rootCtxCanc()
   }()
-
-  correlId, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480440")
-  correlId2, _ = hex.DecodeString("414d5120514d3120202020202020202005b3b06029480444")
+  log.Logger.SetFormatter(formatter())
 }
 
 func main() {
-  fmt.Println("Старт тестового приложения работы с IBM MQ")
-  defer fmt.Println("Остановка приложения")
+  log.Info("Старт тестового приложения работы с IBM MQ")
+  defer log.Info("Остановка приложения")
 
   go func() {
-    ibmmq.UseDefEnv()
-
-    err := ibmmq.Connect()
-    if err != nil {
-      fmt.Println("Err: ошибка запуска приложения:", err)
-      rootCtxCancel()
+    err := mq.Connect()
+    if err == nil {
+      log.Info(">>>>> Подключение к IBMMQ успешно")
+    } else {
+      log.Error("Err: ошибка запуска приложения:", err)
+      rootCtxCanc()
     }
   }()
+
+  //mqQueFooGet.RegisterInMsg(hndIncomingMsg)
 
   // api
-  go func() {
-    p, err := strconv.Atoi(os.Getenv("ENV_API_PORT"))
-    if err != nil {
-      fmt.Println("not set correct ENV_API_PORT: ", err)
-      panic("not set correct ENV_API_PORT")
-    }
-
-    err = http.ListenAndServe(fmt.Sprintf(":%d", p), nil)
-    fmt.Println("ListenAndServe: ", err)
-  }()
+  if cfg.ApiPort != 0 {
+    go func() {
+      err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.ApiPort), nil)
+      if err != nil {
+        log.Error("ListenAndServe: ", err)
+      }
+    }()
+  }
 
   if cfg.SimpleSubscriber || cfg.Mirror {
-    subscr()
+    //subscr()
   }
 
   <-rootCtx.Done()
-  time.Sleep(time.Second * 1)
+  time.Sleep(time.Millisecond * 100)
 }

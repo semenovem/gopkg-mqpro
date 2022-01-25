@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro"
+  "github.com/semenovem/gopkg_mqpro/v2/queue"
   "net/http"
   "time"
 )
@@ -33,24 +33,23 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
     b[i] = byte(i)
   }
 
-  msg := &mqpro.Msg{
+  msg := &queue.Msg{
     Payload: b,
     Props:   props,
   }
 
-  msgId, err := ibmmq.Put(ctx, msg)
+  err := mqQueFooGet.Put(ctx, msg)
   if err != nil {
     _, _ = fmt.Fprintf(w, "[ping] Error: %s\n", err.Error())
     return
   }
 
-  msg.MsgId = msgId
   logMsgOut(msg)
 
   fmt.Println()
   fmt.Println("Ждем ответа: ")
 
-  reply, ok, err := ibmmq.GetByCorrelId(ctx, msgId)
+  reply, err := mqQueFooGet.GetByCorrelId(ctx, msg.MsgId)
 
   if err != nil {
     fmt.Println("[ERROR] ошибка при получении сообщения по CorrelID")
@@ -58,7 +57,7 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
     return
   }
 
-  if !ok {
+  if reply == nil {
     fmt.Println("[WARN] нет ответного сообщения")
     _, _ = fmt.Fprintf(w, "[ping] Warn no response was received\n")
     return
@@ -66,5 +65,5 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
 
   logMsgIn(reply)
 
-  _, _ = fmt.Fprintf(w, "[ping] Ok. msgId: %x\n", msgId)
+  _, _ = fmt.Fprintf(w, "[ping] Ok. msgId: %x\n", reply.MsgId)
 }
