@@ -20,6 +20,7 @@ help: Makefile
 	@echo "Choose a command in:"
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 
+
 ## net
 .PHONY: net
 net:
@@ -40,6 +41,7 @@ install:
 	@docker pull "ibmcom/mq:9.2.2.0-r1"
 
 
+# Deprecated
 ## docker
 .PHONY: docker
 docker:
@@ -59,6 +61,7 @@ build-image-curl:
 ## crypto - gen crypto
 .PHONY: crypto
 crypto:
+	@make -C ../crypto build-image
 	@bash crypto/run.sh
 
 
@@ -72,16 +75,23 @@ curl:
      "source /shell.sh && echo 'source /shell.sh' && echo '| Для выхода из контейнера ctrl+D' && sh"
 
 
-## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client.env`
+## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client1.env`
 .PHONY: dev
 dev:
-	@make CONFIG=client.env NAME_CONTAINER=client HOSTNAME=c KEYSTORE=$(PWD)/ams/keystore1 \
+	@make CONFIG=client1.env \
+		NAME_CONTAINER=client1 \
+		HOSTNAME=c \
+		KEYSTORE=$(PWD)/crypto/keystore1 \
 		run_dev_container
+
 
 ## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client2.env`
 .PHONY: dev2
 dev2:
-	@make CONFIG=client2.env NAME_CONTAINER=client2 HOSTNAME=c2 KEYSTORE=$(PWD)/ams/keystore2 \
+	@make CONFIG=client2.env \
+		NAME_CONTAINER=client2 \
+		HOSTNAME=c2 \
+		KEYSTORE=$(PWD)/crypto/keystore2 \
 		run_dev_container
 
 
@@ -93,26 +103,25 @@ run_dev_container:
 		--network $(NETWORK) \
 		-w /app/sample \
 		-v "${PWD}/..:/app:rw" \
-		-v "$(KEYSTORE):/mqs:rw" \
-		"$(IMG)" bash
-		#dev/run.sh $(CONFIG)
+		-v "$(KEYSTORE):/mqs:ro" \
+		"$(IMG)" bash dev/run.sh $(CONFIG)
 
 
-## test
-.PHONY: test
-test:
-	@docker run --rm -it \
-		-w /app \
-		-v "${PWD}/..:/app:rw" \
-		"$(IMG)" bash
-
-
+# TODO - добавить проверку и запуск: подготовка тестовых криптоматериалов
+# загрузку образа ibmmq
 ## up: launch stack of apps
 .PHONY: up
 up: net
 	@docker stack deploy -c docker-stack.yaml mqpro
 
+
 ## down: launch stack of apps
 .PHONY: down
 down:
 	@docker stack rm mqpro
+
+
+## ams - enabled ams
+.PHONY: ams
+ams:
+	@bash dev/ams-run.sh

@@ -13,20 +13,18 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 
 
-define checkCreateDockerNet
-		$(eval TTT=$(shell docker network ls -f name=$(NETWORK) -q))
-		[ -z "$(TTT)" ] \
-		&& docker network create --driver overlay --attachable $(NETWORK) \
-		|| echo "docker network $(NETWORK) is exists"
+define checkDockerImage
+		$(eval TTT=$(shell docker image ls --filter=reference=$(IMG) -q))
+		[ "$(TTT)" ] \
+		|| docker build -f ./Dockerfile -t $(IMG) .
 endef
 
 
 ## build-image
 .PHONY: build-image
 build-image:
-	@docker build \
- 		-f ../docker/crypto.dockerfile \
- 		-t "$(IMG)" .
+	@$(call checkDockerImage)
+
 
 ## dev
 .PHONY: dev
@@ -36,12 +34,4 @@ dev:
 		--entrypoint "" \
 		-w /app \
 		-v "$(PWD):/app:rw" \
-		$(IMG) bash
-
-#bash run.sh
-
-
-## crypto - gen crypto
-.PHONY: crypto
-crypto:
-	@bash crypto/run.sh
+		$(IMG) sh -c "echo ./crypto-app.sh -config example-config.env; bash"

@@ -50,7 +50,7 @@ func logMsg(m *Msg, origBuf []byte, n string) {
   f("[MQPRO-DevMode] Time         = %s\n", tt)
 
   if len(m.MQRFH2) == 0 {
-    f("[MQPRO-DevMode] MQRFH2  = %x\n", m.MQRFH2)
+    f("[MQPRO-DevMode] MQRFH2  = []\n")
   } else {
     for i, h := range m.MQRFH2 {
       f("[MQPRO-DevMode] MQRFH2[%d].StructId       = %s\n", i, h.StructId)

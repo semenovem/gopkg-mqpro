@@ -1,22 +1,28 @@
 #!/bin/bash
 
 BIN=$(dirname "$([[ $0 == /* ]] && echo "$0" || echo "$PWD/${0#./}")")
-IMG="pkg-mqpro-sample:1.0"
-IMG_CRYPTO="pkg-mqpro-sample/crypto:1.0"
+IMG_CRYPTO="mqpro/crypto:1"
 
-docker build \
-  --build-arg BASE_IMAGE="$IMG" \
-  -f "${BIN}/Dockerfile" \
-  -t "$IMG_CRYPTO" \
-  "$BIN"
+rm -rf "${BIN:?}/keystore1"
+rm -rf "${BIN:?}/keystore2"
+rm -rf "${BIN:?}/server"
 
-ID=$(docker run -d "$IMG_CRYPTO" bash /app/gen.sh)
 
-rm -rf "${BIN:?}"/{client,server}
+#docker run -it --rm \
+#  -v "${BIN:?}/instruct-gen.sh:/app/instruct-gen.sh:ro" \
+#  "$IMG_CRYPTO" \
+#  sh -c "bash /app/instruct-gen.sh; bash"
+#exit
 
-sleep 3
+ID=$(docker run -d \
+  -v "${BIN:?}/instruct-gen.sh:/app/instruct-gen.sh:ro" \
+  "$IMG_CRYPTO" \
+  sh -c "bash /app/instruct-gen.sh; sleep 10") || exit 1
 
+sleep 5
+
+docker cp "${ID:?}:/app/keystore1" "${BIN:?}"
+docker cp "${ID:?}:/app/keystore2" "${BIN:?}"
 docker cp "${ID:?}:/app/server" "${BIN:?}"
-docker cp "${ID:?}:/app/client" "${BIN:?}"
 
 docker stop "$ID"

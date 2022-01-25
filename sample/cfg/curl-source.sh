@@ -1,7 +1,7 @@
 #!/bin/sh
 
 c () {
-  curl client/"$*"
+  curl client1/"$*"
 }
 
 c2 () {

@@ -13,7 +13,14 @@ configs:
   mq-app2-mqsc:
     file: ./cfg/ibmmq/mq-app2.mqsc
   mq-app2-cmd:
-    file: ./cfg/ibmmq/cmd.sh
+    file: ./cfg/ibmmq/cmd2.sh
+
+
+secrets:
+  tls-cert:
+    file: ./crypto/server/cacert.crt
+  tls-key:
+    file: ./crypto/server/ca.key
 
 
 x-deploy: &deploy-base
@@ -39,7 +46,11 @@ x-base: &base
 x-base: &base-ibmmq
   <<: *base
   image: ibmcom/mq:9.2.2.0-r1
-
+  secrets:
+    - source: tls-cert
+      target: /etc/mqm/pki/keys/mykey/cacert.crt
+    - source: tls-key
+      target: /etc/mqm/pki/keys/mykey/ca.key
 
 services:
   mq1:
@@ -50,8 +61,8 @@ services:
     configs:
       - source: mq-app1-mqsc
         target: /etc/mqm/30-config.mqsc
-#      - source: mq-app1-cmd
-#        target: /app/cmd.sh
+      - source: mq-app1-cmd
+        target: /app/cmd.sh
     environment:
       - LICENSE=accept
       - MQ_QMGR_NAME=QMAPP1
@@ -59,10 +70,7 @@ services:
       - MQ_APP_PASSWORD=11
       - MQ_ENABLE_METRICS=true
       - MQ_ENABLE_EMBEDDED_WEB_SERVER=true
-    volumes:
-      - ./cfg/ibmmq/cmd.sh:/app/cmd.sh:ro
 
-#  -v "${PWD}/crypto/server:/etc_/mqm/pki/keys/mykey:ro" \
 
   mq2:
     <<: *base-ibmmq
@@ -72,8 +80,8 @@ services:
     configs:
       - source: mq-app2-mqsc
         target: /etc/mqm/30-config.mqsc
-#      - source: mq-app2-cmd
-#        target: /app/cmd.sh
+      - source: mq-app2-cmd
+        target: /app/cmd.sh
     environment:
       - LICENSE=accept
       - MQ_QMGR_NAME=QMAPP2
@@ -81,5 +89,6 @@ services:
       - MQ_APP_PASSWORD=11
       - MQ_ENABLE_METRICS=true
       - MQ_ENABLE_EMBEDDED_WEB_SERVER=true
-    volumes:
-      - ./cfg/ibmmq/cmd2.sh:/app/cmd.sh:ro
+#    volumes:
+#      - ./cfg/ibmmq/cmd2.sh:/app/cmd.sh:ro
+#      - ./crypto/server:/etc/mqm/pki/keys/mykey:ro
