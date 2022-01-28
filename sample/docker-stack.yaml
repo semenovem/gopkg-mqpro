@@ -1,7 +1,7 @@
 version: '3.8'
 
 networks:
-  pkg-mqpro-sample:
+  pkg-mqm-sample:
     external: true
 
 
@@ -40,7 +40,7 @@ x-logging: &logging-base
 x-base: &base
   deploy: *deploy-base
   networks:
-      - pkg-mqpro-sample
+      - pkg-mqm-sample
 
 
 x-base: &base-ibmmq

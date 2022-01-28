@@ -1,13 +1,13 @@
-package mqpro
+package mqm
 
 import (
   "context"
-  "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "github.com/semenovem/mqm/v2/queue"
   "sync"
   "time"
 )
 
-func (m *Mqpro) Connect() error {
+func (m *Mqm) Connect() error {
   m.log.Trace("Request to establish connection to IBM MQ...")
 
   m.mx.Lock()
@@ -34,10 +34,12 @@ func (m *Mqpro) Connect() error {
     }
   }
 
+  m.isConnected = true
+
   return nil
 }
 
-func (m *Mqpro) openQues() <-chan error {
+func (m *Mqm) openQues() <-chan error {
   var (
     ch   = make(chan error)
     wg   = sync.WaitGroup{}
@@ -75,7 +77,7 @@ func (m *Mqpro) openQues() <-chan error {
   return ch
 }
 
-func (m *Mqpro) Disconnect() error {
+func (m *Mqm) Disconnect() error {
   m.log.Trace("Request to disconnect from IBM MQ...")
 
   if !m.isConnected {
@@ -87,6 +89,8 @@ func (m *Mqpro) Disconnect() error {
 
   m.mx.Lock()
   defer m.mx.Unlock()
+
+  m.isConnected = false
 
   select {
   case <-m.rootCtx.Done():

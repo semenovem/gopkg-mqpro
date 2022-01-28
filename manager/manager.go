@@ -8,7 +8,7 @@ import (
   "time"
 )
 
-type Mqpro struct {
+type Manager struct {
   log            *logrus.Entry
   rootCtx        context.Context
   ctx            context.Context
@@ -29,8 +29,8 @@ type Mqpro struct {
   maxMsgLen                         int32
 }
 
-func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
-  o := &Mqpro{
+func New(rootCtx context.Context, l *logrus.Entry) *Manager {
+  o := &Manager{
     rootCtx:        rootCtx,
     disconnDelay:   defDisconnDelay,
     reconnDelay:    defReconnDelay,
@@ -46,6 +46,6 @@ func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
   return o
 }
 
-func (m *Mqpro) Reconnect() {
+func (m *Manager) Reconnect() {
   m.stateErr()
 }

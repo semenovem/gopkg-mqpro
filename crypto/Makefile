@@ -1,6 +1,6 @@
 
 SHELL := /bin/bash
-IMG := "mqpro/crypto:1"
+IMG := "mqm/crypto:1"
 
 
 # -----------------
@@ -26,12 +26,17 @@ build-image:
 	@$(call checkDockerImage)
 
 
+## rm-image
+.PHONY: rm-image
+rm-image:
+	@docker image rm $(IMG)
+
+
 ## dev
 .PHONY: dev
 dev:
 	@docker run -it --rm \
-		--name mqpro-crypto-dev \
-		--entrypoint "" \
+		--name mqm-crypto-dev \
 		-w /app \
 		-v "$(PWD):/app:rw" \
 		$(IMG) sh -c "echo ./crypto-app.sh -config example-config.env; bash"

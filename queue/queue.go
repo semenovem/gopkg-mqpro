@@ -110,3 +110,7 @@ func (q *Queue) isWarn(err error) {
     q.log.Warn(err)
   }
 }
+
+func (q *Queue) Ready() bool {
+  return q.state == stateOpen
+}

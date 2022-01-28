@@ -1,12 +1,12 @@
-package mqpro
+package mqm
 
 import (
   "bytes"
   "fmt"
   "github.com/caarlos0/env/v6"
   "github.com/pkg/errors"
-  "github.com/semenovem/gopkg_mqpro/v2/manager"
-  "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "github.com/semenovem/mqm/v2/manager"
+  "github.com/semenovem/mqm/v2/queue"
   "github.com/sirupsen/logrus"
   "gopkg.in/yaml.v3"
   "io/ioutil"
@@ -16,22 +16,22 @@ import (
 )
 
 type Config struct {
-  DevMode            bool   `env:"ENV_MQPRO_DEV_MODE" yaml:"devMode"`
-  LogLev             string `env:"ENV_MQPRO_LOG_LEVEL" yaml:"logLev"`
-  Host               string `env:"ENV_MQPRO_HOST" yaml:"host"`
-  Port               int32  `env:"ENV_MQPRO_PORT" yaml:"port"`
-  Manager            string `env:"ENV_MQPRO_MANAGER" yaml:"manager"`
-  Channel            string `env:"ENV_MQPRO_CHANNEL" yaml:"channel"`
-  App                string `env:"ENV_MQPRO_APP" yaml:"app"`
-  User               string `env:"ENV_MQPRO_USER" yaml:"user"`
-  Pass               string `env:"ENV_MQPRO_PASS" yaml:"pass"`
-  Header             string `env:"ENV_MQPRO_HEADER" yaml:"header"`
-  Rfh2CodedCharSetId int32  `env:"ENV_MQPRO_RFH2_CODE_CHAR_SET_ID" yaml:"rfh2CodedCharSetId"`
-  Rfh2RootTag        string `env:"ENV_MQPRO_RFH2_ROOT_TAG" yaml:"rfh2RootTag"`
-  Rfh2OffRootTag     bool   `env:"ENV_MQPRO_RFH2_OFF_ROOT_TAG" yaml:"rfh2OffRootTag"`
-  Tls                bool   `env:"ENV_MQPRO_TLS" yaml:"tls"`
-  KeyRepository      string `env:"ENV_MQPRO_KEY_REPOSITORY" yaml:"keyRepository"`
-  MaxMsgLength       int32  `env:"ENV_MQPRO_MESSAGE_LENGTH" yaml:"maxMsgLength"`
+  DevMode            bool   `env:"ENV_MQM_DEV_MODE" yaml:"devMode"`
+  LogLev             string `env:"ENV_MQM_LOG_LEVEL" yaml:"logLev"`
+  Host               string `env:"ENV_MQM_HOST" yaml:"host"`
+  Port               int32  `env:"ENV_MQM_PORT" yaml:"port"`
+  Manager            string `env:"ENV_MQM_MANAGER" yaml:"manager"`
+  Channel            string `env:"ENV_MQM_CHANNEL" yaml:"channel"`
+  App                string `env:"ENV_MQM_APP" yaml:"app"`
+  User               string `env:"ENV_MQM_USER" yaml:"user"`
+  Pass               string `env:"ENV_MQM_PASS" yaml:"pass"`
+  Header             string `env:"ENV_MQM_HEADER" yaml:"header"`
+  Rfh2CodedCharSetId int32  `env:"ENV_MQM_RFH2_CODE_CHAR_SET_ID" yaml:"rfh2CodedCharSetId"`
+  Rfh2RootTag        string `env:"ENV_MQM_RFH2_ROOT_TAG" yaml:"rfh2RootTag"`
+  Rfh2OffRootTag     bool   `env:"ENV_MQM_RFH2_OFF_ROOT_TAG" yaml:"rfh2OffRootTag"`
+  Tls                bool   `env:"ENV_MQM_TLS" yaml:"tls"`
+  KeyRepository      string `env:"ENV_MQM_KEY_REPOSITORY" yaml:"keyRepository"`
+  MaxMsgLength       int32  `env:"ENV_MQM_MESSAGE_LENGTH" yaml:"maxMsgLength"`
   Queues             []*Queues
 }
 
@@ -40,13 +40,13 @@ type Queues struct {
   Name  string `yaml:"name"`
 }
 
-func (m *Mqpro) isConfigured() bool {
+func (m *Mqm) isConfigured() bool {
   return m.managerCfg != nil && m.queueCfg != nil &&
     m.managerCfg.Host != "" && m.managerCfg.Port > 0 &&
     m.managerCfg.Manager != "" && m.managerCfg.Channel != ""
 }
 
-func (m *Mqpro) Cfg(c *Config) error {
+func (m *Mqm) Cfg(c *Config) error {
   m.mx.Lock()
   defer m.mx.Unlock()
 
@@ -137,7 +137,7 @@ func (m *Mqpro) Cfg(c *Config) error {
 }
 
 // CfgYaml конфигурирование файлом
-func (m *Mqpro) CfgYaml(file string) error {
+func (m *Mqm) CfgYaml(file string) error {
   c, err := ParseCfgYaml(file)
   if err != nil {
     return err
@@ -163,7 +163,7 @@ func (m *Mqpro) CfgYaml(file string) error {
 }
 
 // CfgEnv конфигурирование переменными окружения
-func (m *Mqpro) CfgEnv() error {
+func (m *Mqm) CfgEnv() error {
   c, err := ParseDefaultEnv()
   if err != nil {
     return err
@@ -193,18 +193,18 @@ func ParseCfgYaml(f string) (*Config, error) {
   return c, nil
 }
 
-func (m *Mqpro) SetDevMode(v bool) {
+func (m *Mqm) SetDevMode(v bool) {
   m.queueCfg.DevMode = v
   for _, q := range m.queues {
     q.UpdateBaseCfg()
   }
 }
 
-func (m *Mqpro) PrintSetCli(p string) {
+func (m *Mqm) PrintSetCli(p string) {
   queue.PrintSetCli(m.getSet(), p)
 }
 
-func (m *Mqpro) getSet() []map[string]string {
+func (m *Mqm) getSet() []map[string]string {
   return []map[string]string{
     {"manager/host": m.managerCfg.Host},
     {"manager/port": fmt.Sprintf("%d", m.managerCfg.Port)},
@@ -225,7 +225,7 @@ func (m *Mqpro) getSet() []map[string]string {
 }
 
 // PrintDefaultEnv распечатать содержимое переменных окружения
-func (m *Mqpro) PrintDefaultEnv() {
+func (m *Mqm) PrintDefaultEnv() {
   var (
     buf    = bytes.NewBufferString("Standard environment variables:\n")
     k, v   string
@@ -233,21 +233,21 @@ func (m *Mqpro) PrintDefaultEnv() {
   )
 
   li := []string{
-    "ENV_MQPRO_DEV_MODE",
-    "ENV_MQPRO_HOST",
-    "ENV_MQPRO_PORT",
-    "ENV_MQPRO_MANAGER",
-    "ENV_MQPRO_CHANNEL",
-    "ENV_MQPRO_APP",
-    "ENV_MQPRO_USER",
-    "ENV_MQPRO_PASS",
-    "ENV_MQPRO_HEADER",
-    "ENV_MQPRO_RFH2_CODE_CHAR_SET_ID",
-    "ENV_MQPRO_RFH2_ROOT_TAG",
-    "ENV_MQPRO_RFH2_OFF_ROOT_TAG",
-    "ENV_MQPRO_TLS",
-    "ENV_MQPRO_KEY_REPOSITORY",
-    "ENV_MQPRO_MESSAGE_LENGTH",
+    "ENV_MQM_DEV_MODE",
+    "ENV_MQM_HOST",
+    "ENV_MQM_PORT",
+    "ENV_MQM_MANAGER",
+    "ENV_MQM_CHANNEL",
+    "ENV_MQM_APP",
+    "ENV_MQM_USER",
+    "ENV_MQM_PASS",
+    "ENV_MQM_HEADER",
+    "ENV_MQM_RFH2_CODE_CHAR_SET_ID",
+    "ENV_MQM_RFH2_ROOT_TAG",
+    "ENV_MQM_RFH2_OFF_ROOT_TAG",
+    "ENV_MQM_TLS",
+    "ENV_MQM_KEY_REPOSITORY",
+    "ENV_MQM_MESSAGE_LENGTH",
   }
 
   for _, k = range li {

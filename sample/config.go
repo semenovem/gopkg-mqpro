@@ -15,14 +15,14 @@ type appConfig struct {
   LogLevel string `env:"ENV_LOG_LEVEL"` // Уровень логирования приложения
 
   // mq
-  MqLogLevel    string `env:"ENV_MQPRO_LOG_LEVEL"` // Уровень логирования ibmmq
-  MqQueOper1Put string `env:"ENV_MQPRO_QUEUE_OPER1_PUT"`
-  MqQueOper1Get string `env:"ENV_MQPRO_QUEUE_OPER1_GET"`
+  MqLogLevel    string `env:"ENV_MQM_LOG_LEVEL"` // Уровень логирования ibmmq
+  MqQueOper1Put string `env:"ENV_MQM_QUEUE_OPER1_PUT"`
+  MqQueOper1Get string `env:"ENV_MQM_QUEUE_OPER1_GET"`
 
-  MqQueOper2Put string `env:"ENV_MQPRO_QUEUE_OPER2_PUT"`
-  MqQueOper2Get string `env:"ENV_MQPRO_QUEUE_OPER2_GET"`
+  MqQueOper2Put string `env:"ENV_MQM_QUEUE_OPER2_PUT"`
+  MqQueOper2Get string `env:"ENV_MQM_QUEUE_OPER2_GET"`
 
-  MqYamlCfgFile string `env:"ENV_MQPRO_YAML_CFG_FILE"`
+  MqYamlCfgFile string `env:"ENV_MQM_YAML_CFG_FILE"`
 
   // При старте подписаться на входящие сообщения
   SimpleSubscriber bool `env:"ENV_SIMPLE_SUBSCRIBER"`
@@ -106,7 +106,7 @@ func printCfg() {
   f("Список переменных окружения и настроек:\n")
   f("ENV_API_PORT           = %d\n", cfg.ApiPort)
   f("ENV_LOG_LEVEL          = %s\n", strings.ToUpper(cfg.LogLevel))
-  f("ENV_MQPRO_LOG_LEVEL    = %s\n", strings.ToUpper(cfg.MqLogLevel))
+  f("ENV_MQM_LOG_LEVEL    = %s\n", strings.ToUpper(cfg.MqLogLevel))
   f("ENV_SIMPLE_SUBSCRIBER  = %t\n", cfg.SimpleSubscriber)
   f("ENV_MIRROR             = %t\n", cfg.Mirror)
   f("cfg.logInfo            = %t\n", cfg.logInfo)

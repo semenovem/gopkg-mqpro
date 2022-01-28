@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "github.com/semenovem/mqm/v2/queue"
   "net/http"
   "time"
 )

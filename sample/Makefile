@@ -1,13 +1,11 @@
-DOCKER_IMAGE_NAME := "pkg-mqpro-sample"
 VERSION := "1.0"
 
-IMG := "$(DOCKER_IMAGE_NAME):$(VERSION)"
+IMG := "pkg-mqm-sample:$(VERSION)"
 IMG_DEV := "$(IMG)-dev"
-
-PROJ_NAME := "gopkg-mqpro-sample"
-NETWORK := "pkg-mqpro-sample"
-
 IMG_CURL := "curl:1"
+
+NETWORK := "pkg-mqm-sample"
+
 
 SHELL = /bin/bash
 
@@ -112,13 +110,13 @@ run_dev_container:
 ## up: launch stack of apps
 .PHONY: up
 up: net
-	@docker stack deploy -c docker-stack.yaml mqpro
+	@docker stack deploy -c docker-stack.yaml mqm
 
 
 ## down: launch stack of apps
 .PHONY: down
 down:
-	@docker stack rm mqpro
+	@docker stack rm mqm
 
 
 ## ams - enabled ams

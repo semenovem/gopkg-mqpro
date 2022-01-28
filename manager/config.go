@@ -2,7 +2,7 @@ package manager
 
 import (
   "fmt"
-  "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "github.com/semenovem/mqm/v2/queue"
 )
 
 type Config struct {
@@ -18,11 +18,11 @@ type Config struct {
   MaxMsgLength  int32
 }
 
-func (m *Mqpro) IsConfigured() bool {
+func (m *Manager) IsConfigured() bool {
   return m.host != "" && m.port > 0 && m.manager != "" && m.channel != ""
 }
 
-func (m *Mqpro) Cfg(c *Config) error {
+func (m *Manager) Cfg(c *Config) error {
   m.mx.Lock()
   defer m.mx.Unlock()
 
@@ -63,11 +63,11 @@ func (m *Mqpro) Cfg(c *Config) error {
   return nil
 }
 
-func (m *Mqpro) PrintSetCli(p string) {
+func (m *Manager) PrintSetCli(p string) {
   queue.PrintSetCli(m.getSet(), p)
 }
 
-func (m *Mqpro) getSet() []map[string]string {
+func (m *Manager) getSet() []map[string]string {
   return []map[string]string{
     {"host": m.host},
     {"port": fmt.Sprintf("%d", m.port)},

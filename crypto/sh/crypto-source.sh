@@ -277,7 +277,7 @@ funcInitKeystore() {
 
   # Создать файл конфигурации
   if [ "$label" ]; then
-    echo "cms.keystore = /${_KEYSTORE_NAME_}" > "${_KEYSTORE_DIR_}/keystore.conf"
+    echo "cms.keystore = ${_CONF_KEYSTORE_PATH_}" > "${_KEYSTORE_DIR_}/keystore.conf"
     echo "cms.certificate = ${label}" >> "${_KEYSTORE_DIR_}/keystore.conf"
 
     INFO "Файл MQ конфигурации: ${_KEYSTORE_DIR_}/keystore.conf"

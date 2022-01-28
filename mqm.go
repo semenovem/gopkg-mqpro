@@ -1,15 +1,15 @@
-package mqpro
+package mqm
 
 import (
   "context"
-  "github.com/semenovem/gopkg_mqpro/v2/manager"
-  "github.com/semenovem/gopkg_mqpro/v2/queue"
+  "github.com/semenovem/mqm/v2/manager"
+  "github.com/semenovem/mqm/v2/queue"
   "github.com/sirupsen/logrus"
   "sync"
   "time"
 )
 
-type Mqpro struct {
+type Mqm struct {
   rootCtx      context.Context
   ctx          context.Context
   ctxCanc      context.CancelFunc
@@ -20,11 +20,11 @@ type Mqpro struct {
   queueCfg     *queue.BaseConfig // Конфиг ibmmq очереди
   managerCfg   *manager.Config   // Конфиг ibmmq менеджера
   queues       []*queue.Queue
-  managers     []*manager.Mqpro
+  managers     []*manager.Manager
 }
 
-func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
-  o := &Mqpro{
+func New(rootCtx context.Context, l *logrus.Entry) *Mqm {
+  o := &Mqm{
     rootCtx:      rootCtx,
     log:          l,
     disconnDelay: defDisconnDelay,
@@ -33,7 +33,7 @@ func New(rootCtx context.Context, l *logrus.Entry) *Mqpro {
 }
 
 // NewQueue Объект очереди
-func (m *Mqpro) NewQueue(a string) *queue.Queue {
+func (m *Mqm) NewQueue(a string) *queue.Queue {
   l := m.log.WithField("_t", "queue")
   logMag := m.log.WithField("_t", "manager")
 
@@ -46,7 +46,7 @@ func (m *Mqpro) NewQueue(a string) *queue.Queue {
   return q
 }
 
-func (m *Mqpro) GetQueueByAlias(a string) *queue.Queue {
+func (m *Mqm) GetQueueByAlias(a string) *queue.Queue {
   for _, q := range m.queues {
     if q.Alias() == a {
       return q
@@ -55,6 +55,10 @@ func (m *Mqpro) GetQueueByAlias(a string) *queue.Queue {
   return nil
 }
 
-func (m *Mqpro) GetBaseCfg() *queue.BaseConfig {
+func (m *Mqm) GetBaseCfg() *queue.BaseConfig {
   return m.queueCfg
+}
+
+func (m *Mqm) Ready() bool {
+  return m.isConnected
 }

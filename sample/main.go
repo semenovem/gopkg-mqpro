@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  mqpro "github.com/semenovem/gopkg_mqpro/v2"
+  mqm "github.com/semenovem/mqm/v2"
   "github.com/sirupsen/logrus"
   "net/http"
   "os"
@@ -16,7 +16,7 @@ var (
   log                  = logger()
   rootCtx, rootCtxCanc = context.WithCancel(context.Background())
   logIbmmq             = log.WithField("sys", "mq")
-  mq          = mqpro.New(rootCtx, logIbmmq)
+  mq          = mqm.New(rootCtx, logIbmmq)
   mqQueFooPut = mq.NewQueue("aliasQueueFooPut")
   mqQueFooGet = mq.NewQueue("aliasQueueFooGet")
 

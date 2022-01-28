@@ -1,4 +1,4 @@
-package mqpro
+package mqm
 
 import (
   "errors"

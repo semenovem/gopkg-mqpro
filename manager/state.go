@@ -4,7 +4,7 @@ import (
   "time"
 )
 
-func (m *Mqpro) workerState() {
+func (m *Manager) workerState() {
   var (
     err error
     st  state
@@ -54,24 +54,24 @@ worker:
   }
 }
 
-func (m *Mqpro) stateConn() {
+func (m *Manager) stateConn() {
   m.chState <- stateConn
 }
 
-func (m *Mqpro) stateDisconn() {
+func (m *Manager) stateDisconn() {
   m.chState <- stateDisconn
 }
 
-func (m *Mqpro) stateErr() {
+func (m *Manager) stateErr() {
   if m.state == stateConn {
     m.chState <- stateErr
   }
 }
 
-func (m *Mqpro) IsConn() bool {
+func (m *Manager) IsConn() bool {
   return m.state == stateConn
 }
 
-func (m *Mqpro) IsDisconn() bool {
+func (m *Manager) IsDisconn() bool {
   return m.state == stateDisconn
 }

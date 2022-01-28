@@ -7,7 +7,7 @@ import (
   "time"
 )
 
-func (m *Mqpro) Connect() error {
+func (m *Manager) Connect() error {
   m.log.Trace("Request to establish connection to manager ibmmq...")
 
   m.mx.Lock()
@@ -38,7 +38,7 @@ func (m *Mqpro) Connect() error {
 }
 
 // Вызов из горутины изменения состояния
-func (m *Mqpro) connect() error {
+func (m *Manager) connect() error {
   cd := ibmmq.NewMQCD()
   cno := ibmmq.NewMQCNO()
   csp := ibmmq.NewMQCSP()
@@ -87,11 +87,11 @@ func (m *Mqpro) connect() error {
   return nil
 }
 
-func (m *Mqpro) endpoint() string {
+func (m *Manager) endpoint() string {
   return fmt.Sprintf("%s(%d)", m.host, m.port)
 }
 
-func (m *Mqpro) Disconnect() error {
+func (m *Manager) Disconnect() error {
   m.log.Trace("Request to disconnect from IBM MQ...")
 
   if m.IsDisconn() {
@@ -116,7 +116,7 @@ func (m *Mqpro) Disconnect() error {
 }
 
 // Вызов из горутины изменения состояния
-func (m *Mqpro) disconnect() {
+func (m *Manager) disconnect() {
   mgr := m.mgr
   if mgr != nil {
     m.mgr = nil

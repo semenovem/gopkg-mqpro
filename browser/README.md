@@ -12,7 +12,7 @@
 3. Если нужно подключится к другой docker сети 
 (когда менеджер ibmmq тестовый/развернут в докер-контейнере)
 
-`docker network connect pkg-mqpro-sample browser`
+`docker network connect pkg-mqm-sample browser`
 
-> `pkg-mqpro-sample` - сеть, к которой подключаемся
+> `pkg-mqm-sample` - сеть, к которой подключаемся
 > `browser` - имя контейнера, указан в файле `run.sh`

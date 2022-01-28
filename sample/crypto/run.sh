@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BIN=$(dirname "$([[ $0 == /* ]] && echo "$0" || echo "$PWD/${0#./}")")
-IMG_CRYPTO="mqpro/crypto:1"
+IMG_CRYPTO="mqm/crypto:1"
 
 rm -rf "${BIN:?}/keystore1"
 rm -rf "${BIN:?}/keystore2"

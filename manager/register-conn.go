@@ -4,24 +4,24 @@ import (
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
 )
 
-func (m *Mqpro) RegisterConn() <-chan *ibmmq.MQQueueManager {
+func (m *Manager) RegisterConn() <-chan *ibmmq.MQQueueManager {
   if m.IsDisconn() {
     _ = m.Connect()
   }
   return m.registerConn()
 }
 
-func (m *Mqpro) registerConn() <-chan *ibmmq.MQQueueManager {
+func (m *Manager) registerConn() <-chan *ibmmq.MQQueueManager {
   ch := make(chan *ibmmq.MQQueueManager)
   m.chRegisterConn <- ch
   return ch
 }
 
-func (m *Mqpro) fireConn() {
+func (m *Manager) fireConn() {
   m.chRegisterConn <- nil
 }
 
-func (m *Mqpro) workerRegisterConn() {
+func (m *Manager) workerRegisterConn() {
   var (
     l        = m.log.WithField("fn", "workerRegisterConn")
     origCap  = int32(100)

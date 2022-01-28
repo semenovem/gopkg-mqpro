@@ -63,32 +63,36 @@ _USER_LABEL_=         # Персональный сертификат польз
 _USER_DNAME_=         # DN сертификата пользователя
 _USER_CERT_REQ_=      # Путь к запросу на выпуск сертификата
 _USER_CERT_=          # Сертификат пользователя
+_CONF_KEYSTORE_PATH_= # Путь к хранилищу, указываемый в файле конфигурации
 
 # Применить значения из переменных окружения
 applyEnvVar() {
-  [ -z "$_KEYSTORE_DIR_" ] && [ "$CFG_KEYSTORE_DIR_NAME" ] \
-    && _KEYSTORE_DIR_="$CFG_KEYSTORE_DIR_NAME"
+  [ -z "$_KEYSTORE_DIR_" ] && [ "$MQM_CRYPTO_KEYSTORE_DIR_NAME" ] \
+    && _KEYSTORE_DIR_="$MQM_CRYPTO_KEYSTORE_DIR_NAME"
 
-  [ -z "$_KEYSTORE_NAME_" ] && [ "$CFG_KEYSTORE_NAME" ] \
-    && _KEYSTORE_NAME_="$CFG_KEYSTORE_NAME"
+  [ -z "$_KEYSTORE_NAME_" ] && [ "$MQM_CRYPTO_KEYSTORE_NAME" ] \
+    && _KEYSTORE_NAME_="$MQM_CRYPTO_KEYSTORE_NAME"
 
-  [ -z "$_KEYSTORE_PASSWORD_" ] && [ "$CFG_KEYSTORE_PASSWORD" ] \
-    && _KEYSTORE_PASSWORD_="$CFG_KEYSTORE_PASSWORD"
+  [ -z "$_KEYSTORE_PASSWORD_" ] && [ "$MQM_CRYPTO_KEYSTORE_PASSWORD" ] \
+    && _KEYSTORE_PASSWORD_="$MQM_CRYPTO_KEYSTORE_PASSWORD"
 
-  [ -z "$_KEYSTORE_TYPE_" ] && [ "$CFG_KEYSTORE_TYPE" ] \
-    && _KEYSTORE_TYPE_="$CFG_KEYSTORE_TYPE"
+  [ -z "$_KEYSTORE_TYPE_" ] && [ "$MQM_CRYPTO_KEYSTORE_TYPE" ] \
+    && _KEYSTORE_TYPE_="$MQM_CRYPTO_KEYSTORE_TYPE"
 
-  [ -z "$_USER_LABEL_" ] && [ "$CFG_USER_CERT_LABEL" ] \
-    && _USER_LABEL_="$CFG_USER_CERT_LABEL"
+  [ -z "$_USER_LABEL_" ] && [ "$MQM_CRYPTO_USER_CERT_LABEL" ] \
+    && _USER_LABEL_="$MQM_CRYPTO_USER_CERT_LABEL"
 
-  [ -z "$_USER_DNAME_" ] && [ "$CFG_USER_CERT_DNAME" ] \
-    && _USER_DNAME_="$CFG_USER_CERT_DNAME"
+  [ -z "$_USER_DNAME_" ] && [ "$MQM_CRYPTO_USER_CERT_DNAME" ] \
+    && _USER_DNAME_="$MQM_CRYPTO_USER_CERT_DNAME"
 
-  [ -z "$_USER_CERT_REQ_" ] && [ "$CFG_USER_CERT_REQ" ] \
-    && _USER_CERT_REQ_="$CFG_USER_CERT_REQ"
+  [ -z "$_USER_CERT_REQ_" ] && [ "$MQM_CRYPTO_USER_CERT_REQ" ] \
+    && _USER_CERT_REQ_="$MQM_CRYPTO_USER_CERT_REQ"
 
-  [ -z "$_USER_CERT_" ] && [ "$CFG_USER_CERT" ] \
-    && _USER_CERT_="$CFG_USER_CERT"
+  [ -z "$_USER_CERT_" ] && [ "$MQM_CRYPTO_USER_CERT" ] \
+    && _USER_CERT_="$MQM_CRYPTO_USER_CERT"
+
+  [ -z "$_CONF_KEYSTORE_PATH_" ] && [ "$MQM_CRYPTO_CONF_KEYSTORE_PATH" ] \
+    && _CONF_KEYSTORE_PATH_="$MQM_CRYPTO_CONF_KEYSTORE_PATH"
 }
 
 applyEnvVar
@@ -111,15 +115,16 @@ unset applyEnvVar
 
 # Установка дефолтных значений
 if [ -z "$_KEYSTORE_NAME_" ]; then
-  WARN "Не установлено название хранилища [CFG_KEYSTORE_NAME]. Значение по умолчанию '$_DEFAULT_KEYSTORE_NAME_'"
+  WARN "Не установлено название хранилища [MQM_CRYPTO_KEYSTORE_NAME]. Значение по умолчанию '$_DEFAULT_KEYSTORE_NAME_'"
   _KEYSTORE_NAME_="$_DEFAULT_KEYSTORE_NAME_"
 fi
 
 if [ -z "$_KEYSTORE_TYPE_" ]; then
-  WARN "Не установлен тип хранилища [CFG_KEYSTORE_TYPE]. Значение по умолчанию '$_DEFAULT_KEYSTORE_TYPE_'"
+  WARN "Не установлен тип хранилища [MQM_CRYPTO_KEYSTORE_TYPE]. Значение по умолчанию '$_DEFAULT_KEYSTORE_TYPE_'"
   _KEYSTORE_TYPE_="$_DEFAULT_KEYSTORE_TYPE_"
 fi
 
+# Файл .sth содержит пароль и работа с хранилищем возможна без его знания
 notExistFileSth() {
   [ -f "${_KEYSTORE_DIR_}/${_KEYSTORE_NAME_}.sth" ] && return 1
   return 0
@@ -129,7 +134,7 @@ notExistFileSth() {
 enterInitData() {
   local pas1 pas2
   if [ -z "$_KEYSTORE_DIR_" ]; then
-    WARN "Не установлен путь к директории хранилища [CFG_KEYSTORE_DIR_NAME]"
+    WARN "Не установлен путь к директории хранилища [MQM_CRYPTO_KEYSTORE_DIR_NAME]"
     while true; do
       pickDir || break
 
@@ -144,7 +149,7 @@ enterInitData() {
   fi
 
   if [ -z "$_KEYSTORE_PASSWORD_" ] && notExistFileSth; then
-    WARN "Не установлен пароль хранилища [CFG_KEYSTORE_PASSWORD]"
+    WARN "Не установлен пароль хранилища [MQM_CRYPTO_KEYSTORE_PASSWORD]"
     while true; do
       read -rsp "Пароль: " pas1 && echo
       read -rsp "Повторите пароль: " pas2 && echo
@@ -156,12 +161,12 @@ enterInitData() {
   fi
 
   if [ -z "$_USER_LABEL_" ]; then
-    WARN "Не установлена метка сертификата [CFG_USER_CERT_LABEL]"
+    WARN "Не установлена метка сертификата [MQM_CRYPTO_USER_CERT_LABEL]"
     read -rp "Метка сертификата: " _USER_LABEL_ && echo
   fi
 
   if [ -z "$_USER_DNAME_" ]; then
-    WARN "Не установлено DN (distinguished name) [CFG_USER_CERT_DNAME]"
+    WARN "Не установлено DN (distinguished name) [MQM_CRYPTO_USER_CERT_DNAME]"
     read -rp "Метка сертификата: " _USER_DNAME_ && echo
   fi
 }
@@ -179,6 +184,8 @@ unset enterInitData
   && _USER_CERT_REQ_="${_KEYSTORE_DIR_}/${_USER_LABEL_}-cert-req.pem"
 
 [ -z "$_USER_CERT_" ] && _USER_CERT_="${_KEYSTORE_DIR_}/${_USER_LABEL_}-cert.pem"
+
+_CONF_KEYSTORE_PATH_="${_CONF_KEYSTORE_PATH_}/${_KEYSTORE_NAME_}"
 
 # debug вывод конфигурации
 if [ "$_DEBUG_" ]; then
@@ -201,13 +208,13 @@ fi
 # Контроль корректности настроек
 ERR=
 
-[ -z "$_KEYSTORE_DIR_" ]      && ERR=1 && ERR "не установлено CFG_KEYSTORE_DIR_NAME"
-[ -z "$_KEYSTORE_NAME_" ]     && ERR=1 && ERR "не установлено CFG_KEYSTORE_NAME"
+[ -z "$_KEYSTORE_DIR_" ]      && ERR=1 && ERR "не установлено MQM_CRYPTO_KEYSTORE_DIR_NAME"
+[ -z "$_KEYSTORE_NAME_" ]     && ERR=1 && ERR "не установлено MQM_CRYPTO_KEYSTORE_NAME"
 [ -z "$_KEYSTORE_PASSWORD_" ] \
   && notExistFileSth \
-  && ERR=1 && ERR "не установлено CFG_KEYSTORE_PASSWORD"
-[ -z "$_USER_LABEL_" ]        && ERR=1 && ERR "не установлено CFG_USER_CERT_LABEL"
-[ -z "$_USER_DNAME_" ]        && ERR=1 && ERR "не установлено CFG_USER_CERT_DNAME"
+  && ERR=1 && ERR "не установлено MQM_CRYPTO_KEYSTORE_PASSWORD"
+[ -z "$_USER_LABEL_" ]        && ERR=1 && ERR "не установлено MQM_CRYPTO_USER_CERT_LABEL"
+[ -z "$_USER_DNAME_" ]        && ERR=1 && ERR "не установлено MQM_CRYPTO_USER_CERT_DNAME"
 
 [ "$ERR" ] && exit 100
 

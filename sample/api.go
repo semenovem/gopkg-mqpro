@@ -81,19 +81,19 @@ func apiClose(w http.ResponseWriter, _ *http.Request) {
   fmt.Fprintf(w, "end\n")
 }
 
-// Включает режим DevMode для библиотеки mqpro
+// Включает режим DevMode для библиотеки mqm
 // curl host:port/on-dev-mode
 func onDevMode(w http.ResponseWriter, _ *http.Request) {
-  fmt.Println("Включает режим DevMode для библиотеки mqpro")
+  fmt.Println("Включает режим DevMode для библиотеки mqm")
   mq.SetDevMode(true)
   printCfg()
   _, _ = fmt.Fprint(w, "[on-dev-mode] Ok\n")
 }
 
-// Выключает режим DevMode для библиотеки mqpro
+// Выключает режим DevMode для библиотеки mqm
 // curl host:port/off-dev-mode
 func offDevMode(w http.ResponseWriter, _ *http.Request) {
-  fmt.Println("Выключает режим DevMode для библиотеки mqpro")
+  fmt.Println("Выключает режим DevMode для библиотеки mqm")
   mq.SetDevMode(false)
   printCfg()
   _, _ = fmt.Fprint(w, "[off-dev-mode] Ok\n")
