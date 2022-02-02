@@ -1,12 +1,8 @@
 VERSION := "1.0"
 
-IMG := "pkg-mqm-sample:$(VERSION)"
-IMG_DEV := "$(IMG)-dev"
-IMG_CURL := "curl:1"
-
-NETWORK := "pkg-mqm-sample"
-
-
+IMG := "mqm/sample:$(VERSION)"
+IMG_CURL := "mqm/sample/curl:1"
+NETWORK := "net-mqm-sample"
 SHELL = /bin/bash
 
 # -----------------
@@ -39,21 +35,16 @@ install:
 	@docker pull "ibmcom/mq:9.2.2.0-r1"
 
 
-# Deprecated
-## docker
-.PHONY: docker
-docker:
-	@docker build \
- 		-f ./Dockerfile \
- 		-t "$(IMG)" .
+## build-image
+.PHONY: build-image
+build-image:
+	@docker build -f ./Dockerfile -t "$(IMG)" ./
 
 
 ## build-image-curl
 .PHONY: build-image-curl
 build-image-curl:
-	@docker build \
- 		-f ../docker/curl.dockerfile \
- 		-t "$(IMG_CURL)" .
+	@docker build -f ../images/curl.dockerfile -t "$(IMG_CURL)" ./
 
 
 ## crypto - gen crypto
@@ -65,17 +56,18 @@ crypto:
 
 ## curl - launching a container attached to the docker network to execute curl requests
 .PHONY: curl
-curl:
+curl: build-image-curl net
 	@docker run -it --rm \
-	-v "${PWD}/cfg/curl-source.sh:/shell.sh:ro" \
-	--network $(NETWORK) \
-	$(IMG_CURL) sh -c \
-     "source /shell.sh && echo 'source /shell.sh' && echo '| Для выхода из контейнера ctrl+D' && sh"
+		-v "${PWD}/cfg/curl-source.sh:/curl-source.sh:ro" \
+		-v "${PWD}/cfg/smoke-test.sh:/smoke-test.sh:ro" \
+		--network $(NETWORK) \
+		$(IMG_CURL) \
+		bash -c "echo '| Для выхода из контейнера ctrl+D' && source /curl-source.sh && bash"
 
 
 ## dev - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client1.env`
 .PHONY: dev
-dev:
+dev: build-image
 	@make CONFIG=client1.env \
 		NAME_CONTAINER=client1 \
 		HOSTNAME=c \
@@ -85,7 +77,7 @@ dev:
 
 ## dev2 - контейнер для разработки. Запуск приложения внутри контейнера: `dev/run.sh client2.env`
 .PHONY: dev2
-dev2:
+dev2: build-image
 	@make CONFIG=client2.env \
 		NAME_CONTAINER=client2 \
 		HOSTNAME=c2 \

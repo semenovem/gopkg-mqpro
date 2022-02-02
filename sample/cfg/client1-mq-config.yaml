@@ -18,6 +18,7 @@ header: rfh2 # [prop|rfh2] значение по умолчанию - prop
 rfh2OffRootTag: false
 #rfh2RootTag: usr # по умолчанию <usr>
 
+# Данные очередей
 queues:
   # Первая пара очередей отправить | получить
   - alias: aliasQueueFooPut
@@ -25,8 +26,8 @@ queues:
   - alias: aliasQueueFooGet
     name: APP2.APP1.FOO.Q:get,browse
 
-  # Вторая пара отправить | получить
-#  - alias: aliasQueueBarPut
-#    name: SYS1.SYS2.BAR.RQ:put
-#  - alias: aliasQueueBarGet
-#    name: SYS2.SYS1.BAR.Q:get,browse
+# Абстракция над очередями, создающая двух направленный канал
+channels:
+  - alias: aliasQueueBar
+    put: BHVE.IIB.GET_PAYMENT.REQ.RQ
+    get: IIB.BHVE.GET_PAYMENT.RES.Q

@@ -7,7 +7,7 @@ rm -rf "${BIN:?}/keystore1"
 rm -rf "${BIN:?}/keystore2"
 rm -rf "${BIN:?}/server"
 
-
+# для отладки/разработки
 #docker run -it --rm \
 #  -v "${BIN:?}/instruct-gen.sh:/app/instruct-gen.sh:ro" \
 #  "$IMG_CRYPTO" \

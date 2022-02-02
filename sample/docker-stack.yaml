@@ -1,7 +1,7 @@
 version: '3.8'
 
 networks:
-  pkg-mqm-sample:
+  net-mqm-sample:
     external: true
 
 
@@ -40,7 +40,7 @@ x-logging: &logging-base
 x-base: &base
   deploy: *deploy-base
   networks:
-      - pkg-mqm-sample
+    - net-mqm-sample
 
 
 x-base: &base-ibmmq
@@ -89,6 +89,3 @@ services:
       - MQ_APP_PASSWORD=11
       - MQ_ENABLE_METRICS=true
       - MQ_ENABLE_EMBEDDED_WEB_SERVER=true
-#    volumes:
-#      - ./cfg/ibmmq/cmd2.sh:/app/cmd.sh:ro
-#      - ./crypto/server:/etc/mqm/pki/keys/mykey:ro
