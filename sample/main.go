@@ -3,7 +3,7 @@ package main
 import (
   "context"
   "fmt"
-  mqm "github.com/semenovem/mqm/v2"
+  "github.com/semenovem/mqm/v2"
   "github.com/sirupsen/logrus"
   "net/http"
   "os"
@@ -13,15 +13,15 @@ import (
 )
 
 var (
-  log                  = logger()
-  rootCtx, rootCtxCanc = context.WithCancel(context.Background())
-  logIbmmq             = log.WithField("sys", "mq")
-  mq          = mqm.New(rootCtx, logIbmmq)
-  mqQueFooPut = mq.NewQueue("aliasQueueFooPut")
-  mqQueFooGet = mq.NewQueue("aliasQueueFooGet")
-
-  //mqQueBarPut = mq.NewQueue("aliasQueueBarPut")
-  //mqQueBarGet = mq.NewQueue("aliasQueueBarGet")
+  log                 = logger()
+  rootCtx, rootCtxEsc = context.WithCancel(context.Background())
+  logIbmmq            = log.WithField("sys", "mq")
+  mq                  = mqm.New(rootCtx, logIbmmq)
+  mqQueFooPut         = mq.NewQueue("aliasQueueFooPut")
+  mqQueFooGet         = mq.NewQueue("aliasQueueFooGet")
+  mqBar               = mq.NewPipe("aliasQueueBar")
+  mqQuePut            mqm.Queue
+  mqQueGet            mqm.Queue
 )
 
 func logger() *logrus.Entry {
@@ -31,11 +31,17 @@ func logger() *logrus.Entry {
 }
 
 func init() {
+  mqQuePut = mqQueFooPut
+  mqQueGet = mqQueFooGet
+
+  mqQuePut = mqBar
+  mqQueGet = mqBar
+
   go func() {
     sig := make(chan os.Signal, 1)
     signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
     <-sig
-    rootCtxCanc()
+    rootCtxEsc()
   }()
   log.Logger.SetFormatter(formatter())
 }
@@ -50,7 +56,7 @@ func main() {
       log.Info(">>>>> Подключение к IBMMQ успешно")
     } else {
       log.Error("Err: ошибка запуска приложения:", err)
-      rootCtxCanc()
+      rootCtxEsc()
     }
   }()
 

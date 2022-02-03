@@ -38,7 +38,7 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
     Props:   props,
   }
 
-  err := mqQueFooGet.Put(ctx, msg)
+  err := mqQueGet.Put(ctx, msg)
   if err != nil {
     _, _ = fmt.Fprintf(w, "[ping] Error: %s\n", err.Error())
     return
@@ -49,7 +49,7 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
   fmt.Println()
   fmt.Println("Ждем ответа: ")
 
-  reply, err := mqQueFooGet.GetByCorrelId(ctx, msg.MsgId)
+  reply, err := mqQueGet.GetByCorrelId(ctx, msg.MsgId)
 
   if err != nil {
     fmt.Println("[ERROR] ошибка при получении сообщения по CorrelID")

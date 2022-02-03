@@ -32,12 +32,20 @@ type Config struct {
   Tls                bool   `env:"ENV_MQM_TLS" yaml:"tls"`
   KeyRepository      string `env:"ENV_MQM_KEY_REPOSITORY" yaml:"keyRepository"`
   MaxMsgLength       int32  `env:"ENV_MQM_MESSAGE_LENGTH" yaml:"maxMsgLength"`
-  Queues             []*Queues
+
+  Queues []QueCfg  `yaml:"queues"`
+  Pipes  []PipeCfg `yaml:"pipes"`
 }
 
-type Queues struct {
+type QueCfg struct {
   Alias string `yaml:"alias"`
   Name  string `yaml:"name"`
+}
+
+type PipeCfg struct {
+  Alias string `yaml:"alias"`
+  Put   string `yaml:"put"`
+  Get   string `yaml:"get"`
 }
 
 func (m *Mqm) isConfigured() bool {
@@ -75,7 +83,7 @@ func (m *Mqm) Cfg(c *Config) error {
   } else {
     if c.Rfh2RootTag == "" {
       m.log.Warnf("Не установлено значение корневого тега. "+
-        "Значение по умолчанию: Rfh2OffRootTag={%s}", queue.DefRootTagHeader)
+        "Значение по умолчанию: Rfh2OffRootTag=%s", queue.DefRootTagHeader)
       queCfg.Rfh2RootTag = queue.DefRootTagHeader
     } else {
       queCfg.Rfh2RootTag = c.Rfh2RootTag
@@ -98,7 +106,6 @@ func (m *Mqm) Cfg(c *Config) error {
     m.log.Error("пустое значение Channel")
     fatal = true
   }
-
   if c.LogLev != "" {
     lev, err := logrus.ParseLevel(c.LogLev)
     if err != nil {
@@ -106,6 +113,31 @@ func (m *Mqm) Cfg(c *Config) error {
       return err
     }
     m.log.Logger.SetLevel(lev)
+  }
+
+  if c.Queues != nil {
+    for _, qc := range c.Queues {
+      q := m.GetQueueByAlias(qc.Alias)
+      if q == nil {
+        m.log.Warnf("Очередь с алиасом {%s} не существует", qc.Alias)
+        continue
+      }
+      err := q.CfgByStr(qc.Name)
+      if err != nil {
+        fatal = true
+        m.log.Error(err)
+      }
+    }
+  }
+
+  if c.Pipes != nil {
+    for _, p := range c.Pipes {
+      err := m.cfgPipe(&p)
+      if err != nil {
+        fatal = true
+        m.log.Error(err)
+      }
+    }
   }
 
   if fatal {
@@ -142,24 +174,7 @@ func (m *Mqm) CfgYaml(file string) error {
   if err != nil {
     return err
   }
-  if err = m.Cfg(c); err != nil {
-    return err
-  }
-  if c.Queues == nil {
-    return nil
-  }
-  for _, qc := range c.Queues {
-    q := m.GetQueueByAlias(qc.Alias)
-    if q == nil {
-      m.log.Warnf("Очередь с алиасом {%s} не существует", qc.Alias)
-      continue
-    }
-    err = q.CfgByStr(qc.Name)
-    if err != nil {
-      return err
-    }
-  }
-  return nil
+  return m.Cfg(c)
 }
 
 // CfgEnv конфигурирование переменными окружения

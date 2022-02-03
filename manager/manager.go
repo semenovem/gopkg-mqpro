@@ -12,7 +12,7 @@ type Manager struct {
   log            *logrus.Entry
   rootCtx        context.Context
   ctx            context.Context
-  ctxCanc        context.CancelFunc
+  ctxEsc         context.CancelFunc
   mx             sync.Mutex                      // Подключение / отключение
   disconnDelay   time.Duration                   // Задержка перед разрывом соединения
   reconnDelay    time.Duration                   // Таймаут попыток подключения к MQ

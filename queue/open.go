@@ -29,7 +29,7 @@ func (q *Queue) Open() error {
   }
 
   q.UpdateBaseCfg()
-  q.ctx, q.ctxCanc = context.WithCancel(q.rootCtx)
+  q.ctx, q.ctxEsc = context.WithCancel(q.rootCtx)
   q.stateOpen()
 
   select {
@@ -50,7 +50,7 @@ func (q *Queue) Close() error {
     return ErrNotOpen
   }
 
-  q.ctxCanc()
+  q.ctxEsc()
   q.stateClose()
 
   q.mx.Lock()

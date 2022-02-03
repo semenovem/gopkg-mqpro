@@ -23,7 +23,7 @@ func (m *Manager) Connect() error {
     return ErrAlreadyConnected
   }
 
-  m.ctx, m.ctxCanc = context.WithCancel(m.rootCtx)
+  m.ctx, m.ctxEsc = context.WithCancel(m.rootCtx)
 
   m.stateConn()
 
@@ -99,7 +99,7 @@ func (m *Manager) Disconnect() error {
     return ErrNoEstablishedConnection
   }
 
-  m.ctxCanc()
+  m.ctxEsc()
   m.stateDisconn()
 
   m.mx.Lock()

@@ -119,8 +119,6 @@ func (q *Queue) errorHandler(err error) bool {
 
   if isNeedRestart && q.state == stateOpen {
     q.state = stateTransitional
-    //q.log.Debugf("errorHandler: %s", err.Error())
-
     q.chState <- stateErr
     return true
   }

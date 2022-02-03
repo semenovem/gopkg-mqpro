@@ -1,0 +1,68 @@
+# Пример файла конфигурации подключения к
+
+# Включает режим вывода содержимого сообщения
+devMode: false
+
+# Уровень логирования
+logLev: DEBUG
+
+# Хост/порт подключения
+host: mq1
+port: 1414
+
+# Имя менеджера
+manager: QMAPP1
+
+# Имя канала
+channel: DEV.APP.SVRCONN
+
+# [optional] Имя пользователя в менеджере
+user: app
+
+# [optional] Пароль пользователя
+pass: passw0rd
+
+# [optional] Имя приложения
+app:
+
+# [optional] [default: false] ssl подключения
+tls: true
+
+# Место расположения хранилища ключей
+# [required, если tls=true, или настроены политики ams]
+keyRepository: /mqs/mq-ams
+
+# Максимальный размер сообщений в байтах
+maxMsgLength: 5000
+
+# Тип отправляемых заголовков
+# [default: prop]
+header: rfh2 # [prop|rfh2] значение по умолчанию - prop
+
+# Отключает корневой тег для заголовков rhf2
+# [default: false]
+rfh2OffRootTag: false
+
+# Корневой тег
+# [default: usr]
+rfh2RootTag: usr
+
+# Данные очередей
+queues:
+  # Первая пара очередей отправить | получить.
+  # Алиас, который нужно указать в коде при создании очереди
+  - alias: aliasQueueFooPut
+    # имя очереди : права [put | get | browse]
+    name: APP1.APP2.FOO.RQ:put
+  - alias: aliasQueueFooGet
+    name: APP2.APP1.FOO.Q:get,browse
+
+# Абстракция над очередями, создающая двух направленный канал
+# нужно указать 2-е очереди
+pipes:
+  # Алиас, который нужно указать в коде при создании домена
+  - alias: aliasQueueBar
+    # Очередь отправки сообщений
+    put: BHVE.IIB.GET_PAYMENT.REQ.RQ
+    # Очередь получения сообщений
+    get: IIB.BHVE.GET_PAYMENT.RES.Q

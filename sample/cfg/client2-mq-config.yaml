@@ -1,4 +1,4 @@
-devMode: true
+devMode: false
 logLev: DEBUG
 
 host: mq2
@@ -13,10 +13,9 @@ tls: true
 keyRepository: /mqs/mq-ams
 maxMsgLength: 5000
 
-header: rfh2 # [prop|rfh2] значение по умолчанию - prop
+header: rfh2
 
 rfh2OffRootTag: false
-#rfh2RootTag: rtrtrt # по умолчанию <usr>
 
 queues:
   # Первая пара очередей отправить | получить
@@ -26,7 +25,7 @@ queues:
     name: APP1.APP2.FOO.Q:get,browse
 
   # Вторая пара отправить | получить
-#  - alias: aliasQueueBarPut
-#    name: SYS1.SYS2.BAR.RQ:put
-#  - alias: aliasQueueBarGet
-#    name: SYS2.SYS1.BAR.Q:get,browse
+pipes:
+  - alias: aliasQueueBar
+    put: APP2.APP1.FOO.RQ
+    get: APP1.APP2.FOO.Q

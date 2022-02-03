@@ -1,4 +1,4 @@
-devMode: true
+devMode: false
 logLev: DEBUG
 
 host: mq1
@@ -13,21 +13,17 @@ tls: true
 keyRepository: /mqs/mq-ams
 maxMsgLength: 5000
 
-header: rfh2 # [prop|rfh2] значение по умолчанию - prop
+header: rfh2
 
 rfh2OffRootTag: false
-#rfh2RootTag: usr # по умолчанию <usr>
 
-# Данные очередей
 queues:
-  # Первая пара очередей отправить | получить
   - alias: aliasQueueFooPut
     name: APP1.APP2.FOO.RQ:put
   - alias: aliasQueueFooGet
     name: APP2.APP1.FOO.Q:get,browse
 
-# Абстракция над очередями, создающая двух направленный канал
-channels:
+pipes:
   - alias: aliasQueueBar
-    put: BHVE.IIB.GET_PAYMENT.REQ.RQ
-    get: IIB.BHVE.GET_PAYMENT.RES.Q
+    put: APP1.APP2.FOO.RQ
+    get: APP2.APP1.FOO.Q

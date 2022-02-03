@@ -11,7 +11,7 @@ import (
 type Queue struct {
   rootCtx        context.Context
   ctx            context.Context
-  ctxCanc        context.CancelFunc
+  ctxEsc         context.CancelFunc
   log            *logrus.Entry
   base           provider
   manager        manager

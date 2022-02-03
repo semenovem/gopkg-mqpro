@@ -6,7 +6,9 @@ import (
 
 func (q *Queue) Browse(ctx context.Context) (<-chan *Msg, error) {
   ch, err := q.browse(ctx)
-  q.errorHandler(err)
+  if err != nil {
+    q.errorHandler(err)
+  }
 
   return ch, err
 }
@@ -32,16 +34,18 @@ func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
   )
 
   go func(w chan struct{}) {
-    var msg *Msg
-    cx, cancel := context.WithCancel(ctx)
+    var (
+      msg        = &Msg{}
+      ll         = l.WithField("method", "BrowseGet")
+      oper       = operBrowseFirst
+      cx, cancel = context.WithCancel(ctx)
+    )
+
     defer cancel()
 
-    ll := l.WithField("method", "BrowseGet")
-    oper := operBrowseFirst
-
     for ctx.Err() == nil {
-      msg, err = q.get(cx, oper, nil, ll)
-      if err != nil || msg == nil {
+      err = q.get(cx, oper, msg, ll)
+      if err != nil || msg.MsgId == nil {
         break
       }
 

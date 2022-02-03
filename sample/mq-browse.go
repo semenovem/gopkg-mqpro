@@ -15,7 +15,7 @@ func onBrowse(w http.ResponseWriter, _ *http.Request) {
   ctx, canc := context.WithTimeout(rootCtx, time.Second*10)
   defer canc()
 
-  ch, err := mqQueFooGet.Browse(ctx)
+  ch, err := mqQueGet.Browse(ctx)
   if err != nil {
     fmt.Println("ERROR: ", err)
     return
@@ -24,6 +24,7 @@ func onBrowse(w http.ResponseWriter, _ *http.Request) {
   i := 0
   for msg := range ch {
     i++
+    //fmt.Printf(">>> %x\n", msg.MsgId)
     logMsgIn(msg)
   }
 

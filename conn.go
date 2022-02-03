@@ -2,7 +2,6 @@ package mqm
 
 import (
   "context"
-  "github.com/semenovem/mqm/v2/queue"
   "sync"
   "time"
 )
@@ -23,7 +22,7 @@ func (m *Mqm) Connect() error {
     return ErrAlreadyConnected
   }
 
-  m.ctx, m.ctxCanc = context.WithCancel(m.rootCtx)
+  m.ctx, m.ctxEsc = context.WithCancel(m.rootCtx)
 
   // Открытие очередей
   select {
@@ -54,7 +53,7 @@ func (m *Mqm) openQues() <-chan error {
     }
 
     wg.Add(1)
-    go func(q *queue.Queue) {
+    go func(q Queue) {
       defer wg.Done()
 
       err := q.Open()
@@ -81,11 +80,11 @@ func (m *Mqm) Disconnect() error {
   m.log.Trace("Request to disconnect from IBM MQ...")
 
   if !m.isConnected {
-    m.log.Warn(ErrNoEstablishedConnection)
-    return ErrNoEstablishedConnection
+    m.log.Warn(ErrNoConnection)
+    return ErrNoConnection
   }
 
-  m.ctxCanc()
+  m.ctxEsc()
 
   m.mx.Lock()
   defer m.mx.Unlock()

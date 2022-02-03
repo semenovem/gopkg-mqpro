@@ -43,5 +43,5 @@ func _putMsg() ([]byte, error) {
     Props:   props,
   }
 
-  return msg.MsgId, mqQueFooPut.Put(ctx, msg)
+  return msg.MsgId, mqQuePut.Put(ctx, msg)
 }
