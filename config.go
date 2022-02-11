@@ -210,9 +210,12 @@ func ParseCfgYaml(f string) (*Config, error) {
 
 func (m *Mqm) SetDevMode(v bool) {
   m.queueCfg.DevMode = v
-  for _, q := range m.queues {
-    q.UpdateBaseCfg()
-  }
+
+  // TODO конфигурация передается по ссылке, обновление дочерним объектам будет доступно сразу
+  // TODO нужно проверить !
+  //for _, q := range m.queues {
+  //  q.UpdateBaseCfg()
+  //}
 }
 
 func (m *Mqm) PrintSetCli(p string) {

@@ -32,7 +32,7 @@ func clearQueue(w http.ResponseWriter, _ *http.Request) {
     }
 
     if m != nil {
-      logMsgDel(m)
+      fmt.Println(">>>> удалено сообщение: ", formatMsgId(msg.MsgId))
     }
   }
 

@@ -43,6 +43,7 @@ func init() {
     <-sig
     rootCtxEsc()
   }()
+
   log.Logger.SetFormatter(formatter())
 }
 
@@ -60,8 +61,6 @@ func main() {
     }
   }()
 
-  //mqQueFooGet.RegisterInMsg(hndIncomingMsg)
-
   // api
   if cfg.ApiPort != 0 {
     go func() {
@@ -72,10 +71,15 @@ func main() {
     }()
   }
 
-  if cfg.SimpleSubscriber || cfg.Mirror {
-    //subscr()
+  if cfg.Subscribe {
+    subscr()
   }
 
   <-rootCtx.Done()
   time.Sleep(time.Millisecond * 100)
+}
+
+func formatMsgId(b []byte) string {
+  s := fmt.Sprintf("%x", b)
+  return s[:4] + "..." + s[30:]
 }

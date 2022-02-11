@@ -6,11 +6,14 @@ import (
   "github.com/ibm-messaging/mq-golang/v5/ibmmq"
   "github.com/pkg/errors"
   "github.com/sirupsen/logrus"
+  "time"
 )
+
+var pMqdmho = ibmmq.NewMQDMHO()
 
 func (q *Queue) Get(ctx context.Context, msg *Msg) error {
   var (
-    l   *logrus.Entry
+    l    *logrus.Entry
     oper queueOper
   )
   if msg.MsgId != nil {
@@ -55,7 +58,20 @@ func (q *Queue) GetByMsgId(ctx context.Context, msgId []byte) (*Msg, error) {
   return msg, err
 }
 
-func (q *Queue) get(ctx context.Context, op queueOper, msg *Msg, l *logrus.Entry) error {
+// Получение сообщения
+func (q *Queue) get(ctx context.Context, op queueOper, msg *Msg, l *logrus.Entry) (err error) {
+  var (
+    datalen int
+    buffer  = make([]byte, 0, 1024)
+    props   map[string]interface{}
+    conn    *mqConn
+    getmqmd = ibmmq.NewMQMD()
+    gmo     = ibmmq.NewMQGMO()
+    cmho    = ibmmq.NewMQCMHO()
+    off     = false
+  )
+  gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
+
   if q.IsClosed() {
     l.Error(ErrNotOpen)
     return ErrNotOpen
@@ -66,11 +82,6 @@ func (q *Queue) get(ctx context.Context, op queueOper, msg *Msg, l *logrus.Entry
     return ErrBusySubsc
   }
 
-  var (
-    conn *mqConn
-    err  error
-  )
-
   if q.devMode {
     defer func() {
       if msg == nil {
@@ -80,62 +91,18 @@ func (q *Queue) get(ctx context.Context, op queueOper, msg *Msg, l *logrus.Entry
     }()
   }
 
-  q.mxMsg.Lock()
-  defer q.mxMsg.Unlock()
-
-  for {
-    select {
-    case <-ctx.Done():
-      l.Error(ErrInterrupted)
-      return ErrInterrupted
-    case conn = <-q.RegisterOpen():
-    }
-
-    err = q._get(op, msg, conn)
-    if err == nil {
-      return nil
-    }
-
-    if q.errorHandler(errors.Cause(err)) {
-      l.Warn(err)
-      continue
-    }
-
-    l.Error(err)
-    return err
-  }
-}
-
-// Получение сообщения
-func (q *Queue) _get(op queueOper, msg *Msg, conn *mqConn) error {
-  var (
-    datalen      int
-    err          error
-    mqrc         *ibmmq.MQReturn
-    buffer       = make([]byte, 0, 1024)
-    getMsgHandle ibmmq.MQMessageHandle
-    props        map[string]interface{}
-  )
-
-  getmqmd := ibmmq.NewMQMD()
-  gmo := ibmmq.NewMQGMO()
-  cmho := ibmmq.NewMQCMHO()
-  gmo.Options = ibmmq.MQGMO_NO_SYNCPOINT | ibmmq.MQGMO_PROPERTIES_IN_HANDLE
-
-  getMsgHandle, err = conn.m.CrtMH(cmho)
-  if err != nil {
-    return errors.Wrap(err, msgErrPropCreation)
-  }
-
   defer func() {
-    err = dltMh(getMsgHandle)
     if err != nil {
-      q.log.WithField("msg", fmt.Sprintf("%+v", msg)).
-        Warnf(msgErrPropDeletion, err)
+      l.Error(err)
+    }
+
+    if off {
+      err1 := gmo.MsgHandle.DltMH(pMqdmho)
+      if err1 != nil {
+        l.WithField("msg", fmt.Sprintf("%+v", msg)).Warnf(msgErrPropDeletion, err1)
+      }
     }
   }()
-
-  gmo.MsgHandle = getMsgHandle
 
   switch op {
   case operGet:
@@ -150,33 +117,85 @@ func (q *Queue) _get(op queueOper, msg *Msg, conn *mqConn) error {
   case operBrowseNext:
     gmo.Options |= ibmmq.MQGMO_BROWSE_NEXT
   default:
-    q.log.WithField("msg", fmt.Sprintf("%+v", msg)).
+    l.WithField("msg", fmt.Sprintf("%+v", msg)).
       Panicf("Unknown operation. queueOper = %v", op)
   }
 
-  for i := 0; i < 2; i++ {
-    buffer, datalen, err = conn.q.GetSlice(getmqmd, gmo, buffer)
-    if err == nil {
-      break
+  q.mxMsg.Lock()
+  defer q.mxMsg.Unlock()
+
+loopMain:
+  for {
+    select {
+    case <-ctx.Done():
+      return ErrInterrupted
+
+    case conn = <-q.RegisterOpen():
+      gmo.MsgHandle, err = conn.m.CrtMH(cmho)
+      off = true
+      if err != nil {
+        return errors.Wrap(err, msgErrPropCreation)
+      }
+
+    loopGet:
+      for {
+        buffer, datalen, err = conn.q.GetSlice(getmqmd, gmo, buffer)
+
+        if err == nil {
+          break loopMain
+        }
+
+        switch err.(*ibmmq.MQReturn).MQRC {
+
+        // Не достаточен размер выделенной памяти
+        case ibmmq.MQRC_TRUNCATED_MSG_FAILED:
+          buffer = make([]byte, 0, datalen)
+          continue
+
+        // Нет сообщений
+        case ibmmq.MQRC_NO_MSG_AVAILABLE:
+          if op == operGet || op == operBrowseNext {
+            msg.Erase()
+            return nil
+          }
+
+          select {
+          case <-time.After(q.waitInterval):
+          case <-ctx.Done():
+            msg.Erase()
+            return nil
+          }
+
+        // Ошибка получения сообщения
+        default:
+          if q.errorHandler(err) {
+            l.Warn(err)
+            break loopGet
+          } else {
+            return err
+          }
+        }
+      }
     }
 
-    mqrc = err.(*ibmmq.MQReturn)
-    switch mqrc.MQRC {
-    case ibmmq.MQRC_TRUNCATED_MSG_FAILED:
-      buffer = make([]byte, 0, datalen)
-      continue
-    case ibmmq.MQRC_NO_MSG_AVAILABLE:
-      msg.Erase()
-      err = nil
-      return nil
+    off = false
+    err1 := gmo.MsgHandle.DltMH(pMqdmho)
+    if err1 != nil {
+      l.Warnf(msgErrPropDeletion, err1)
     }
+  }
 
+  props, err = properties(gmo.MsgHandle)
+  if err != nil {
+    err = errors.Wrap(err, msgErrPropGetting)
     return err
   }
 
-  props, err = properties(getMsgHandle)
-  if err != nil {
-    return errors.Wrap(err, msgErrPropGetting)
+  // -------------
+  off = false
+  err1 := gmo.MsgHandle.DltMH(pMqdmho)
+  if err1 != nil {
+    l.Warnf(msgErrPropDeletion, err1)
   }
 
   msg.MsgId = getmqmd.MsgId

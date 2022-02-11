@@ -14,7 +14,12 @@ func (q *Queue) Browse(ctx context.Context) (<-chan *Msg, error) {
 }
 
 func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
-  l := q.log.WithField("method", "BrowseOpen")
+  var (
+    l = q.log.WithField("method", "BrowseOpen")
+    ch   = make(chan *Msg)
+    wait = make(chan struct{})
+    err  error
+  )
 
   if q.IsClosed() {
     l.Error(ErrNotOpen)
@@ -25,14 +30,6 @@ func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
     return nil, ErrBusySubsc
   }
 
-  l.Trace("Start open BROWSE")
-
-  var (
-    ch   = make(chan *Msg)
-    wait = make(chan struct{})
-    err  error
-  )
-
   go func(w chan struct{}) {
     var (
       msg        = &Msg{}
@@ -40,7 +37,6 @@ func (q *Queue) browse(ctx context.Context) (<-chan *Msg, error) {
       oper       = operBrowseFirst
       cx, cancel = context.WithCancel(ctx)
     )
-
     defer cancel()
 
     for ctx.Err() == nil {

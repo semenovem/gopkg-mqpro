@@ -35,6 +35,7 @@ type Queue struct {
   hndInMsg       func(*Msg)        // Обработчик сообщений
   chRegisterOpen chan chan *mqConn // Канал с подписками на открытие очереди
   alias          string
+  waitInterval   time.Duration // Время ожидания сообщения
 }
 
 // Данные подключений
@@ -61,6 +62,7 @@ func New(
     chRegisterOpen: make(chan chan *mqConn, 100),
     reconnectDelay: defReconnectDelay,
     delayClose:     defDelayClose,
+    waitInterval:   defWaitInterval,
   }
 
   go q.workerState()

@@ -32,15 +32,17 @@ func offRegisterInMsg(w http.ResponseWriter, _ *http.Request) {
   _, _ = fmt.Fprintf(w, "[unsub] Ok\n")
 }
 
+// Подписаться на входящие сообщения
 func subscr() {
-  cfg.SimpleSubscriber = true
+  cfg.Subscribe = true
   if !mqQueGet.IsSubscribed() {
     mqQueGet.RegisterInMsg(handlerInMsg)
   }
 }
 
+// Отписаться
 func unsubscr() {
-  cfg.SimpleSubscriber = false
+  cfg.Subscribe = false
   if mqQueGet.IsSubscribed() {
     mqQueGet.UnregisterInMsg()
   }
@@ -48,10 +50,8 @@ func unsubscr() {
 
 // Обработчик входящих сообщений
 func handlerInMsg(m *queue.Msg) {
-  fmt.Println("Вызван обработчик входящих сообщений")
-  fmt.Printf("Режим Mirror = %v", cfg.Mirror)
-  logMsgIn(m)
-
+  fmt.Printf("Обработчик входящих сообщений. Mirror = %t", cfg.Mirror)
+  fmt.Println(">>>>> ", formatMsgId(m.MsgId))
   if cfg.Mirror {
     mirror(m)
   }

@@ -92,7 +92,7 @@ func (q *Queue) IsClosed() bool {
   return q.state == stateClosed
 }
 
-// bool - планируется ли рестарт из-за представленной проблемы
+// bool - планируется ли рестарт подключения из-за представленной проблемы
 func (q *Queue) errorHandler(err error) bool {
   if err == nil {
     return false

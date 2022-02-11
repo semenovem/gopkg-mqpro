@@ -1,7 +1,8 @@
 package queue
 
+// RegisterOpen TODO добавить отмену отправки в канал данных, когда они уже не нужны
 func (q *Queue) RegisterOpen() <-chan *mqConn {
-  ch := make(chan *mqConn)
+  ch := make(chan *mqConn, 1)
   q.chRegisterOpen <- ch
   return ch
 }
@@ -34,7 +35,6 @@ func (q *Queue) workerRegisterOpen() {
       }(i)
     }
     ind = 0
-
     if capacity != origCap {
       capacity = origCap
       store = store[:capacity]

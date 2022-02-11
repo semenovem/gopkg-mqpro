@@ -32,8 +32,6 @@ func offMirror(w http.ResponseWriter, _ *http.Request) {
 
 // Отправляет зеркальный ответ
 func mirror(msg *queue.Msg) {
-  fmt.Println()
-  fmt.Println("Отправляем ответ: ")
   reply := &queue.Msg{
     CorrelId: msg.MsgId,
     Payload:  msg.Payload,
@@ -47,6 +45,6 @@ func mirror(msg *queue.Msg) {
   if err != nil {
     fmt.Println(">>>>> [ERROR]: Ошибка при отправке ответа")
   } else {
-    logMsgOut(msg)
+    fmt.Println(">>> отправлено сообщение: ", formatMsgId(msg.MsgId))
   }
 }

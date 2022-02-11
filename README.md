@@ -2,45 +2,94 @@
 
 Обертка над [mq-golang](https://github.com/ibm-messaging/mq-golang)
 
-
-#### Описание переменных окружения в файле `env.go`
-
-
-#### что может:
-- поддерживать одновременную работу с любом кол-во очередей
-- отправлять сообщения              `mq.Put(ctx, msg)`
-- получать очередное сообщение      `mq.Get(ctx, msg)`
-- получать сообщение по `CorrelId`  `mq.GetByCorrelId(ctx, msg)`
-- получать сообщение по `MsglId`    `mq.GetByMsgId(ctx, msg)`
-- просматривать сообщения           `mq.Browse(ctx)`
-- подписаться на сообщения          `mq.RegisterEvenInMsg(func)`
-
-
-# Примеры в sample
-
-
-#### Создание / подключение
+### Создание / инициализация / подключение
 ```
-// ctx - контекст приложения (context.Context)
-var mq = mqm.New(ctx)
+import "github.com/semenovem/mqm/v2"
 
-// Установить данные для подключения к менеджерам MQ
-// можно использовать стандартные env переменные (смотри в env.go)
-mq.UseDefEnv()
+var (
+  rootCtx, rootCtxEsc = context.WithCancel(context.Background())
+  log = logrus.NewEntry(logrus.New())
+  
+  mq = mqm.New(rootCtx, log)
+  que = mq.NewPipe("aliasQueue") // 'aliasQueue' - название пары очередей в файле конфигурации
+)
 
-TODO - добавить метод для добавления данных подключения
+func init() {
+  cfg, err := mqm.ParseCfgYaml('путь к файлу конфигурации')
+  if err != nil {
+    log.Errorf("Ошибка парсинга файла конфигурации MQM '%s'", err)
+  } else {
+    // Тут можно изменить/дополнить конфигурацию, например: 
+    cfg.Pass = "password"
+  
+    err = mq.Cfg(cfg)
+    if err != nil {
+      log.Error("Ошибка при установке конфигурации: ", err)
+    }
+  }
+}
 
-
-// Подключение
-// вернет ошибку только если не указанны данные для подключения
-// если в данный момент менеджер ibm mq не доступен - будет повторять попытки подключения
-// вернет `nil` после установки соединения с одним из менеджеров в каждой группе (get/put/browse)
-// запускать нужно в отдельной горутине, что бы не ждать
-//
-// если при создании `mqm.New(ctx)` был передан контекст, который при завершении работы приложения
-// будет закрыт cancel() - метод закрытия соединения с IMB MQ `mq.Disconnect()`
-// будет вызван автоматически
-// в противном случае в `func main` нужно добавить вызов `defer mq.Disconnect()`
-err := mq.Connect()
-
+func main() {
+  go func() {
+    err := mq.Connect()
+    if err != nil {
+      log.Panic("Не удалось запуститься")
+    }
+  }()
+}
 ```
+
+
+### Отправка сообщения
+```
+ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+defer cancel()
+
+// Свойства сообщения
+props := map[string]interface{}{
+  "foo": "10101001110110",
+  "BAR": "cb31e8610231",
+}
+
+payload := []byte(`{"HoldJetFuelPaymentMsg":{"id":"f021d4ec-27f5-41be-8af3-946e65686902","result":"OK"}}`)
+
+msg := &queue.Msg{
+  Payload: payload,
+  Props:   props,
+}
+
+err := que.Put(ctx, msg)
+
+fmt.Printf("%s\n", err)
+fmt.Printf("%+v\n", msg)
+```
+
+
+### Получение очередного сообщения
+```
+ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+defer cancel()
+
+var msg = &queue.Msg{}
+err := que.Get(ctx, msg)
+
+fmt.Printf("%s\n", err)
+fmt.Printf("%+v\n", msg)
+```
+
+
+
+### Получение сообщения по CorrelId
+```
+ctx, cancel := context.WithTimeout(rootCtx, time.Second*10)
+defer cancel()
+
+var CorrelId = []byte("x234123412341234213")
+
+var msg = &queue.Msg{ CorrelId: CorrelId}
+err := que.Get(ctx, msg)
+
+fmt.Printf("%s\n", err)
+fmt.Printf("%+v\n", msg)
+```
+

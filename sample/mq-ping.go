@@ -44,7 +44,7 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
     return
   }
 
-  logMsgOut(msg)
+  fmt.Println(">>> ping. отправлено сообщение: ", formatMsgId(msg.MsgId))
 
   fmt.Println()
   fmt.Println("Ждем ответа: ")
@@ -63,7 +63,7 @@ func mqPing(w http.ResponseWriter, _ *http.Request) {
     return
   }
 
-  logMsgIn(reply)
+  fmt.Println(">>>> ping: получено сообщение: ", formatMsgId(msg.MsgId))
 
   _, _ = fmt.Fprintf(w, "[ping] Ok. msgId: %x\n", reply.MsgId)
 }

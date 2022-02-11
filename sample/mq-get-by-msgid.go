@@ -64,7 +64,5 @@ func getMsgByMsgId(w http.ResponseWriter, r *http.Request) {
 
   fmt.Println("[INFO] получено сообщение с MsgID: ", id)
 
-  logMsgIn(msg)
-
   _, _ = fmt.Fprintf(w, "[msgid] Ok. msgId: %x\n", msg.MsgId)
 }

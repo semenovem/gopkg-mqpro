@@ -13,6 +13,7 @@ const (
   defReconnectDelay = time.Second * 3        // Тамаут повторных попыток
   defDelayClose     = time.Millisecond * 50  // Ожидание при закрытии очереди
   DefHeader         = HeaderBase
+  defWaitInterval   = time.Millisecond * 100 // Дефолтный интервал ожидания сообщения
 )
 
 var (

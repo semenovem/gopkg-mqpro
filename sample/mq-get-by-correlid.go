@@ -64,7 +64,5 @@ func getMsgByCorrelId(w http.ResponseWriter, r *http.Request) {
 
   fmt.Println("[INFO] получено сообщение с CorrelID: ", id)
 
-  logMsgIn(msg)
-
   _, _ = fmt.Fprintf(w, "[correl] Ok. msgId: %x\n", msg.MsgId)
 }

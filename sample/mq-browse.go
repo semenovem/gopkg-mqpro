@@ -12,8 +12,8 @@ import (
 func onBrowse(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Просмотр сообщений в очереди")
 
-  ctx, canc := context.WithTimeout(rootCtx, time.Second*10)
-  defer canc()
+  ctx, cancel := context.WithTimeout(rootCtx, time.Second*5)
+  defer cancel()
 
   ch, err := mqQueGet.Browse(ctx)
   if err != nil {
@@ -24,8 +24,7 @@ func onBrowse(w http.ResponseWriter, _ *http.Request) {
   i := 0
   for msg := range ch {
     i++
-    //fmt.Printf(">>> %x\n", msg.MsgId)
-    logMsgIn(msg)
+    fmt.Println(">> ", formatMsgId(msg.MsgId))
   }
 
   if i == 0 {
