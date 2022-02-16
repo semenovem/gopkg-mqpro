@@ -6,7 +6,7 @@
 - развернуть docker swarm
 - сборка контейнеров
 make build-image-curl
-make docker
+make build-image
 
 
 ```

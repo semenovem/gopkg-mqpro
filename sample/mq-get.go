@@ -18,7 +18,7 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
     err error
   )
 
-  async := true
+  async := false
 
   // -----------------------------------------------------------
   // Асинхронное получение множества сообщений
@@ -62,10 +62,6 @@ func getMsg(w http.ResponseWriter, _ *http.Request) {
     fmt.Println("#################################")
   }
   // -----------------------------------------------------------
-
-  //for i := 0; i < 200; i++ {
-  //  go _getMsg()
-  //}
 
   err = _getMsg(msg)
   if err != nil {

@@ -76,6 +76,7 @@ var (
   ErrConfigPathEmpty  = errors.New("ibm mq: configuration file path not specified")
   ErrChannelCfgNotSup = errors.New("ibm mq: channel configuration not supported")
   ErrNotFoundPipe     = errors.New("ibm mq: not found pipe by alias")
+  ErrNotInitialised   = errors.New("ibm mq: queue not initialized")
 )
 
 type Queue interface {

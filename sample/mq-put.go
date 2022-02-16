@@ -17,14 +17,14 @@ var mqPutFooCounter uint64 = 10000000000
 func putMsg(w http.ResponseWriter, _ *http.Request) {
   fmt.Println("Отправка сообщения в IBM MQ")
 
-  for i := 0; i < 500; i++ {
-  go func() {
-    _, err := _putMsg()
-    if err != nil {
-      fmt.Println(">>>>>> ERR: ", err)
-    }
-  }()
-  }
+  //for i := 0; i < 500; i++ {
+  //  go func() {
+  //    _, err := _putMsg()
+  //    if err != nil {
+  //      fmt.Println(">>>>>> ERR: ", err)
+  //    }
+  //  }()
+  //}
 
   msg, err := _putMsg()
   if err != nil {
@@ -43,7 +43,7 @@ func _putMsg() (*queue.Msg, error) {
 
   // Свойства сообщения
   props := map[string]interface{}{
-    "foo":  strconv.FormatUint(mqPutFooCounter, 10),
+    "foo": strconv.FormatUint(mqPutFooCounter, 10),
     "BAR": "cb31e8610231",
   }
 
