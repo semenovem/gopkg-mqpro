@@ -26,11 +26,6 @@ func properties(getMsgHandle ibmmq.MQMessageHandle) (map[string]interface{}, err
   return props, nil
 }
 
-func dltMh(mh ibmmq.MQMessageHandle) error {
-  dmho := ibmmq.NewMQDMHO()
-  return mh.DltMH(dmho)
-}
-
 func setProps(h *ibmmq.MQMessageHandle, props map[string]interface{}, l *logrus.Entry) error {
   var err error
   smpo := ibmmq.NewMQSMPO()

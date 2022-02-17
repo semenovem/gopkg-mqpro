@@ -119,7 +119,7 @@ func (q *Queue) _put(conn *mqConn, msg *Msg, payload []byte, l *logrus.Entry) er
     pmo.OriginalMsgHandle = putMsgHandle
 
     defer func() {
-      err = dltMh(putMsgHandle)
+      err = putMsgHandle.DltMH(ibmmq.NewMQDMHO())
       if err != nil {
         l.Warnf(msgErrPropDeletion, err)
       }

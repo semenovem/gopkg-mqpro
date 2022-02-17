@@ -3,13 +3,13 @@ package mqm
 import (
   "context"
   "github.com/semenovem/mqm/v2/queue"
-  "time"
 )
 
 type Pipe struct {
   get   Queue
   put   Queue
   alias string
+  hnd   func(*queue.Msg)
 }
 
 func (m *Mqm) cfgPipe(cfg *PipeCfg) error {
@@ -22,12 +22,16 @@ func (m *Mqm) cfgPipe(cfg *PipeCfg) error {
   p.put = m.NewQueue(cfg.Alias + "_put")
   p.get = m.NewQueue(cfg.Alias + "_get")
 
-  err := p.put.CfgByStr(cfg.Put+":put")
+  if p.hnd != nil {
+    p.RegisterInMsg(p.hnd)
+  }
+
+  err := p.put.CfgByStr(cfg.Put + ":put")
   if err != nil {
     return err
   }
 
-  err = p.get.CfgByStr(cfg.Get+":get,browse")
+  err = p.get.CfgByStr(cfg.Get + ":get,browse")
   if err != nil {
     return err
   }
@@ -46,7 +50,11 @@ func (m *Mqm) findPipeByAlias(a string) *Pipe {
 
 // NewPipe Объект канала (имеет в своем составе две очереди: отправка/получение)
 func (m *Mqm) NewPipe(a string) Queue {
-  p := &Pipe{alias: a}
+  p := &Pipe{
+    alias: a,
+    get:   &plug{log: m.log.WithFields(map[string]interface{}{"alias": a, "get": "_"})},
+    put:   &plug{log: m.log.WithFields(map[string]interface{}{"alias": a, "put": "_"})},
+  }
   m.pipes = append(m.pipes, p)
   return p
 }
@@ -82,16 +90,6 @@ func (c *Pipe) CfgByStr(_ string) error {
 
 func (c *Pipe) IsConfigured() bool {
   return c.put.IsConfigured() && c.get.IsConfigured()
-}
-
-func ttt() error {
-  time.Sleep(time.Millisecond * 500)
-  return nil
-}
-
-func ttt2() error {
-  time.Sleep(time.Millisecond * 200)
-  return nil
 }
 
 func (c *Pipe) Open() error {
@@ -137,8 +135,22 @@ func (c *Pipe) IsSubscribed() bool {
 }
 
 func (c *Pipe) RegisterInMsg(hnd func(*queue.Msg)) {
-  c.get.RegisterInMsg(hnd)
+  c.hnd = hnd
+
+  switch c.get.(type) {
+  case *queue.Queue:
+    c.get.RegisterInMsg(hnd)
+  }
 }
+
 func (c *Pipe) UnregisterInMsg() {
-  c.get.UnregisterInMsg()
+  c.hnd = nil
+  switch c.get.(type) {
+  case *queue.Queue:
+    c.get.UnregisterInMsg()
+  }
+}
+
+func (c *Pipe) Ready() bool {
+  return c.get.Ready() && c.put.Ready()
 }
