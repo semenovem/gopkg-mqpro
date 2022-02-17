@@ -150,3 +150,7 @@ func (c *Pipe) UnregisterInMsg() {
     c.get.UnregisterInMsg()
   }
 }
+
+func (c *Pipe) Ready() bool {
+  return c.get.Ready() && c.put.Ready()
+}

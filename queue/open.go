@@ -11,8 +11,6 @@ func (q *Queue) Open() error {
   q.mx.Lock()
   defer q.mx.Unlock()
 
-  q.log.Trace("Запрос на открытие очереди")
-
   if q.IsOpen() {
     q.log.Warn(ErrAlreadyOpen)
     return ErrAlreadyOpen

@@ -94,4 +94,5 @@ type Queue interface {
   IsSubscribed() bool
   RegisterInMsg(hnd func(*queue.Msg))
   UnregisterInMsg()
+  Ready() bool
 }

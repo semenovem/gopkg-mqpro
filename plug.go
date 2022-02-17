@@ -54,20 +54,30 @@ func (p plug) Open() error {
   p.log.Panic(ErrNotInitialised)
   return nil
 }
+
 func (p plug) Close() error {
   p.log.Panic(ErrNotInitialised)
   return nil
 }
+
 func (p plug) UpdateBaseCfg() {
   p.log.Panic(ErrNotInitialised)
 }
+
 func (p plug) IsSubscribed() bool {
   p.log.Panic(ErrNotInitialised)
   return false
 }
+
 func (p plug) RegisterInMsg(func(*queue.Msg)) {
   p.log.Panic(ErrNotInitialised)
 }
+
 func (p plug) UnregisterInMsg() {
   p.log.Panic(ErrNotInitialised)
+}
+
+func (p plug) Ready() bool {
+  p.log.Panic(ErrNotInitialised)
+  return false
 }

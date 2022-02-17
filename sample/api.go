@@ -7,6 +7,7 @@ import (
 
 func init() {
   http.HandleFunc("/", api404)
+  http.HandleFunc("/ready", apiReady)
 
   http.HandleFunc("/get", getMsg)
   http.HandleFunc("/correl/", getMsgByCorrelId)
@@ -40,6 +41,15 @@ func api404(w http.ResponseWriter, _ *http.Request) {
   _, _ = fmt.Fprintf(w, "404\nuse: [/ping, /on-mirror, /off-mirror,"+
     " /on-dev-mode, /off-dev-mode,"+
     "/get, /correl, /msgid, /config, /clear, /sub, /unsub, /browse, /put]\n")
+}
+
+func apiReady(w http.ResponseWriter, _ *http.Request) {
+  _, _ = fmt.Fprintf(w, "[ready] Ok. pipe:%s=%t. "+
+    "queueGet:%s=%t. "+
+    "queuePut:%s=%t.\n",
+    mqBar.Alias(), mqBar.Ready(),
+    mqQueFooGet.Alias(), mqQueFooGet.Ready(),
+    mqQueFooPut.Alias(), mqQueFooPut.Ready())
 }
 
 func apiConn(w http.ResponseWriter, _ *http.Request) {
